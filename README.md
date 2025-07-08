@@ -6,7 +6,7 @@
 1. Клонирайте репозитория.
 2. Настройте средата за разработка.
 3. Инсталирайте зависимостите с `npm install`.
-4. Стартирайте worker сървъра с `npm start`.
+4. Стартирайте worker сървъра локално с `wrangler dev` (може и чрез `npm start`).
 
 ## Структура на проекта
 - `src/` – изходен код (предстои създаване).
@@ -27,7 +27,8 @@
 ## Деплой с Cloudflare Wrangler
 1. Инсталирайте `wrangler` с `npm install -g wrangler` и се впишете с `wrangler login`.
 2. Попълнете идентификаторите на KV пространствата в `wrangler.toml`.
-3. Използвайте `wrangler deploy`, за да качите worker-а в Cloudflare.
+3. Тествайте локално с `wrangler dev`.
+4. Използвайте `wrangler deploy` (или `npm run deploy`) за публикуване на worker-а.
 
 ## Принос
 Моля, използвайте Pull Request при предлагане на промени.
