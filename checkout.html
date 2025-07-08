@@ -320,10 +320,23 @@
                     }
                 };
 
-                console.log("Поръчката е готова за изпращане към бекенд:", fullOrder);
-                alert("Поръчката е приета успешно! (Проверете конзолата за детайли)");
-                // Тук би се извикал fetch() към бекенд endpoint.
-                // localStorage.removeItem('cart'); // Почистване на количката след успешна поръчка.
+                fetch('/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fullOrder)
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Server error');
+                    return res.json();
+                })
+                .then(() => {
+                    localStorage.removeItem('cart');
+                    alert('Поръчката е приета успешно!');
+                })
+                .catch(err => {
+                    console.error('Грешка при изпращане на поръчката:', err);
+                    alert('Възникна грешка. Опитайте по-късно.');
+                });
             }
         });
         
