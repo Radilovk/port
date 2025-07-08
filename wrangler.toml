@@ -5,11 +5,11 @@ compatibility_date = "2024-04-05"
 # KV пространствата съхраняват поръчките и съдържанието на сайта.
 [[kv_namespaces]]
 binding = "ORDERS"
-# Попълнете идентификаторите след създаване на namespace
-id = ""
-preview_id = ""
+# Идентификаторите са добавени след създаване на namespace
+id = "b2891ffe523048ae87cf9c4549d6ab49"
+preview_id = "b2891ffe523048ae87cf9c4549d6ab49"
 
 [[kv_namespaces]]
 binding = "PAGE_CONTENT"
-id = ""
-preview_id = ""
+id = "d220db696e414b7cb3da2b19abd53d0f"
+preview_id = "d220db696e414b7cb3da2b19abd53d0f"
