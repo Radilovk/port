@@ -34,6 +34,10 @@ npm start
 ## Cloudflare Workers
 Cloudflare Workers е безсървърна среда и се различава от Node изпълнението на `worker.js`.
 Вместо Express и локална файлова система се използват `fetch` събития и KV хранилища.
+За коректни типови проверки инсталирайте dev-зависимостта `@cloudflare/workers-types`:
+```bash
+npm install --save-dev @cloudflare/workers-types
+```
 
 ### Деплой на `cf-worker.js`
 1. Инсталирайте `wrangler` и създайте KV пространства за `ORDERS` и `PAGE_CONTENT`.
