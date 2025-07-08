@@ -569,6 +569,25 @@
             transform: scale(1.05);
             box-shadow: 0 0 15px var(--accent);
         }
+
+        .add-to-cart-btn {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--bg-primary);
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        [data-theme="dark"] .add-to-cart-btn { color: #000; }
+        .add-to-cart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--accent);
+        }
         
         /* --- RESEARCH NOTE STYLE --- */
         .research-note {
@@ -803,7 +822,25 @@
         document.addEventListener('DOMContentLoaded', async function () {
             
             // --- 1. GENERATOR FUNCTIONS ---
-            
+
+            const slugify = str => str.toLowerCase().replace(/\s+/g, '-');
+
+            const getCart = () => JSON.parse(localStorage.getItem('cart') || '[]');
+            const saveCart = cart => localStorage.setItem('cart', JSON.stringify(cart));
+            const updateCartCount = () => {
+                const countEl = document.getElementById('cart-count');
+                if (!countEl) return;
+                const count = getCart().reduce((acc, item) => acc + item.quantity, 0);
+                countEl.textContent = count;
+            };
+            const addToCart = (id, name, price) => {
+                const cart = getCart();
+                const idx = cart.findIndex(i => i.id === id);
+                if (idx !== -1) cart[idx].quantity++; else cart.push({id, name, price: Number(price), quantity: 1});
+                saveCart(cart);
+                updateCartCount();
+            };
+
             const generateVariantItem = variant => `
                 <li class="variant-item">
                     <strong>${variant.title}</strong>
@@ -838,6 +875,7 @@
                         <ul class="product-variants">
                             ${product.variants.map(generateVariantItem).join('')}
                         </ul>
+                        <button class="add-to-cart-btn" data-id="${slugify(product.name)}" data-name="${product.name}" data-price="${product.price}">Добави в количката</button>
                     </div>
                 </article>`;
             }
@@ -893,7 +931,11 @@
                 const navContainer = document.getElementById('main-nav-links');
                 const themeToggleLI = navContainer.querySelector('li:last-child');
                 navContainer.innerHTML = navigation.map(item => `<li><a href="${item.link}">${item.text}</a></li>`).join('');
+                const cartLI = document.createElement('li');
+                cartLI.innerHTML = `<a href="checkout.html" class="cart-link">Количка (<span id="cart-count">0</span>)</a>`;
+                navContainer.appendChild(cartLI);
                 navContainer.appendChild(themeToggleLI);
+                updateCartCount();
             }
             
             function renderMainContent(pageContent) {
@@ -979,6 +1021,13 @@
                     });
                 });
 
+                document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        e.stopPropagation();
+                        addToCart(btn.dataset.id, btn.dataset.name, btn.dataset.price);
+                    });
+                });
+
                 // SCROLL ANIMATIONS (FADE-IN & BARS)
                 const scrollObserver = new IntersectionObserver((entries, observer) => {
                     entries.forEach(entry => {
@@ -1047,6 +1096,8 @@
                         }
                     }
                 });
+
+                updateCartCount();
             }
 
             // --- 5. CANVAS ANIMATION LOGIC ---
