@@ -13,7 +13,7 @@
     "skipLibCheck": true
   },
   "include": [
-    "cf-worker.js",
+    "worker.js",
     "globals.d.ts"
   ]
 }
