@@ -531,6 +531,7 @@
                 <div class="form-row">
                     ${field('Име', product.name, 'text', {dataField: 'prod_name'})}
                     ${field('Слоган', product.tagline, 'text', {dataField: 'prod_tagline'})}
+                    ${field('Цена (лв)', product.price, 'number', {dataField: 'prod_price'})}
                 </div>
                 ${field('Описание', product.description, 'textarea', {dataField: 'prod_desc'})}
                 <h5>Източник</h5>
@@ -579,7 +580,7 @@
                            <button type="button" class="btn btn-primary add-nested-item-btn" data-container="products-editor" data-template="new-product-template">Добави нов продукт</button>
                            </div>`;
             // Templates
-            const newProduct = { name: 'Нов Продукт', tagline: '', description: '', research_note: { text: '', url: '' }, effects: [], variants: [] };
+            const newProduct = { name: 'Нов Продукт', tagline: '', price: 0, description: '', research_note: { text: '', url: '' }, effects: [], variants: [] };
             formHtml += `<template id="new-product-template">${getProductFormHTML(newProduct)}</template>`;
             formHtml += `<template id="new-effect-template">${getEffectFormHTML({label:'', value: 50})}</template>`;
             formHtml += `<template id="new-variant-template">${getVariantFormHTML({title:'', description:'', url:''})}</template>`;
@@ -601,6 +602,7 @@
                 const product = {
                     name: pEl.querySelector('[data-field="prod_name"]').value,
                     tagline: pEl.querySelector('[data-field="prod_tagline"]').value,
+                    price: parseFloat(pEl.querySelector('[data-field="prod_price"]').value) || 0,
                     description: pEl.querySelector('[data-field="prod_desc"]').value,
                     research_note: {
                         text: pEl.querySelector(`[data-field="prod_note_text"]`).value,
