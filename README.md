@@ -43,22 +43,6 @@ Cloudflare Workers е безсървърна среда и се различав
    wrangler deploy
    ```
 4. След преминаване към `cf-worker.js` можете да премахнете или архивирате `worker.js`.
-5. За да няма TypeScript предупреждения, инсталирайте типовете и добавете конфигурация:
-   ```bash
-   npm install --save-dev @cloudflare/workers-types
-   ```
-   Създайте `tsconfig.json` със съдържание
-   ```json
-   {
-     "compilerOptions": { "types": ["@cloudflare/workers-types"] }
-   }
-   ```
-   и файл `globals.d.ts`:
-   ```ts
-   /// <reference types="@cloudflare/workers-types" />
-   declare const ORDERS: KVNamespace;
-   declare const PAGE_CONTENT: KVNamespace;
-   ```
 
 ## Стари демо страници
 В папка `src/` ще намерите по-ранни примери за клиентска и администраторска страница със смяна на тема и локално задаване на цена. Могат да се използват за справка или да бъдат премахнати при нужда.
