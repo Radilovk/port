@@ -39,8 +39,30 @@ Cloudflare Workers е безсървърна среда и се различав
 npm install --save-dev @cloudflare/workers-types
 ```
 
+### KV пространства
+1. Създайте `ORDERS` и `PAGE_CONTENT` с:
+   ```bash
+   wrangler kv:namespace create ORDERS
+   wrangler kv:namespace create PAGE_CONTENT
+   ```
+   (или през Dashboard > Workers > KV)
+2. Добавете binding към worker-а в `wrangler.toml` или чрез Dashboard:
+   ```toml
+   [[kv_namespaces]]
+   binding = "ORDERS"
+   id = "<id>"
+   preview_id = "<id>"
+
+   [[kv_namespaces]]
+   binding = "PAGE_CONTENT"
+   id = "<id>"
+   preview_id = "<id>"
+   ```
+   Без локалните `globals.d.ts` и пакета `@cloudflare/workers-types` Dashboard често
+   отчита типови грешки.
+
 ### Деплой на `cf-worker.js`
-1. Инсталирайте `wrangler` и създайте KV пространства за `ORDERS` и `PAGE_CONTENT`.
+1. Инсталирайте `wrangler`.
 2. Попълнете идентификаторите в `wrangler.toml`.
 3. Публикувайте с:
    ```bash
