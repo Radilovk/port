@@ -57,6 +57,9 @@
         .nested-item h5 { font-size: 1rem; margin-top:1.5rem; }
         .nested-sub-item { display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 0.5rem; }
         .nested-sub-item .form-group { flex: 1; margin-bottom: 0; }
+        .orders-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .orders-table th, .orders-table td { padding: 0.5rem; border: 1px solid var(--border-color); }
+        .orders-table th { background: var(--bg-light); text-align: left; }
         /* Add Component Menu (Clickable) */
         #add-component-menu { position: relative; display: inline-block; }
         #add-component-dropdown { display: none; position: absolute; background-color: #f9f9f9; min-width: 200px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; list-style: none; padding: 0; margin: 0; border: 1px solid var(--border-color); }
@@ -95,6 +98,16 @@
             <div id="page-builder-list"></div>
         </section>
         <section id="footer-section" class="admin-section"></section>
+        <section id="orders-section" class="admin-section">
+            <h2>Поръчки</h2>
+            <button id="refresh-orders-btn" class="btn btn-secondary btn-sm">Опресни</button>
+            <table id="orders-table" class="orders-table">
+                <thead>
+                    <tr><th>Клиент</th><th>Телефон</th><th>Email</th><th>Продукти</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
     </div>
 
     <!-- Modal for editing -->
@@ -111,6 +124,7 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         let appData = {};
+        let ordersData = [];
         let hasUnsavedChanges = false;
         const COMPONENT_TYPES = {
             hero_banner: { name: 'Hero Banner' },
@@ -154,6 +168,7 @@
             renderNavigation();
             renderPageComponents();
             renderFooter();
+            renderOrders();
             populateAddComponentDropdown();
         }
 
@@ -227,6 +242,16 @@
                 <div class="list-item">
                     ${createItemHTML('footer_settings', 'Copyright & Колони', appData.footer.copyright_text, `<button class="btn btn-secondary edit-footer-btn">Редактирай</button>`)}
                 </div>`;
+        }
+
+        function renderOrders() {
+            const tbody = document.querySelector('#orders-table tbody');
+            if (!tbody) return;
+            tbody.innerHTML = ordersData.map(o => {
+                const c = o.customer || {};
+                const products = (o.products || []).map(p => `${p.name} x${p.quantity}`).join('<br>');
+                return `<tr><td>${(c.firstName || '') + ' ' + (c.lastName || '')}</td><td>${c.phone || ''}</td><td>${c.email || ''}</td><td>${products}</td></tr>`;
+            }).join('');
         }
         
         // --- MODAL & FORM GENERATION ---
@@ -336,7 +361,9 @@
                     container.appendChild(newContent);
                 }
             });
-            
+
+            document.getElementById('refresh-orders-btn').addEventListener('click', loadOrders);
+
             // Unsaved changes warning
             window.addEventListener('beforeunload', (e) => {
                 if (hasUnsavedChanges) {
@@ -644,6 +671,17 @@
             return true; // Success
         }
 
+        async function loadOrders() {
+            try {
+                const res = await fetch('/orders');
+                if(!res.ok) throw new Error(res.status);
+                ordersData = await res.json();
+                renderOrders();
+            } catch(err) {
+                console.error('Грешка при зареждане на поръчките:', err);
+            }
+        }
+
         // --- UTILITY & HELPER FUNCTIONS ---
         function initSortable(element, dataArray) {
             new Sortable(element, {
@@ -702,6 +740,7 @@
         document.getElementById('save-and-download-btn').addEventListener('click', saveAndDownload);
         document.getElementById('save-btn').addEventListener('click', saveOnly);
         init();
+        loadOrders();
     });
     </script>
 </body>
