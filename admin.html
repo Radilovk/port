@@ -66,6 +66,18 @@
         #add-component-dropdown li a { color: black; padding: 12px 16px; text-decoration: none; display: block; cursor: pointer; }
         #add-component-dropdown li a:hover { background-color: #f1f1f1 }
         #add-component-menu.is-open #add-component-dropdown { display: block; }
+        #notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success-color);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 4px;
+            display: none;
+            box-shadow: var(--shadow);
+        }
+        #notification.visible { display: block; }
     </style>
 </head>
 <body>
@@ -78,7 +90,7 @@
                 <li>В секцията "Съдържание на страницата" можете да <strong>пренареждате секциите с влачене</strong> на иконата (☰).</li>
                 <li>Използвайте бутона <strong>"Добави нова секция"</strong>, за да добавите ново съдържание към страницата.</li>
                 <li>Редактирайте или изтривайте всяка секция с бутоните вдясно.</li>
-                <li>Когато сте готови, натиснете големия зелен бутон <strong>"Запази и изтегли JSON файла"</strong>.</li>
+                <li>Когато сте готови, натиснете бутона <strong>"Запиши"</strong>, за да съхраните промените.</li>
             </ol>
         </div>
         
@@ -87,8 +99,7 @@
                 <button class="btn-primary" id="add-component-btn">Добави нова секция ▼</button>
                 <ul id="add-component-dropdown"></ul>
             </div>
-            <button class="btn-success" id="save-and-download-btn">Запази и изтегли JSON файла</button>
-            <button class="btn-secondary" id="save-btn">Запиши</button>
+            <button class="btn-success" id="save-btn">Запиши</button>
         </div>
 
         <section id="global-settings-section" class="admin-section"></section>
@@ -109,6 +120,7 @@
             </table>
         </section>
     </div>
+    <div id="notification"></div>
 
     <!-- Modal for editing -->
     <div id="modal-backdrop"></div>
@@ -160,6 +172,14 @@
         
         function setUnsavedChanges(state) {
             hasUnsavedChanges = state;
+        }
+
+        function showNotification(message) {
+            const note = document.getElementById('notification');
+            note.textContent = message;
+            note.classList.add('visible');
+            clearTimeout(note._hideTimer);
+            note._hideTimer = setTimeout(() => note.classList.remove('visible'), 3000);
         }
 
         // --- RENDER FUNCTIONS ---
@@ -700,11 +720,17 @@
         
         async function saveChanges(btn) {
             const jsonString = JSON.stringify(appData, null, 2);
-            await fetch('page_content.json', {
+            const response = await fetch('page_content.json', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: jsonString
             });
+
+            if (response.ok) {
+                showNotification('Промените са записани успешно.');
+            } else {
+                showNotification('Грешка при записване на данните.');
+            }
 
             const originalText = btn.textContent;
             btn.textContent = '✓ Записано!';
@@ -722,22 +748,10 @@
             return jsonString;
         }
 
-        async function saveAndDownload() {
-            const jsonString = await saveChanges(document.getElementById('save-and-download-btn'));
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'page_content.json';
-            a.click();
-            URL.revokeObjectURL(a.href);
-            a.remove();
-        }
-
         async function saveOnly() {
             await saveChanges(document.getElementById('save-btn'));
         }
 
-        document.getElementById('save-and-download-btn').addEventListener('click', saveAndDownload);
         document.getElementById('save-btn').addEventListener('click', saveOnly);
         init();
         loadOrders();
