@@ -1,3 +1,6 @@
+/// <reference types="@cloudflare/workers-types" />
+/* global ORDERS, PAGE_CONTENT */
+
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
 });
