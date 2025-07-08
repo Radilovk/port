@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 /* global ORDERS, PAGE_CONTENT */
 
-addEventListener('fetch', event => {
+addEventListener('fetch', /** @param {FetchEvent} event */ (event) => {
   event.respondWith(handleRequest(event.request));
 });
 
@@ -37,6 +37,7 @@ async function handleRequest(request) {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
+        /** @type {any[]} */
         let list = await ORDERS.get('list', 'json');
         if (!Array.isArray(list)) list = [];
         list.push(body);
