@@ -1,0 +1,12 @@
+{
+  "name": "port-worker",
+  "version": "1.0.0",
+  "main": "worker.js",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.4"
+  },
+  "scripts": {
+    "start": "node worker.js"
+  }
+}
