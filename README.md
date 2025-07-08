@@ -7,9 +7,9 @@
    ```bash
    npm install
    ```
-2. Стартирайте `worker.js`:
+2. Стартирайте `local-worker.js`:
    ```bash
-   node worker.js
+   node local-worker.js
    ```
    Сървърът слуша на порт **3000** и обслужва маршрути `/orders` и `/page_content.json`.
 
@@ -32,7 +32,7 @@ npm start
 - **orders.json** пази направените поръчки при локално стартиране.
 
 ## Cloudflare Workers
-Cloudflare Workers е безсървърна среда и се различава от Node изпълнението на `worker.js`.
+Cloudflare Workers е безсървърна среда и се различава от Node изпълнението на `local-worker.js`.
 Вместо Express и локална файлова система се използват `fetch` събития и KV хранилища.
 За коректни типови проверки инсталирайте dev-зависимостта `@cloudflare/workers-types`:
 ```bash
@@ -61,14 +61,14 @@ npm install --save-dev @cloudflare/workers-types
    Без локалните `globals.d.ts` и пакета `@cloudflare/workers-types` Dashboard често
    отчита типови грешки.
 
-### Деплой на `cf-worker.js`
+### Деплой на `worker.js`
 1. Инсталирайте `wrangler`.
 2. Попълнете идентификаторите в `wrangler.toml`.
 3. Публикувайте с:
    ```bash
    wrangler deploy
    ```
-4. След преминаване към `cf-worker.js` можете да премахнете или архивирате `worker.js`.
+4. След преминаване към `worker.js` можете да премахнете или архивирате `local-worker.js`.
 
 ## Стари демо страници
 В папка `src/` ще намерите по-ранни примери за клиентска и администраторска страница със смяна на тема и локално задаване на цена. Могат да се използват за справка или да бъдат премахнати при нужда.

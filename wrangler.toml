@@ -1,5 +1,5 @@
 name = "port-worker"
-main = "cf-worker.js"
+main = "worker.js"
 compatibility_date = "2024-04-05"
 
 # KV пространствата съхраняват поръчките и съдържанието на сайта.

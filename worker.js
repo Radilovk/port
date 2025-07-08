@@ -1,31 +1,85 @@
-const express = require('express');
-const fs = require('fs');
-const app = express();
-app.use(express.json());
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type'
+};
+export async function handleRequest(request, env) {
+  const { method } = request;
+  const url = new URL(request.url);
 
-app.get('/orders', (req, res) => {
-    res.sendFile(__dirname + '/orders.json');
-});
+  if (method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
 
-app.post('/orders', (req, res) => {
-    let orders = [];
-    try {
-        orders = JSON.parse(fs.readFileSync('./orders.json'));
-    } catch (e) {
-        orders = [];
+  if (url.pathname === '/orders') {
+    switch (method) {
+      case 'GET': {
+        const data = await env.ORDERS.get('list');
+        return new Response(data || '[]', {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      case 'POST': {
+        let body;
+        try {
+          body = await request.json();
+        } catch (e) {
+          return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        let list = await env.ORDERS.get('list', 'json');
+        if (!Array.isArray(list)) list = [];
+        list.push(body);
+        await env.ORDERS.put('list', JSON.stringify(list, null, 2));
+        return new Response(JSON.stringify({ status: 'ok' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      default:
+        return new Response('Method Not Allowed', {
+          status: 405,
+          headers: corsHeaders
+        });
     }
-    orders.push(req.body);
-    fs.writeFileSync('./orders.json', JSON.stringify(orders, null, 2));
-    res.json({status: 'ok'});
-});
+  } else if (url.pathname === '/page_content.json') {
+    switch (method) {
+      case 'GET': {
+        const data = await env.PAGE_CONTENT.get('data');
+        return new Response(data || '{}', {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      case 'POST': {
+        try {
+          await request.clone().json();
+        } catch (e) {
+          return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        const text = await request.text();
+        await env.PAGE_CONTENT.put('data', text);
+        return new Response(JSON.stringify({ status: 'ok' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      default:
+        return new Response('Method Not Allowed', {
+          status: 405,
+          headers: corsHeaders
+        });
+    }
+  }
 
-app.get('/page_content.json', (req, res) => {
-    res.sendFile(__dirname + '/page_content.json');
-});
+  return new Response('Not Found', { status: 404, headers: corsHeaders });
+}
 
-app.post('/page_content.json', (req, res) => {
-    fs.writeFileSync('./page_content.json', JSON.stringify(req.body, null, 2));
-    res.json({status: 'ok'});
-});
+export default {
+  async fetch(request, env) {
+    return handleRequest(request, env);
+  }
+};
 
-app.listen(3000, () => console.log('Worker listening on port 3000'));
