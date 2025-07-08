@@ -211,12 +211,8 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
 
-        // --- 1. СИМУЛАЦИЯ НА ДАННИ ОТ КОЛИЧКАТА ---
-        // В реален проект, тези данни ще идват от localStorage
-        const cartData = [
-            { id: 'epitalon-20', name: 'Epitalon 20 mg', image: 'https://raw.githubusercontent.com/Radilovk/face/main/assets/ChatGPT%20Image%20Jul%205,%202025,%2007_00_41%20PM.png', price: 120.00, quantity: 1 },
-            { id: 'ghk-cu-50', name: 'GHK-Cu 50 mg', image: 'https://raw.githubusercontent.com/Radilovk/face/main/assets/ChatGPT%20Image%20Jul%206%2C%202025%2C%2011_02_57%20PM.png', price: 95.50, quantity: 2 }
-        ];
+        // --- 1. Зареждане на количката от localStorage ---
+        const cartData = JSON.parse(localStorage.getItem('cart') || '[]');
 
         // --- 2. ЕЛЕМЕНТИ ОТ DOM ---
         const productListEl = document.getElementById('product-list');
@@ -224,6 +220,8 @@
         const shippingEl = document.getElementById('summary-shipping');
         const totalEl = document.getElementById('summary-total');
         const form = document.getElementById('checkout-form');
+
+        const saveCart = () => localStorage.setItem('cart', JSON.stringify(cartData));
         
         // --- 3. РЕНДЕРИРАНЕ И ИЗЧИСЛЕНИЯ ---
         function renderProducts() {
@@ -256,6 +254,7 @@
                 productListEl.appendChild(itemEl);
             });
             updateSummary();
+            saveCart();
         }
 
         function updateSummary() {
@@ -285,12 +284,14 @@
                     cartData[productIndex].quantity--;
                 }
                 renderProducts();
+                saveCart();
             }
 
             if (target.matches('.remove-item-btn')) {
                 if(confirm(`Сигурни ли сте, че искате да премахнете "${cartData[productIndex].name}"?`)){
                     cartData.splice(productIndex, 1);
                     renderProducts();
+                    saveCart();
                 }
             }
         });
