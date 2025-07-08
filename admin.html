@@ -85,6 +85,7 @@
                 <ul id="add-component-dropdown"></ul>
             </div>
             <button class="btn-success" id="save-and-download-btn">Запази и изтегли JSON файла</button>
+            <button class="btn-secondary" id="save-btn">Запиши</button>
         </div>
 
         <section id="global-settings-section" class="admin-section"></section>
@@ -132,7 +133,7 @@
         // --- INITIALIZATION ---
         async function init() {
             try {
-                const response = await fetch('page_content.json' + `?v=${Date.now()}`);
+                const response = await fetch(`/page_content.json?v=${Date.now()}`);
                 if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                 appData = await response.json();
                 renderAll();
@@ -659,8 +660,32 @@
             });
         }
         
-        function saveAndDownload() {
+        async function saveChanges(btn) {
             const jsonString = JSON.stringify(appData, null, 2);
+            await fetch('/page_content.json', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: jsonString
+            });
+
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Записано!';
+            btn.classList.add('btn-saved');
+            btn.disabled = true;
+
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.remove('btn-saved');
+                btn.disabled = false;
+            }, 2000);
+
+            setUnsavedChanges(false);
+
+            return jsonString;
+        }
+
+        async function saveAndDownload() {
+            const jsonString = await saveChanges(document.getElementById('save-and-download-btn'));
             const blob = new Blob([jsonString], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -668,24 +693,14 @@
             a.click();
             URL.revokeObjectURL(a.href);
             a.remove();
-            
-            // Visual feedback
-            const saveBtn = document.getElementById('save-and-download-btn');
-            const originalText = saveBtn.textContent;
-            saveBtn.textContent = '✓ Запазено!';
-            saveBtn.classList.add('btn-saved');
-            saveBtn.disabled = true;
+        }
 
-            setTimeout(() => {
-                saveBtn.textContent = originalText;
-                saveBtn.classList.remove('btn-saved');
-                saveBtn.disabled = false;
-            }, 2000);
-            
-            setUnsavedChanges(false);
+        async function saveOnly() {
+            await saveChanges(document.getElementById('save-btn'));
         }
 
         document.getElementById('save-and-download-btn').addEventListener('click', saveAndDownload);
+        document.getElementById('save-btn').addEventListener('click', saveOnly);
         init();
     });
     </script>
