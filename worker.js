@@ -14,8 +14,12 @@ export async function handleRequest(request, env) {
   if (url.pathname === '/orders') {
     switch (method) {
       case 'GET': {
-        const data = await env.ORDERS.get('list');
-        return new Response(data || '[]', {
+        let data = await env.ORDERS.get('list');
+        if (data === null) {
+          data = '[]';
+          await env.ORDERS.put('list', data);
+        }
+        return new Response(data, {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
@@ -46,8 +50,12 @@ export async function handleRequest(request, env) {
   } else if (url.pathname === '/page_content.json') {
     switch (method) {
       case 'GET': {
-        const data = await env.PAGE_CONTENT.get('data');
-        return new Response(data || '{}', {
+        let data = await env.PAGE_CONTENT.get('data');
+        if (data === null) {
+          data = '{}';
+          await env.PAGE_CONTENT.put('data', data);
+        }
+        return new Response(data, {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
