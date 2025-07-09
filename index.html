@@ -1161,7 +1161,7 @@
             async function main() {
                 initializeGlobalScripts();
                 try {
-                    const response = await fetch(`/page_content.json?v=${Date.now()}`);
+                    const response = await fetch(`page_content.json?v=${Date.now()}`);
                     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     const data = await response.json();
                     
@@ -1180,5 +1180,4 @@
 
             main();
         });
-    </script>
-</body></html>
+    </script></body></html>
