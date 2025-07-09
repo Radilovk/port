@@ -722,15 +722,21 @@
         
         async function saveChanges(btn) {
             const jsonString = JSON.stringify(appData, null, 2);
-            const response = await fetch('page_content.json', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: jsonString
-            });
+            try {
+                const response = await fetch('page_content.json', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: jsonString
+                });
 
-            if (response.ok) {
-                showNotification('Промените са записани успешно.');
-            } else {
+                if (response.ok) {
+                    showNotification('Промените са записани успешно.');
+                    setUnsavedChanges(false);
+                } else {
+                    showNotification('Грешка при записване на данните.');
+                }
+            } catch (err) {
+                console.error('Грешка при записване:', err);
                 showNotification('Грешка при записване на данните.');
             }
 
@@ -744,8 +750,6 @@
                 btn.classList.remove('btn-saved');
                 btn.disabled = false;
             }, 2000);
-
-            setUnsavedChanges(false);
 
             return jsonString;
         }
