@@ -20,12 +20,16 @@ async function handleRequest(request, env) {
 
   if (url.pathname === '/orders') {
     switch (method) {
-      case 'GET': {
-        const data = await env.ORDERS.get('list');
-        return new Response(data || '[]', {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
+        case 'GET': {
+          let data = await env.ORDERS.get('list');
+          if (data === null) {
+            data = '[]';
+            await env.ORDERS.put('list', data);
+          }
+          return new Response(data, {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
       case 'POST': {
         let body;
         try {
@@ -52,12 +56,16 @@ async function handleRequest(request, env) {
     }
   } else if (url.pathname === '/page_content.json') {
     switch (method) {
-      case 'GET': {
-        const data = await env.PAGE_CONTENT.get('data');
-        return new Response(data || '{}', {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
+        case 'GET': {
+          let data = await env.PAGE_CONTENT.get('data');
+          if (data === null) {
+            data = '{}';
+            await env.PAGE_CONTENT.put('data', data);
+          }
+          return new Response(data, {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
       case 'POST': {
         try {
           await request.clone().json();
@@ -91,7 +99,9 @@ const env = {
         const text = await fs.readFile('./orders.json', 'utf8');
         return type === 'json' ? JSON.parse(text) : text;
       } catch {
-        return type === 'json' ? null : null;
+        const init = '[]';
+        await fs.writeFile('./orders.json', init);
+        return type === 'json' ? JSON.parse(init) : init;
       }
     },
     async put(key, value) {
@@ -103,7 +113,9 @@ const env = {
       try {
         return await fs.readFile('./page_content.json', 'utf8');
       } catch {
-        return null;
+        const init = '{}';
+        await fs.writeFile('./page_content.json', init);
+        return init;
       }
     },
     async put(key, value) {
