@@ -51,10 +51,10 @@ export async function handleRequest(request, env) {
   } else if (url.pathname === '/page_content.json') {
     switch (method) {
       case 'GET': {
-        let data = await env.PAGE_CONTENT.get('data');
+        let data = await env.PAGE_CONTENT.get('page_content');
         if (data === null) {
           data = '{}';
-          await env.PAGE_CONTENT.put('data', data);
+          await env.PAGE_CONTENT.put('page_content', data);
         }
         return new Response(data, {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -70,7 +70,7 @@ export async function handleRequest(request, env) {
           });
         }
         const text = await request.text();
-        await env.PAGE_CONTENT.put('data', text);
+        await env.PAGE_CONTENT.put('page_content', text);
         return new Response(JSON.stringify({ status: 'ok' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
