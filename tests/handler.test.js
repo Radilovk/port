@@ -42,6 +42,19 @@ describe('orders endpoint', () => {
     expect(json.status).toBe('ok');
     expect(JSON.parse(env.getStored())).toEqual([payload]);
   });
+
+  test('POST /orders with invalid JSON returns error', async () => {
+    const env = createOrdersEnv();
+    const req = new Request('http://localhost/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{invalid}'
+    });
+    const res = await handleRequest(req, env);
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json).toEqual({ error: 'Invalid JSON' });
+  });
 });
 
 function createContentEnv(initial = '{}') {
@@ -81,5 +94,18 @@ describe('page_content endpoint', () => {
     const json = await res.json();
     expect(json.status).toBe('ok');
     expect(env.getStored()).toBe(JSON.stringify(payload));
+  });
+
+  test('POST /page_content.json with invalid JSON returns error', async () => {
+    const env = createContentEnv();
+    const req = new Request('http://localhost/page_content.json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{invalid}'
+    });
+    const res = await handleRequest(req, env);
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json).toEqual({ error: 'Invalid JSON' });
   });
 });
