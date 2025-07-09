@@ -9,7 +9,7 @@ export async function handleRequest(request, env) {
   const url = new URL(request.url);
 
   if (method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   if (url.pathname === '/orders') {
