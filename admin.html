@@ -321,7 +321,7 @@
                 if (target.matches('.add-nav-btn')) handleAddNavItem();
                 if (target.matches('.edit-nav-btn')) handleEditNavItem(target.dataset.index);
                 if (target.matches('.delete-nav-btn')) handleDeleteNavItem(target.dataset.index);
-                if (target.matches('.add-component-btn')) { e.preventDefault(); handleAddComponent(target.dataset.type); }
+                if (target.matches('.add-component-btn[data-type]')) { e.preventDefault(); handleAddComponent(target.dataset.type); }
                 if (target.matches('.edit-component-btn')) handleEditComponent(target.dataset.id);
                 if (target.matches('.delete-component-btn')) handleDeleteComponent(target.dataset.id);
                 if (target.matches('.edit-footer-btn')) handleEditFooter();
@@ -330,11 +330,16 @@
             // Add Component Menu (Clickable)
             const addComponentMenu = document.getElementById('add-component-menu');
             addComponentMenu.addEventListener('click', e => {
-                e.stopPropagation(); // Prevent closing immediately
-                if (e.target.matches('.add-component-btn')) { // Toggle on button click
+                const link = e.target.closest('a[data-type]');
+                if (link) {
+                    e.preventDefault();
+                    addComponentMenu.classList.remove('is-open');
+                    handleAddComponent(link.dataset.type);
+                    return;
+                }
+                if (e.target.matches('#add-component-btn')) {
+                    e.stopPropagation();
                     addComponentMenu.classList.toggle('is-open');
-                } else if (e.target.closest('a')) { // Close on link click
-                     addComponentMenu.classList.remove('is-open');
                 }
             });
             // Close dropdown if clicking outside
