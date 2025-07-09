@@ -16,3 +16,7 @@ yarn-error.log*
 .DS_Store
 
 # Cloudflare
+
+# Local data
+page_content.json
+orders.json
