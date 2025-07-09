@@ -298,7 +298,7 @@
         }
         
         const field = (label, value = '', type = 'text', options = {}) => {
-            const safeValue = value === null || value === undefined ? '' : String(value).replace(/"/g, '&quot;');
+            const safeValue = value === null || value === undefined ? '' : String(value).replace(/"/g, '"');
             const fieldId = options.id || `${options.dataField}-${Date.now()}-${Math.random()}`;
             const dataAttr = options.dataField ? `data-field="${options.dataField}"` : '';
             
@@ -699,14 +699,17 @@
             return true; // Success
         }
 
+        // ✅ КОРЕКЦИЯТА Е ТУК
         async function loadOrders() {
             try {
-                const res = await fetch('/orders');
-                if(!res.ok) throw new Error(res.status);
+                // Използваме пълния път от константата API_URL
+                const res = await fetch(`${API_URL}/orders`);
+                if (!res.ok) throw new Error(`HTTP грешка! Статус: ${res.status}`);
                 ordersData = await res.json();
                 renderOrders();
-            } catch(err) {
+            } catch (err) {
                 console.error('Грешка при зареждане на поръчките:', err);
+                showNotification('Грешка при зареждане на поръчките.');
             }
         }
 
