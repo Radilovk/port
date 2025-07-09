@@ -574,6 +574,8 @@
         
         // --- COMPLEX FORM HELPERS FOR PRODUCT CATEGORY ---
         const getProductFormHTML = (product) => {
+            const effectsId = 'effects-editor-' + Math.random();
+            const variantsId = 'variants-editor-' + Math.random();
             return `<div class="nested-item product-item">
                 <h4>Продукт <button type="button" class="btn btn-danger btn-sm delete-nested-item-btn">Изтрий продукта</button></h4>
                 <div class="form-row">
@@ -589,16 +591,16 @@
                 </div>
                 
                 <h5>Ефекти</h5>
-                <div class="nested-list effects-editor" id="effects-editor-${Math.random()}">
+                <div class="nested-list effects-editor" id="${effectsId}">
                     ${product.effects.map(getEffectFormHTML).join('')}
                 </div>
-                <button type="button" class="btn btn-secondary btn-sm add-nested-item-btn" data-container="effects-editor-${Math.random()}" data-template="new-effect-template">Добави ефект</button>
+                <button type="button" class="btn btn-secondary btn-sm add-nested-item-btn" data-container="${effectsId}" data-template="new-effect-template">Добави ефект</button>
 
                 <h5>Варианти</h5>
-                <div class="nested-list variants-editor" id="variants-editor-${Math.random()}">
+                <div class="nested-list variants-editor" id="${variantsId}">
                     ${product.variants.map(getVariantFormHTML).join('')}
                 </div>
-                <button type="button" class="btn btn-secondary btn-sm add-nested-item-btn" data-container="variants-editor-${Math.random()}" data-template="new-variant-template">Добави вариант</button>
+                <button type="button" class="btn btn-secondary btn-sm add-nested-item-btn" data-container="${variantsId}" data-template="new-variant-template">Добави вариант</button>
             </div>`;
         };
 
