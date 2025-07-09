@@ -68,11 +68,25 @@ Cloudflare Workers е безсървърна среда и се различав
    id = "<id>"
    preview_id = "<id>"
 
-   [[kv_namespaces]]
-   binding = "PAGE_CONTENT"
-   id = "<id>"
-   preview_id = "<id>"
-   ```
+  [[kv_namespaces]]
+  binding = "PAGE_CONTENT"
+  id = "<id>"
+  preview_id = "<id>"
+  ```
+
+## Работа с KV
+При стартиране на `node local-worker.js` данните се записват във файловете
+`orders.json` и `page_content.json`. Това е удобно за бързи тестове без Cloudflare.
+
+Когато използвате `wrangler dev` или пуснете worker-а онлайн, поръчките и
+съдържанието се съхраняват в KV пространствата `ORDERS` и `PAGE_CONTENT`.
+
+### Проверка през Dashboard
+1. Влезте в **Cloudflare Dashboard**.
+2. Изберете **Workers & KV** и отворете желаното пространство.
+3. В раздел **Browse** ще видите записите и можете да ги редактирате.
+
+Помислете за автоматично архивиране на KV, ако проектът се разрасне.
 
 ### Деплой на `worker.js`
 1. Инсталирайте `wrangler`.
