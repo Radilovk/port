@@ -1161,7 +1161,7 @@
             async function main() {
                 initializeGlobalScripts();
                 try {
-                    const response = await fetch(`page_content.json?v=${Date.now()}`);
+                    const response = await fetch(`/page_content.json?v=${Date.now()}`);
                     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     const data = await response.json();
                     
@@ -1174,12 +1174,11 @@
                 } catch (error) {
                     console.error("Fatal Error: Could not load or render page content.", error);
                     document.getElementById('main-content-container').innerHTML = 
-                        `<p style="text-align: center; color: var(--text-secondary); padding: 5rem 1rem;">Грешка при зареждане на съдържанието. Моля, проверете файла page_content.json и опреснете страницата.</p>`;
+                        `<p style="text-align: center; color: var(--text-secondary); padding: 5rem 1rem;">Грешка при зареждане на съдържанието. Моля, проверете ключа \"page_content\" и опреснете страницата.</p>`;
                 }
             }
 
             main();
         });
     </script>
-</body>
-</html>
+</body></html>
