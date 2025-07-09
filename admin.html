@@ -3,774 +3,349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIOCODE - Цялостен Админ Панел</title>
-    <!-- SortableJS library for Drag & Drop -->
+    <title>BIOCODE - Админ Панел</title>
+    
+    <!-- Връзка към външния CSS файл -->
+    <link rel="stylesheet" href="admin.css">
+    
+    <!-- Библиотека за Drag & Drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <style>
-        :root {
-            --bg-main: #f4f7fa; --bg-secondary: #ffffff; --bg-light: #e9ecef; --text-primary: #212529; --text-secondary: #6c757d; --border-color: #dee2e6; --primary-color: #007bff; --danger-color: #dc3545; --success-color: #28a745; --warning-color: #ffc107; --shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 2rem; background-color: var(--bg-main); color: var(--text-primary); }
-        .container { max-width: 1200px; margin: 0 auto; background-color: var(--bg-secondary); padding: 2rem; border-radius: 8px; box-shadow: var(--shadow); }
-        h1, h2, h3, h4 { color: #1a2533; }
-        h1 { text-align: center; margin-bottom: 2rem; }
-        h2 { border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; margin-top: 2.5rem; }
-        h3 { border-bottom: 1px solid #ddd; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
-        button, .btn { cursor: pointer; padding: 0.6rem 1.2rem; border: none; border-radius: 5px; font-weight: bold; font-size: 0.9rem; transition: all 0.2s; text-decoration: none; display: inline-block; }
-        .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
-        .btn-primary { background-color: var(--primary-color); color: white; } .btn-primary:hover { background-color: #0056b3; }
-        .btn-danger { background-color: var(--danger-color); color: white; } .btn-danger:hover { background-color: #c82333; }
-        .btn-secondary { background-color: #6c757d; color: white; } .btn-secondary:hover { background-color: #5a6268; }
-        .btn-success { background-color: var(--success-color); color: white; } .btn-success:hover { background-color: #218838; }
-        .btn-success.btn-saved { background-color: #1e7e34; }
-        .btn-warning { background-color: var(--warning-color); color: black; } .btn-warning:hover { background-color: #e0a800; }
-        button:active, .btn:active { transform: scale(0.97); }
-        .header-actions { position: sticky; top: 10px; z-index: 10; text-align: center; margin-bottom: 2rem; padding: 1rem; background: rgba(233, 236, 239, 0.95); backdrop-filter: blur(5px); border-radius: 6px; display: flex; justify-content: center; gap: 1rem; align-items: center; }
-        .instructions { background: #fff3cd; border: 1px solid #ffeeba; padding: 1.5rem; border-radius: 6px; margin-bottom: 2rem; }
-        .handle { cursor: grab; font-size: 1.5rem; color: var(--text-secondary); padding-right: 1rem; }
-        /* Component Builder Styles */
-        .component-item, .list-item { background-color: #f8f9fa; border: 1px solid var(--border-color); padding: 1rem 1.5rem; margin-bottom: 1rem; border-radius: 6px; display: flex; align-items: center; gap: 1rem; }
-        .item-info { flex-grow: 1; }
-        .item-info .type { font-size: 0.8rem; font-weight: bold; color: var(--text-secondary); text-transform: uppercase; }
-        .item-info .title { font-size: 1.2rem; font-weight: 500; }
-        .item-actions button, .item-actions .btn { margin-left: 0.5rem; }
-        /* Modal Styles */
-        #modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: none; }
-        #modal-container { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-secondary); padding: 0; border-radius: 8px; width: 90%; max-width: 900px; max-height: 90vh; z-index: 1001; display: none; flex-direction: column; }
-        #modal-container.visible, #modal-backdrop.visible { display: flex; }
-        #modal-header { padding: 1rem 2rem; border-bottom: 1px solid var(--border-color); }
-        #modal-body { padding: 2rem; overflow-y: auto; }
-        #modal-footer { padding: 1rem 2rem; border-top: 1px solid var(--border-color); background: var(--bg-light); text-align: right; }
-        #modal-footer button { margin-left: 1rem; }
-        /* Form Styles */
-        .form-group { margin-bottom: 1.2rem; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; box-sizing: border-box; }
-        .form-group textarea { min-height: 120px; resize: vertical; }
-        .form-group .checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-weight: normal; }
-        .form-group input[type="checkbox"] { width: auto; }
-        .form-row { display: flex; gap: 1rem; }
-        .form-row .form-group { flex: 1; }
-        .nested-list { padding: 1.5rem; margin-top: 1.5rem; border: 1px dashed #ccc; border-radius: 6px; background: #fdfdfd; }
-        .nested-item { background: #fff; border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 4px; margin-bottom: 1rem; }
-        .nested-item h4, .nested-item h5 { margin-top: 0; border-bottom: 1px solid #e0e0e0; padding-bottom: 0.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
-        .nested-item h5 { font-size: 1rem; margin-top:1.5rem; }
-        .nested-sub-item { display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 0.5rem; }
-        .nested-sub-item .form-group { flex: 1; margin-bottom: 0; }
-        .orders-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        .orders-table th, .orders-table td { padding: 0.5rem; border: 1px solid var(--border-color); }
-        .orders-table th { background: var(--bg-light); text-align: left; }
-        /* Add Component Menu (Clickable) */
-        #add-component-menu { position: relative; display: inline-block; }
-        #add-component-dropdown { display: none; position: absolute; background-color: #f9f9f9; min-width: 200px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; list-style: none; padding: 0; margin: 0; border: 1px solid var(--border-color); }
-        #add-component-dropdown li a { color: black; padding: 12px 16px; text-decoration: none; display: block; cursor: pointer; }
-        #add-component-dropdown li a:hover { background-color: #f1f1f1 }
-        #add-component-menu.is-open #add-component-dropdown { display: block; }
-        #notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--success-color);
-            color: white;
-            padding: 0.75rem 1.25rem;
-            border-radius: 4px;
-            display: none;
-            box-shadow: var(--shadow);
-        }
-        #notification.visible { display: block; }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>BIOCODE - Цялостен Админ Панел</h1>
-        <div class="instructions">
-            <h3>Как се работи:</h3>
-            <ol>
-                <li>Управлявайте глобалните настройки, навигацията и футъра в техните секции.</li>
-                <li>В секцията "Съдържание на страницата" можете да <strong>пренареждате секциите с влачене</strong> на иконата (☰).</li>
-                <li>Използвайте бутона <strong>"Добави нова секция"</strong>, за да добавите ново съдържание към страницата.</li>
-                <li>Редактирайте или изтривайте всяка секция с бутоните вдясно.</li>
-                <li>Когато сте готови, натиснете бутона <strong>"Запиши"</strong>, за да съхраните промените.</li>
-            </ol>
-        </div>
-        
-        <div class="header-actions">
-            <div id="add-component-menu">
-                <button class="btn-primary add-component-btn" id="add-component-btn">Добави нова секция ▼</button>
-                <ul id="add-component-dropdown"></ul>
+
+    <div class="admin-container">
+        <!-- ГЛАВЕН ХЕДЪР НА ПАНЕЛА -->
+        <header class="admin-header">
+            <h1>BIOCODE Админ Панел</h1>
+            <div class="header-actions">
+                <span id="save-status" class="save-status">Всички промени са записани.</span>
+                <button id="save-all-btn" class="btn btn-success" disabled>Запиши промените</button>
             </div>
-            <button class="btn-success" id="save-btn">Запиши</button>
-        </div>
+        </header>
 
-        <section id="global-settings-section" class="admin-section"></section>
-        <section id="navigation-section" class="admin-section"></section>
-        <section id="page-content-section" class="admin-section">
-            <h2>Съдържание на страницата (Подредете с влачене)</h2>
-            <div id="page-builder-list"></div>
-        </section>
-        <section id="footer-section" class="admin-section"></section>
-        <section id="orders-section" class="admin-section">
-            <h2>Поръчки</h2>
-            <button id="refresh-orders-btn" class="btn btn-secondary btn-sm">Опресни</button>
-            <table id="orders-table" class="orders-table">
-                <thead>
-                    <tr><th>Клиент</th><th>Телефон</th><th>Email</th><th>Продукти</th></tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </section>
+        <!-- ТАБОВЕ ЗА НАВИГАЦИЯ -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="tab-global">Глобални</button>
+            <button class="tab-btn" data-tab="tab-navigation">Навигация</button>
+            <button class="tab-btn" data-tab="tab-content">Съдържание</button>
+            <button class="tab-btn" data-tab="tab-footer">Футър</button>
+            <button class="tab-btn" data-tab="tab-orders">Поръчки</button>
+        </nav>
+
+        <!-- КОНТЕЙНЕР ЗА СЪДЪРЖАНИЕТО НА ТАБОВЕТЕ -->
+        <main class="tab-content">
+            
+            <!-- Секция: Глобални настройки -->
+            <section id="tab-global" class="tab-pane active">
+                <h2>Глобални настройки на сайта</h2>
+                <div id="global-settings-container" class="item-list">
+                    <!-- Съдържанието ще се генерира от JS -->
+                </div>
+            </section>
+
+            <!-- Секция: Навигация -->
+            <section id="tab-navigation" class="tab-pane">
+                <h2>Основна навигация</h2>
+                <p class="instructions">Подредете линковете с влачене (☰).</p>
+                <div id="navigation-list" class="item-list sortable-list">
+                    <!-- Съдържанието ще се генерира от JS -->
+                </div>
+                <button class="btn btn-primary" data-action="add-nav-item">Добави нов линк</button>
+            </section>
+
+            <!-- Секция: Съдържание на страницата -->
+            <section id="tab-content" class="tab-pane">
+                <h2>Съдържание на страницата</h2>
+                <p class="instructions">Подредете секциите с влачене (☰).</p>
+                <div id="page-builder-list" class="item-list sortable-list">
+                    <!-- Съдържанието ще се генерира от JS -->
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" data-action="toggle-add-component-menu">Добави нова секция ▼</button>
+                    <div id="add-component-dropdown" class="dropdown-menu">
+                        <!-- Линковете за добавяне ще се генерират от JS -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Секция: Футър -->
+            <section id="tab-footer" class="tab-pane">
+                <h2>Настройки на футъра</h2>
+                 <div id="footer-settings-container" class="item-list">
+                    <!-- Съдържанието ще се генерира от JS -->
+                </div>
+            </section>
+
+            <!-- Секция: Поръчки -->
+            <section id="tab-orders" class="tab-pane">
+                <div class="orders-header">
+                    <h2>Поръчки</h2>
+                    <div class="orders-controls">
+                        <input type="text" id="order-search-input" placeholder="Търси по име, телефон...">
+                        <button id="refresh-orders-btn" class="btn btn-secondary">Опресни</button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="orders-table" class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Клиент</th>
+                                <th>Телефон</th>
+                                <th>Email</th>
+                                <th>Продукти</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <!-- Редовете ще се генерират от JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
     </div>
-    <div id="notification"></div>
 
-    <!-- Modal for editing -->
-    <div id="modal-backdrop"></div>
-    <div id="modal-container">
-        <div id="modal-header"><h3 id="modal-title"></h3></div>
-        <div id="modal-body"><form id="modal-form"></form></div>
-        <div id="modal-footer">
-            <button class="btn-secondary" id="cancel-modal-btn">Отказ</button>
-            <button class="btn-primary" id="save-modal-btn">Запази промените</button>
-        </div>
+    <!-- МОДАЛЕН ПРОЗОРЕЦ ЗА РЕДАКЦИЯ -->
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+    <div id="modal-container" class="modal-container">
+        <header class="modal-header">
+            <h3 id="modal-title"></h3>
+            <button id="close-modal-btn" class="close-modal-btn">&times;</button>
+        </header>
+        <main id="modal-body" class="modal-body">
+            <!-- Формата за редакция ще се зареди тук от <template> -->
+        </main>
+        <footer class="modal-footer">
+            <button id="cancel-modal-btn" class="btn btn-secondary">Отказ</button>
+            <button id="save-modal-btn" class="btn btn-primary">Запази промените</button>
+        </footer>
     </div>
     
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const API_URL = 'https://port.radilov-k.workers.dev';
-        let appData = {};
-        let ordersData = [];
-        let hasUnsavedChanges = false;
-        const COMPONENT_TYPES = {
-            hero_banner: { name: 'Hero Banner' },
-            product_category: { name: 'Продуктова Категория' },
-            info_card: { name: 'Информационен Кард' },
-            text_block: { name: 'Текстов Блок (очаквайте скоро)' },
-            gallery: { name: 'Галерия (очаквайте скоро)' }
-        };
+    <!-- Нотификации -->
+    <div id="notification-container"></div>
+    <div id="undo-notification" class="notification undo-bar">
+        <span>Елементът е изтрит.</span>
+        <button id="undo-delete-btn" class="btn-link">Възстанови</button>
+    </div>
 
-        const modal = {
-            backdrop: document.getElementById('modal-backdrop'),
-            container: document.getElementById('modal-container'),
-            title: document.getElementById('modal-title'),
-            form: document.getElementById('modal-form'),
-            saveBtn: document.getElementById('save-modal-btn'),
-            cancelBtn: document.getElementById('cancel-modal-btn')
-        };
-        let onSaveCallback;
+    <!-- ======================================================= -->
+    <!--          ШАБЛОНИ (TEMPLATES) ЗА JAVASCRIPT          -->
+    <!-- ======================================================= -->
 
-        // --- INITIALIZATION ---
-        async function init() {
-            try {
-                const response = await fetch(`${API_URL}/page_content.json?v=${Date.now()}`);
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                appData = await response.json();
-                renderAll();
-                initEventListeners();
-            } catch (error) {
-                console.error("Fatal: Could not load page content:", error);
-                document.body.innerHTML = `<h1 style="color:red; text-align:center; margin-top: 5rem;">ГРЕШКА: Не може да се зареди съдържанието (ключ \"page_content\"). Проверете конзолата.</h1>`;
-            }
-        }
-        
-        function setUnsavedChanges(state) {
-            hasUnsavedChanges = state;
-        }
-
-        function showNotification(message) {
-            const note = document.getElementById('notification');
-            note.textContent = message;
-            note.classList.add('visible');
-            clearTimeout(note._hideTimer);
-            note._hideTimer = setTimeout(() => note.classList.remove('visible'), 3000);
-        }
-
-        // --- RENDER FUNCTIONS ---
-        function renderAll() {
-            renderGlobalSettings();
-            renderNavigation();
-            renderPageComponents();
-            renderFooter();
-            renderOrders();
-            populateAddComponentDropdown();
-        }
-
-        function populateAddComponentDropdown() {
-            const dropdown = document.getElementById('add-component-dropdown');
-            dropdown.innerHTML = Object.entries(COMPONENT_TYPES).map(([type, { name }]) => 
-                `<li><a href="#" class="add-component-btn" data-type="${type}">${name}</a></li>`
-            ).join('');
-        }
-
-        const createItemHTML = (id, type, title, ...buttons) => `
+    <!-- Шаблон за елемент от списък (Навигация, Глобални, Футър) -->
+    <template id="list-item-template">
+        <div class="list-item">
+            <span class="handle" title="Премести">☰</span>
             <div class="item-info">
-                <span class="type">${type.replace(/_/g, ' ')}</span>
-                <div class="title">${title || '(без заглавие)'}</div>
+                <span class="item-type"></span>
+                <div class="item-title"></div>
             </div>
-            <div class="item-actions">${buttons.join(' ')}</div>`;
+            <div class="item-actions">
+                <!-- Бутоните за редакция/изтриване ще се добавят тук -->
+            </div>
+        </div>
+    </template>
 
-        function renderGlobalSettings() {
-            document.getElementById('global-settings-section').innerHTML = `<h2>Глобални Настройки</h2>
-                <div class="list-item">
-                    ${createItemHTML('global_settings', 'Настройки на сайта', appData.settings.site_name, `<button class="btn btn-secondary edit-settings-btn">Редактирай</button>`)}
-                </div>`;
-        }
+    <!-- Шаблон за ред от таблицата с поръчки -->
+    <template id="order-row-template">
+        <tr>
+            <td data-label="Клиент" class="order-customer"></td>
+            <td data-label="Телефон" class="order-phone"></td>
+            <td data-label="Email" class="order-email"></td>
+            <td data-label="Продукти" class="order-products"></td>
+            <td data-label="Статус" class="order-status"></td>
+        </tr>
+    </template>
 
-        function renderNavigation() {
-            const container = document.getElementById('navigation-section');
-            container.innerHTML = '<h2>Основна Навигация (Подредете с влачене)</h2>';
-            const list = document.createElement('div');
-            list.id = 'navigation-list';
-            appData.navigation.forEach((navItem, index) => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'list-item';
-                itemDiv.dataset.id = index;
-                itemDiv.innerHTML = `<span class="handle">☰</span>` + createItemHTML(
-                    index, 'Линк', navItem.text,
-                    `<button class="btn btn-secondary btn-sm edit-nav-btn" data-index="${index}">Редактирай</button>`,
-                    `<button class="btn btn-danger btn-sm delete-nav-btn" data-index="${index}">Изтрий</button>`
-                );
-                list.appendChild(itemDiv);
-            });
-            container.appendChild(list);
-            const addBtn = document.createElement('button');
-            addBtn.className = 'btn btn-primary add-nav-btn';
-            addBtn.textContent = 'Добави нов линк';
-            addBtn.style.marginTop = '1rem';
-            container.appendChild(addBtn);
-            initSortable(list, appData.navigation);
-        }
-        
-        function renderPageComponents() {
-            const list = document.getElementById('page-builder-list');
-            list.innerHTML = '';
-            appData.page_content.forEach(component => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'component-item';
-                itemDiv.dataset.id = component.component_id;
-                itemDiv.innerHTML = `<span class="handle">☰</span>` + createItemHTML(
-                    component.component_id,
-                    COMPONENT_TYPES[component.type]?.name || component.type,
-                    component.title,
-                    `<button class="btn btn-secondary edit-component-btn" data-id="${component.component_id}">Редактирай</button>`,
-                    `<button class="btn btn-danger delete-component-btn" data-id="${component.component_id}">Изтрий</button>`
-                );
-                list.appendChild(itemDiv);
-            });
-            initSortable(list, appData.page_content);
-        }
+    <!-- --- Шаблони за формите в модалния прозорец --- -->
 
-        function renderFooter() {
-             document.getElementById('footer-section').innerHTML = `<h2>Футър</h2>
-                <div class="list-item">
-                    ${createItemHTML('footer_settings', 'Copyright & Колони', appData.footer.copyright_text, `<button class="btn btn-secondary edit-footer-btn">Редактирай</button>`)}
-                </div>`;
-        }
+    <!-- Форма: Глобални настройки -->
+    <template id="form-global-settings-template">
+        <form class="modal-form">
+            <div class="form-group">
+                <label for="site_name">Име на сайта</label>
+                <input type="text" id="site_name" data-field="site_name">
+            </div>
+            <div class="form-group">
+                <label for="site_slogan">Слоган</label>
+                <input type="text" id="site_slogan" data-field="site_slogan">
+            </div>
+            <div class="form-group">
+                <label for="logo_url">URL на логото</label>
+                <input type="text" id="logo_url" data-field="logo_url">
+            </div>
+        </form>
+    </template>
+    
+    <!-- Форма: Елемент от навигация -->
+    <template id="form-nav-item-template">
+         <form class="modal-form">
+            <div class="form-group">
+                <label for="nav_text">Текст на линка</label>
+                <input type="text" id="nav_text" data-field="text">
+            </div>
+            <div class="form-group">
+                <label for="nav_link">URL / Anchor (#id)</label>
+                <input type="text" id="nav_link" data-field="link">
+            </div>
+        </form>
+    </template>
+    
+    <!-- Форма: Hero Banner -->
+    <template id="form-hero-banner-template">
+        <form class="modal-form">
+            <div class="form-group">
+                <label for="hero_title">Заглавие</label>
+                <input type="text" id="hero_title" data-field="title">
+            </div>
+            <div class="form-group">
+                <label for="hero_subtitle">Подзаглавие</label>
+                <input type="text" id="hero_subtitle" data-field="subtitle">
+            </div>
+        </form>
+    </template>
 
-        function renderOrders() {
-            const tbody = document.querySelector('#orders-table tbody');
-            if (!tbody) return;
-            tbody.innerHTML = ordersData.map(o => {
-                const c = o.customer || {};
-                const products = (o.products || []).map(p => `${p.name} x${p.quantity}`).join('<br>');
-                return `<tr><td>${(c.firstName || '') + ' ' + (c.lastName || '')}</td><td>${c.phone || ''}</td><td>${c.email || ''}</td><td>${products}</td></tr>`;
-            }).join('');
-        }
-        
-        // --- MODAL & FORM GENERATION ---
-        function openModal(title, formHtml, onSave) {
-            modal.title.textContent = title;
-            modal.form.innerHTML = formHtml;
-            onSaveCallback = () => {
-                if (onSave()) { // onSave should return true on success, false on validation failure
-                    setUnsavedChanges(true);
-                    closeModal();
-                    renderAll();
-                }
-            };
-            modal.container.classList.add('visible');
-            modal.backdrop.classList.add('visible');
-        }
-
-        function closeModal() {
-            modal.container.classList.remove('visible');
-            modal.backdrop.classList.remove('visible');
-            modal.form.innerHTML = '';
-            onSaveCallback = null;
-        }
-        
-        const field = (label, value = '', type = 'text', options = {}) => {
-            const safeValue = value === null || value === undefined ? '' : String(value).replace(/"/g, '"');
-            const fieldId = options.id || `${options.dataField}-${Date.now()}-${Math.random()}`;
-            const dataAttr = options.dataField ? `data-field="${options.dataField}"` : '';
-            
-            if (type === 'textarea') return `<div class="form-group"><label for="${fieldId}">${label}</label><textarea id="${fieldId}" ${dataAttr} rows="${options.rows || 4}">${safeValue}</textarea></div>`;
-            if (type === 'checkbox') return `<div class="form-group"><label class="checkbox-label"><input type="checkbox" id="${fieldId}" ${dataAttr} ${value ? 'checked' : ''}> ${label}</label></div>`;
-            if (type === 'select') {
-                const optionsHtml = options.choices.map(c => `<option value="${c.value}" ${c.value === value ? 'selected' : ''}>${c.text}</option>`).join('');
-                return `<div class="form-group"><label for="${fieldId}">${label}</label><select id="${fieldId}" ${dataAttr}>${optionsHtml}</select></div>`;
-            }
-            return `<div class="form-group"><label for="${fieldId}">${label}</label><input type="${type}" id="${fieldId}" value="${safeValue}" ${dataAttr}></div>`;
-        };
-        
-        // --- EVENT LISTENERS & LOGIC ---
-        function initEventListeners() {
-            // Main page clicks
-            document.body.addEventListener('click', e => {
-                const target = e.target.closest('button, a');
-                if (!target) return;
-
-                if (target.matches('.edit-settings-btn')) handleEditSettings();
-                if (target.matches('.add-nav-btn')) handleAddNavItem();
-                if (target.matches('.edit-nav-btn')) handleEditNavItem(target.dataset.index);
-                if (target.matches('.delete-nav-btn')) handleDeleteNavItem(target.dataset.index);
-                if (target.matches('.add-component-btn[data-type]')) { e.preventDefault(); handleAddComponent(target.dataset.type); }
-                if (target.matches('.edit-component-btn')) handleEditComponent(target.dataset.id);
-                if (target.matches('.delete-component-btn')) handleDeleteComponent(target.dataset.id);
-                if (target.matches('.edit-footer-btn')) handleEditFooter();
-            });
-            
-            // Add Component Menu (Clickable)
-            const addComponentMenu = document.getElementById('add-component-menu');
-            addComponentMenu.addEventListener('click', e => {
-                const link = e.target.closest('a[data-type]');
-                if (link) {
-                    e.preventDefault();
-                    addComponentMenu.classList.remove('is-open');
-                    handleAddComponent(link.dataset.type);
-                    return;
-                }
-                if (e.target.matches('#add-component-btn')) {
-                    e.stopPropagation();
-                    addComponentMenu.classList.toggle('is-open');
-                }
-            });
-            // Close dropdown if clicking outside
-            document.addEventListener('click', (e) => {
-                if (!addComponentMenu.contains(e.target)) {
-                    addComponentMenu.classList.remove('is-open');
-                }
-            });
-
-            // Modal clicks
-            modal.saveBtn.addEventListener('click', () => onSaveCallback && onSaveCallback());
-            modal.cancelBtn.addEventListener('click', closeModal);
-            modal.backdrop.addEventListener('click', closeModal);
-
-            // Dynamic event delegation inside modal form for nested items
-            modal.form.addEventListener('click', e => {
-                const target = e.target.closest('button');
-                if (!target) return;
-                
-                if (target.matches('.delete-nested-item-btn')) {
-                    if (confirm('Сигурни ли сте?')) {
-                        target.closest('.nested-item, .nested-sub-item').remove();
-                    }
-                }
-                if (target.matches('.add-nested-item-btn')) {
-                    const containerId = target.dataset.container;
-                    const templateId = target.dataset.template;
-                    const container = document.getElementById(containerId);
-                    const templateNode = document.getElementById(templateId);
-                    if(!container || !templateNode) return;
-                    
-                    const newContent = document.createElement('div');
-                    newContent.innerHTML = templateNode.innerHTML;
-                    
-                    // Specific fix for footer columns
-                    if (templateId === 'new-column-template') {
-                        const newLinksContainer = newContent.querySelector('[data-type="links-container"]');
-                        const newAddLinkBtn = newContent.querySelector('.add-nested-item-btn');
-                        const newContainerId = `links-editor-new-${Date.now()}`;
-                        newLinksContainer.id = newContainerId;
-                        newAddLinkBtn.dataset.container = newContainerId;
-                    }
-                    
-                    container.appendChild(newContent);
-                }
-            });
-
-            document.getElementById('refresh-orders-btn').addEventListener('click', loadOrders);
-
-            // Unsaved changes warning
-            window.addEventListener('beforeunload', (e) => {
-                if (hasUnsavedChanges) {
-                    e.preventDefault();
-                    e.returnValue = ''; // Standard for most browsers
-                }
-            });
-        }
-        
-        // --- HANDLERS FOR EACH SECTION ---
-        function handleEditSettings() {
-            const s = appData.settings;
-            const formHtml = field('Име на сайта', s.site_name, 'text', {dataField: 'site_name'}) +
-                             field('Слоган', s.site_slogan, 'text', {dataField: 'site_slogan'}) +
-                             field('URL на логото', s.logo_url, 'text', {dataField: 'logo_url'});
-            openModal('Редакция на глобални настройки', formHtml, () => {
-                s.site_name = modal.form.querySelector('[data-field="site_name"]').value;
-                s.site_slogan = modal.form.querySelector('[data-field="site_slogan"]').value;
-                s.logo_url = modal.form.querySelector('[data-field="logo_url"]').value;
-                return true; // Success
-            });
-        }
-        
-        function handleEditNavItem(index) {
-            const item = appData.navigation[index];
-            const formHtml = field('Текст на линка', item.text, 'text', {dataField: 'nav_text'}) +
-                             field('URL/Anchor (#id)', item.link, 'text', {dataField: 'nav_link'});
-            openModal('Редакция на линк от навигация', formHtml, () => {
-                item.text = modal.form.querySelector('[data-field="nav_text"]').value;
-                item.link = modal.form.querySelector('[data-field="nav_link"]').value;
-                return true;
-            });
-        }
-
-        function handleAddNavItem() {
-            const formHtml = field('Текст на линка', '', 'text', {dataField: 'nav_text'}) +
-                             field('URL/Anchor (#id)', '', 'text', {dataField: 'nav_link'});
-            openModal('Добавяне на нов линк', formHtml, () => {
-                const newItem = {
-                    text: modal.form.querySelector('[data-field="nav_text"]').value,
-                    link: modal.form.querySelector('[data-field="nav_link"]').value
-                };
-                if(newItem.text && newItem.link) {
-                    appData.navigation.push(newItem);
-                    return true;
-                } else {
-                    alert('Моля попълнете и двете полета.');
-                    return false;
-                }
-            });
-        }
-        
-        function handleDeleteNavItem(index) {
-            if (confirm(`Сигурни ли сте, че искате да изтриете "${appData.navigation[index].text}"?`)) {
-                appData.navigation.splice(index, 1);
-                setUnsavedChanges(true);
-                renderAll();
-            }
-        }
-
-        function handleEditComponent(id) {
-            const component = appData.page_content.find(c => c.component_id === id);
-            let formHtml = ``, onSave;
-
-            switch(component.type) {
-                case 'hero_banner':
-                    formHtml = field('Заглавие', component.title, 'text', {dataField:'title'}) + field('Подзаглавие', component.subtitle, 'text', {dataField:'subtitle'});
-                    onSave = () => {
-                        component.title = modal.form.querySelector('[data-field="title"]').value;
-                        component.subtitle = modal.form.querySelector('[data-field="subtitle"]').value;
-                        return true;
-                    };
-                    break;
-                case 'info_card':
-                    formHtml = field('Заглавие', component.title, 'text', {dataField:'title'}) +
-                               field('URL на изображение', component.image, 'text', {dataField:'image'}) +
-                               field('Съдържание (текст)', component.content, 'textarea', {dataField:'content'}) +
-                               `<h4>Бутон</h4>` + field('Текст на бутона', component.button?.text, 'text', {dataField:'button_text'}) + field('URL на бутона', component.button?.url, 'text', {dataField:'button_url'}) +
-                               field('Подравняване на картинката', component.options?.image_align, 'select', {dataField:'image_align', choices: [{value: 'left', text: 'Ляво'}, {value: 'right', text: 'Дясно'}] });
-                    onSave = () => {
-                        component.title = modal.form.querySelector('[data-field="title"]').value;
-                        component.image = modal.form.querySelector('[data-field="image"]').value;
-                        component.content = modal.form.querySelector('[data-field="content"]').value;
-                        component.button.text = modal.form.querySelector('[data-field="button_text"]').value;
-                        component.button.url = modal.form.querySelector('[data-field="button_url"]').value;
-                        component.options.image_align = modal.form.querySelector('[data-field="image_align"]').value;
-                        return true;
-                    };
-                    break;
-                 case 'product_category':
-                    formHtml = getProductCategoryFormHTML(component);
-                    onSave = () => saveProductCategoryForm(component);
-                    break;
-                default:
-                    formHtml = `<p>Този тип компонент (${component.type}) все още няма редактор.</p>`;
-                    onSave = () => true;
-            }
-            
-            openModal(`Редакция на: ${COMPONENT_TYPES[component.type]?.name || component.type}`, formHtml, onSave);
-        }
-        
-        function handleAddComponent(type) {
-            const newComponent = { type, component_id: 'comp_' + Date.now() };
-             switch (type) {
-                case 'product_category':
-                    newComponent.title = 'Нова Продуктова Категория';
-                    newComponent.id = 'new-category-' + Date.now();
-                    newComponent.image = '';
-                    newComponent.options = { is_collapsible: true, is_expanded_by_default: false };
-                    newComponent.products = [];
-                    break;
-                case 'info_card':
-                    newComponent.title = 'Нов Информационен Кард';
-                    newComponent.image = '';
-                    newComponent.content = 'Примерен текст...';
-                    newComponent.button = { text: 'Научи повече', url: '#' };
-                    newComponent.options = { image_align: 'left' };
-                    break;
-                case 'hero_banner':
-                    newComponent.title = 'Нов Hero Banner';
-                    newComponent.subtitle = 'Въведете подзаглавие тук';
-                    break;
-                default:
-                    alert(`Добавянето на компонент от тип "${type}" все още не се поддържа.`); return;
-            }
-            appData.page_content.push(newComponent);
-            setUnsavedChanges(true);
-            renderAll();
-            handleEditComponent(newComponent.component_id);
-        }
-        
-        function handleDeleteComponent(id) {
-            if (confirm('Сигурни ли сте, че искате да изтриете този компонент?')) {
-                appData.page_content = appData.page_content.filter(c => c.component_id !== id);
-                setUnsavedChanges(true);
-                renderAll();
-            }
-        }
-        
-        function handleEditFooter() {
-            const f = appData.footer;
-            let formHtml = field('Copyright текст', f.copyright_text, 'text', {dataField: 'copyright_text'}) + `<div class="nested-list"><h4>Колони</h4><div id="footer-columns-editor">`;
-            
-            f.columns.forEach((col, index) => {
-                if (col.type === 'logo') return;
-                formHtml += `<div class="nested-item" data-type="links-column">
-                    <h4>Колона с линкове <button type="button" class="btn btn-danger btn-sm delete-nested-item-btn">Изтрий колоната</button></h4>
-                    ${field('Заглавие на колоната', col.title, 'text', {dataField: `col_title`})}
-                    <div class="nested-list"><h5>Линкове</h5><div id="links-editor-${index}" data-type="links-container">`;
-                
-                col.links.forEach((link) => {
-                    formHtml += `<div class="nested-sub-item">
-                        ${field('Текст', link.text, 'text', {dataField: `link_text`})}
-                        ${field('URL', link.url, 'text', {dataField: `link_url`})}
-                        <button type="button" class="btn btn-danger btn-sm delete-nested-item-btn">X</button>
-                    </div>`;
-                });
-
-                formHtml += `</div><button type="button" class="btn btn-secondary btn-sm add-nested-item-btn" data-container="links-editor-${index}" data-template="new-link-template">Добави линк</button></div></div>`;
-            });
-
-            formHtml += `</div><button type="button" class="btn btn-primary add-nested-item-btn" data-container="footer-columns-editor" data-template="new-column-template">Добави колона</button></div>`;
-
-            // Templates for adding new items
-            formHtml += `<template id="new-link-template"><div class="nested-sub-item">${field('Текст', '', 'text', {dataField:'link_text'})}${field('URL', '', 'text',{dataField:'link_url'})}<button type="button" class="btn btn-danger btn-sm delete-nested-item-btn">X</button></div></template>`;
-            formHtml += `<template id="new-column-template"><div class="nested-item" data-type="links-column"><h4>Нова колона <button type="button" class="btn btn-danger btn-sm delete-nested-item-btn">Изтрий</button></h4>${field('Заглавие', '', 'text',{dataField:'col_title'})}<div class="nested-list"><h5>Линкове</h5><div data-type="links-container"></div><button type="button" class="btn btn-secondary btn-sm add-nested-item-btn" data-template="new-link-template">Добави линк</button></div></div></template>`;
-
-            openModal('Редакция на Футър', formHtml, () => {
-                f.copyright_text = modal.form.querySelector('[data-field="copyright_text"]').value;
-                const newColumns = [appData.footer.columns.find(c => c.type === 'logo')]; // Keep the logo column
-                modal.form.querySelectorAll('[data-type="links-column"]').forEach(colEl => {
-                    const newCol = {
-                        type: 'links',
-                        title: colEl.querySelector('[data-field="col_title"]').value,
-                        links: []
-                    };
-                    colEl.querySelectorAll('.nested-sub-item').forEach(linkEl => {
-                        const text = linkEl.querySelector('[data-field="link_text"]').value;
-                        const url = linkEl.querySelector('[data-field="link_url"]').value;
-                        if(text && url) newCol.links.push({ text, url });
-                    });
-                    newColumns.push(newCol);
-                });
-                f.columns = newColumns;
-                return true;
-            });
-        }
-        
-        // --- COMPLEX FORM HELPERS FOR PRODUCT CATEGORY ---
-        const getProductFormHTML = (product) => {
-            const effectsId = 'effects-editor-' + Math.random();
-            const variantsId = 'variants-editor-' + Math.random();
-            return `<div class="nested-item product-item">
-                <h4>Продукт <button type="button" class="btn btn-danger btn-sm delete-nested-item-btn">Изтрий продукта</button></h4>
-                <div class="form-row">
-                    ${field('Име', product.name, 'text', {dataField: 'prod_name'})}
-                    ${field('Слоган', product.tagline, 'text', {dataField: 'prod_tagline'})}
-                    ${field('Цена (лв)', product.price, 'number', {dataField: 'prod_price'})}
+    <!-- Форма: Информационен кард -->
+    <template id="form-info-card-template">
+        <form class="modal-form">
+            <div class="form-group">
+                <label for="info_title">Заглавие</label>
+                <input type="text" id="info_title" data-field="title">
+            </div>
+            <div class="form-group">
+                <label for="info_image">URL на изображение</label>
+                <input type="text" id="info_image" data-field="image">
+            </div>
+             <div class="form-group">
+                <label for="info_content">Съдържание (текст)</label>
+                <textarea id="info_content" data-field="content" rows="4"></textarea>
+            </div>
+            <h4>Бутон (опционално)</h4>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="info_button_text">Текст на бутона</label>
+                    <input type="text" id="info_button_text" data-field="button.text">
                 </div>
-                ${field('Описание', product.description, 'textarea', {dataField: 'prod_desc'})}
-                <h5>Източник</h5>
-                <div class="form-row">
-                    ${field('Текст на източника', product.research_note?.text, 'text', {dataField: 'prod_note_text'})}
-                    ${field('URL на източника', product.research_note?.url, 'text', {dataField: 'prod_note_url'})}
+                <div class="form-group">
+                    <label for="info_button_url">URL на бутона</label>
+                    <input type="text" id="info_button_url" data-field="button.url">
                 </div>
-                
-                <h5>Ефекти</h5>
-                <div class="nested-list effects-editor" id="${effectsId}">
-                    ${product.effects.map(getEffectFormHTML).join('')}
+            </div>
+             <div class="form-group">
+                <label for="info_image_align">Подравняване на картинката</label>
+                <select id="info_image_align" data-field="options.image_align">
+                    <option value="left">Ляво</option>
+                    <option value="right">Дясно</option>
+                </select>
+            </div>
+        </form>
+    </template>
+
+    <!-- Форма: Продуктова категория (сложна, с табове) -->
+    <template id="form-product-category-template">
+        <form class="modal-form">
+            <!-- Табове вътре в модала -->
+            <nav class="modal-tab-nav">
+                <button type="button" class="modal-tab-btn active" data-modal-tab="tab-cat-general">Основни</button>
+                <button type="button" class="modal-tab-btn" data-modal-tab="tab-cat-products">Продукти</button>
+            </nav>
+
+            <!-- Съдържание на табовете -->
+            <div class="modal-tab-content">
+                <div id="tab-cat-general" class="modal-tab-pane active">
+                    <div class="form-group">
+                        <label for="cat_title">Име на категорията</label>
+                        <input type="text" id="cat_title" data-field="title">
+                    </div>
+                    <div class="form-group">
+                        <label for="cat_id">Anchor ID (за навигация, напр. #bio-products)</label>
+                        <input type="text" id="cat_id" data-field="id">
+                    </div>
+                     <div class="form-group">
+                        <label for="cat_image">URL на изображение (опционално)</label>
+                        <input type="text" id="cat_image" data-field="image">
+                    </div>
+                    <h4>Опции</h4>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="cat_is_collapsible" data-field="options.is_collapsible">
+                        <label for="cat_is_collapsible">Да бъде ли разгъваща се (акордеон)?</label>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" id="cat_is_expanded" data-field="options.is_expanded_by_default">
+                        <label for="cat_is_expanded">Да бъде ли разгъната по подразбиране?</label>
+                    </div>
                 </div>
-                <button type="button" class="btn btn-secondary btn-sm add-nested-item-btn" data-container="${effectsId}" data-template="new-effect-template">Добави ефект</button>
 
-                <h5>Варианти</h5>
-                <div class="nested-list variants-editor" id="${variantsId}">
-                    ${product.variants.map(getVariantFormHTML).join('')}
+                <div id="tab-cat-products" class="modal-tab-pane">
+                    <h4>Продукти в категорията</h4>
+                    <div id="products-editor" class="nested-list-container">
+                        <!-- Продуктите ще се генерират тук -->
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-action="add-nested-item" data-container="products-editor" data-template="product-editor-template">Добави продукт</button>
                 </div>
-                <button type="button" class="btn btn-secondary btn-sm add-nested-item-btn" data-container="${variantsId}" data-template="new-variant-template">Добави вариант</button>
-            </div>`;
-        };
+            </div>
+        </form>
+    </template>
 
-        const getEffectFormHTML = (effect) => `<div class="nested-sub-item">
-            ${field('Етикет', effect.label, 'text', {dataField: 'eff_label'})}
-            ${field('Стойност (0-100)', effect.value, 'number', {dataField: 'eff_value'})}
-            <button type="button" class="btn btn-danger btn-sm delete-nested-item-btn">X</button>
-        </div>`;
+    <!-- Вложен шаблон за редактор на един продукт -->
+    <template id="product-editor-template">
+        <div class="nested-item" data-type="product">
+            <h5 class="nested-item-header">
+                <span>Продукт</span>
+                <button type="button" class="btn-icon delete-nested-btn" title="Изтрий продукта">&times;</button>
+            </h5>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Име</label>
+                    <input type="text" data-field="name">
+                </div>
+                 <div class="form-group">
+                    <label>Слоган</label>
+                    <input type="text" data-field="tagline">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Цена (лв)</label>
+                <input type="number" step="0.01" data-field="price">
+            </div>
+            <div class="form-group">
+                <label>Описание</label>
+                <textarea data-field="description" rows="3"></textarea>
+            </div>
+            <h6>Източник (Research Note)</h6>
+            <div class="form-row">
+                 <div class="form-group">
+                    <label>Текст на източника</label>
+                    <input type="text" data-field="research_note.text">
+                </div>
+                 <div class="form-group">
+                    <label>URL на източника</label>
+                    <input type="text" data-field="research_note.url">
+                </div>
+            </div>
+            <h6>Ефекти</h6>
+            <div class="nested-sublist-container" data-sub-container="effects"></div>
+            <button type="button" class="btn btn-sm btn-secondary" data-action="add-nested-item" data-template="effect-editor-template" data-container="[data-sub-container='effects']">Добави ефект</button>
+        </div>
+    </template>
 
-        const getVariantFormHTML = (variant) => `<div class="nested-item">
-            <h6>Вариант <button type="button" class="btn btn-danger btn-sm delete-nested-item-btn">Изтрий варианта</button></h6>
-            ${field('Заглавие', variant.title, 'text', {dataField: 'var_title'})}
-            ${field('Описание', variant.description, 'text', {dataField: 'var_desc'})}
-            ${field('URL', variant.url, 'text', {dataField: 'var_url'})}
-        </div>`;
+    <!-- Вложен шаблон за редактор на ефект -->
+    <template id="effect-editor-template">
+        <div class="nested-sub-item" data-type="effect">
+             <div class="form-group">
+                <label>Етикет</label>
+                <input type="text" data-field="label">
+            </div>
+             <div class="form-group">
+                <label>Стойност (0-100)</label>
+                <input type="number" data-field="value">
+            </div>
+            <button type="button" class="btn-icon delete-nested-btn" title="Изтрий ефекта">&times;</button>
+        </div>
+    </template>
+    
+    <!-- Връзка към външния JavaScript файл. type="module" е важен за модерния JS. -->
+    <script src="admin.js" type="module"></script>
 
-        function getProductCategoryFormHTML(component) {
-            let formHtml = field('Име на категорията', component.title, 'text', {dataField: 'title'}) +
-                           field('Anchor ID (за навигация)', component.id, 'text', {dataField: 'id'}) +
-                           field('URL на изображението', component.image, 'text', {dataField: 'image'}) +
-                           `<h4>Опции</h4>` +
-                           field('Да бъде ли разгъваща се?', component.options?.is_collapsible, 'checkbox', {dataField: 'is_collapsible'}) +
-                           field('Да бъде ли разгъната по подразбиране?', component.options?.is_expanded_by_default, 'checkbox', {dataField: 'is_expanded_by_default'}) +
-                           `<div class="nested-list"><h4>Продукти</h4><div id="products-editor">
-                                ${component.products.map(getProductFormHTML).join('')}
-                           </div>
-                           <button type="button" class="btn btn-primary add-nested-item-btn" data-container="products-editor" data-template="new-product-template">Добави нов продукт</button>
-                           </div>`;
-            // Templates
-            const newProduct = { name: 'Нов Продукт', tagline: '', price: 0, description: '', research_note: { text: '', url: '' }, effects: [], variants: [] };
-            formHtml += `<template id="new-product-template">${getProductFormHTML(newProduct)}</template>`;
-            formHtml += `<template id="new-effect-template">${getEffectFormHTML({label:'', value: 50})}</template>`;
-            formHtml += `<template id="new-variant-template">${getVariantFormHTML({title:'', description:'', url:''})}</template>`;
-            return formHtml;
-        }
-
-        function saveProductCategoryForm(component) {
-            const form = modal.form;
-            component.title = form.querySelector('[data-field="title"]').value;
-            component.id = form.querySelector('[data-field="id"]').value;
-            component.image = form.querySelector('[data-field="image"]').value;
-            component.options.is_collapsible = form.querySelector('[data-field="is_collapsible"]').checked;
-            component.options.is_expanded_by_default = form.querySelector('[data-field="is_expanded_by_default"]').checked;
-            
-            const newProducts = [];
-            let validationFailed = false;
-            form.querySelectorAll('#products-editor .product-item').forEach((pEl, pIndex) => {
-                if(validationFailed) return;
-                const product = {
-                    name: pEl.querySelector('[data-field="prod_name"]').value,
-                    tagline: pEl.querySelector('[data-field="prod_tagline"]').value,
-                    price: parseFloat(pEl.querySelector('[data-field="prod_price"]').value) || 0,
-                    description: pEl.querySelector('[data-field="prod_desc"]').value,
-                    research_note: {
-                        text: pEl.querySelector(`[data-field="prod_note_text"]`).value,
-                        url: pEl.querySelector(`[data-field="prod_note_url"]`).value,
-                    },
-                    effects: [],
-                    variants: []
-                };
-
-                pEl.querySelectorAll(`.effects-editor .nested-sub-item`).forEach(effEl => {
-                    const valueInput = effEl.querySelector('[data-field="eff_value"]');
-                    const value = parseInt(valueInput.value, 10);
-                    if(isNaN(value)) {
-                        alert(`Грешка: Стойността за ефект в Продукт ${pIndex + 1} трябва да е число.`);
-                        valueInput.style.border = '2px solid red';
-                        validationFailed = true;
-                        return;
-                    }
-                    product.effects.push({
-                        label: effEl.querySelector('[data-field="eff_label"]').value,
-                        value: value
-                    });
-                });
-                if(validationFailed) return;
-
-                pEl.querySelectorAll(`.variants-editor .nested-item`).forEach(varEl => {
-                    product.variants.push({
-                        title: varEl.querySelector('[data-field="var_title"]').value,
-                        description: varEl.querySelector('[data-field="var_desc"]').value,
-                        url: varEl.querySelector('[data-field="var_url"]').value
-                    });
-                });
-                newProducts.push(product);
-            });
-            
-            if(validationFailed) return false;
-            component.products = newProducts;
-            return true; // Success
-        }
-
-        // ✅ КОРЕКЦИЯТА Е ТУК
-        async function loadOrders() {
-            try {
-                // Използваме пълния път от константата API_URL
-                const res = await fetch(`${API_URL}/orders`);
-                if (!res.ok) throw new Error(`HTTP грешка! Статус: ${res.status}`);
-                ordersData = await res.json();
-                renderOrders();
-            } catch (err) {
-                console.error('Грешка при зареждане на поръчките:', err);
-                showNotification('Грешка при зареждане на поръчките.');
-            }
-        }
-
-        // --- UTILITY & HELPER FUNCTIONS ---
-        function initSortable(element, dataArray) {
-            new Sortable(element, {
-                handle: '.handle', animation: 150,
-                onEnd: (evt) => {
-                    const { oldIndex, newIndex } = evt;
-                    // Move item in the data array
-                    const [movedItem] = dataArray.splice(oldIndex, 1);
-                    dataArray.splice(newIndex, 0, movedItem);
-                    // No need to re-render, SortableJS handles the DOM.
-                    // Just mark that there are changes.
-                    setUnsavedChanges(true);
-                }
-            });
-        }
-        
-        async function saveChanges(btn) {
-            const jsonString = JSON.stringify(appData, null, 2);
-            try {
-                const response = await fetch(`${API_URL}/page_content.json`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: jsonString
-                });
-
-                if (response.ok) {
-                    showNotification('Промените са записани успешно.');
-                    setUnsavedChanges(false);
-                } else {
-                    showNotification('Грешка при записване на данните.');
-                }
-            } catch (err) {
-                console.error('Грешка при записване:', err);
-                showNotification('Грешка при записване на данните.');
-            }
-
-            const originalText = btn.textContent;
-            btn.textContent = '✓ Записано!';
-            btn.classList.add('btn-saved');
-            btn.disabled = true;
-
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.classList.remove('btn-saved');
-                btn.disabled = false;
-            }, 2000);
-
-            return jsonString;
-        }
-
-        async function saveOnly() {
-            await saveChanges(document.getElementById('save-btn'));
-        }
-
-        document.getElementById('save-btn').addEventListener('click', saveOnly);
-        init();
-        loadOrders();
-    });
-    </script>
 </body>
 </html>
