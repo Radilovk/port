@@ -134,6 +134,7 @@
     </div>
     
     <script>
+    const API_BASE = '';
     document.addEventListener('DOMContentLoaded', () => {
         let appData = {};
         let ordersData = [];
@@ -159,7 +160,7 @@
         // --- INITIALIZATION ---
         async function init() {
             try {
-                const response = await fetch(`page_content.json?v=${Date.now()}`);
+                const response = await fetch(`${API_BASE}/page_content.json?v=${Date.now()}`);
                 if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                 appData = await response.json();
                 renderAll();
@@ -728,7 +729,7 @@
         async function saveChanges(btn) {
             const jsonString = JSON.stringify(appData, null, 2);
             try {
-                const response = await fetch('page_content.json', {
+                const response = await fetch(`${API_BASE}/page_content.json`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: jsonString
