@@ -158,6 +158,8 @@
 
         .form-group input[type="text"],
         .form-group input[type="number"],
+        .form-group input[type="email"],
+        .form-group input[type="tel"],
         .form-group textarea {
             width: 100%;
             padding: 0.75rem 1rem;
@@ -355,10 +357,6 @@
             <div class="form-step active" data-step="1">
                 <h2 class="step-title">Стъпка 1: За Вас</h2>
                 <div class="form-group">
-                    <label for="name">Име</label>
-                    <input type="text" id="name" name="name" placeholder="Вашето име" required>
-                </div>
-                <div class="form-group">
                     <label>Пол</label>
                     <div class="choice-group">
                         <label class="choice-item" for="male"><input type="radio" id="male" name="gender" value="male" required><span class="checkmark"></span><span class="choice-label">Мъж</span></label>
@@ -440,9 +438,21 @@
                 </div>
             </div>
             
-            <!-- Стъпка 5: Финална -->
+            <!-- Стъпка 5: Контакт и Финализиране -->
             <div class="form-step" data-step="5">
-                <h2 class="step-title">Стъпка 5: Финал</h2>
+                <h2 class="step-title">Стъпка 5: Контакт и Финализиране</h2>
+                <div class="form-group">
+                    <label for="name">Име</label>
+                    <input type="text" id="name" name="name" placeholder="Вашето име" required>
+                </div>
+                 <div class="form-group">
+                    <label for="email">Имейл</label>
+                    <input type="email" id="email" name="email" placeholder="primer@email.com" required>
+                </div>
+                 <div class="form-group">
+                    <label for="phone">Телефон</label>
+                    <input type="tel" id="phone" name="phone" placeholder="0888123456" required>
+                </div>
                 <div class="form-group">
                     <label>За какъв период планирате приема?</label>
                     <div class="choice-group">
