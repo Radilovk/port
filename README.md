@@ -34,10 +34,18 @@ npm start
 ## Cloudflare Workers
 Cloudflare Workers е безсървърна среда и се различава от Node изпълнението на `local-worker.js`.
 Вместо Express и локална файлова система се използват `fetch` събития и KV хранилища.
-За коректни типови проверки инсталирайте dev-зависимостта `@cloudflare/workers-types`:
-```bash
-npm install --save-dev @cloudflare/workers-types
-```
+
+### Локално тестване
+- Стартирайте `local-worker.js` с:
+  ```bash
+  node local-worker.js
+  ```
+  Това осигурява локално API на порт **3000**.
+
+### Копиране в Cloudflare Dashboard
+1. Влезте в **Dashboard** и изберете **Workers**.
+2. Създайте нов Worker и копирайте съдържанието на `worker.js` в онлайн редактора.
+3. Запишете и тествайте функцията.
 
 ### KV пространства
 1. Създайте `ORDERS` и `PAGE_CONTENT` с:
@@ -58,8 +66,6 @@ npm install --save-dev @cloudflare/workers-types
    id = "<id>"
    preview_id = "<id>"
    ```
-   Без локалните `globals.d.ts` и пакета `@cloudflare/workers-types` Dashboard често
-   отчита типови грешки.
 
 ### Деплой на `worker.js`
 1. Инсталирайте `wrangler`.
