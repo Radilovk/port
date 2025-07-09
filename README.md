@@ -28,6 +28,22 @@ wrangler dev
 npm start
 ```
 
+## Настройване на `API_BASE`
+В `admin.html` в началото на JavaScript кода има константа `API_BASE`.
+При локално стартиране стойността може да остане празен низ:
+
+```html
+const API_BASE = '';
+```
+
+При деплой на Cloudflare Worker заменете стойността с URL адреса на вашия Worker,
+например:
+
+```html
+const API_BASE = 'https://myshop.worker.dev';
+```
+
+
 ## Страници
 - **index.html** – основната витрина. Данните за продукти и навигация се взимат от ключа `page_content` в KV чрез `/page_content.json`.
 - **checkout.html** – страница за завършване на поръчката. Изпраща кошницата към `/orders`.
