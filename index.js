@@ -287,9 +287,12 @@ function initializePageInteractions() {
     document.querySelectorAll('.fade-in-up').forEach(el => scrollObserver.observe(el));
 
     // HERO CANVAS ANIMATION
-    if (document.getElementById('neuron-canvas')) {
+   if (document.getElementById('neuron-canvas')) {
+    // ПРОМЯНАТА Е ТУК:
+    setTimeout(() => {
         setupCanvas();
         window.addEventListener('resize', setupCanvas);
+    }, 100); // 100 милисекунди забавяне е повече от достатъчно
     }
 }
 
