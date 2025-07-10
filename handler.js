@@ -34,6 +34,7 @@ export async function handleRequest(request, env) {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
+        if (!body.status) body.status = 'Нова';
         let list = await env.ORDERS.get('list', 'json');
         if (!Array.isArray(list)) list = [];
         list.push(body);
@@ -41,6 +42,26 @@ export async function handleRequest(request, env) {
         return new Response(JSON.stringify({ status: 'ok' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
+      }
+      case 'PUT': {
+        let body;
+        try {
+          body = await request.json();
+        } catch (e) {
+          return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        let list = await env.ORDERS.get('list', 'json');
+        if (!Array.isArray(list)) list = [];
+        const { index, status } = body;
+        if (typeof index !== 'number' || !list[index]) {
+          return new Response(JSON.stringify({ error: 'Not Found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        list[index].status = status;
+        await env.ORDERS.put('list', JSON.stringify(list, null, 2));
+        return new Response(JSON.stringify({ status: 'ok' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
       default:
         return new Response('Method Not Allowed', {

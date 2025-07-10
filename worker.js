@@ -34,7 +34,29 @@ export default {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
-        case 'POST': {
+       case 'POST': {
+          if (!env.ORDERS) {
+            return new Response(JSON.stringify({ error: "ORDERS KV namespace is not bound." }), { status: 500, headers: corsHeaders });
+          }
+          let body;
+          try {
+            body = await request.json();
+          } catch (e) {
+            return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          if (!body.status) body.status = 'Нова';
+          let list = await env.ORDERS.get('list', 'json');
+          if (!Array.isArray(list)) list = [];
+          list.push(body);
+          await env.ORDERS.put('list', JSON.stringify(list, null, 2));
+          return new Response(JSON.stringify({ status: 'ok' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        case 'PUT': {
           if (!env.ORDERS) {
             return new Response(JSON.stringify({ error: "ORDERS KV namespace is not bound." }), { status: 500, headers: corsHeaders });
           }
@@ -49,11 +71,13 @@ export default {
           }
           let list = await env.ORDERS.get('list', 'json');
           if (!Array.isArray(list)) list = [];
-          list.push(body);
+          const { index, status } = body;
+          if (typeof index !== 'number' || !list[index]) {
+            return new Response(JSON.stringify({ error: 'Not Found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          }
+          list[index].status = status;
           await env.ORDERS.put('list', JSON.stringify(list, null, 2));
-          return new Response(JSON.stringify({ status: 'ok' }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
+          return new Response(JSON.stringify({ status: 'ok' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
         default:
           return new Response('Method Not Allowed', {
