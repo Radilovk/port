@@ -95,10 +95,10 @@ const generateHeroHTML = component => `
         </div>
     </header>`;
 
-const generateProductCategoryHTML = component => {
+const generateProductCategoryHTML = (component, index) => {
     const isCollapsible = component.options.is_collapsible;
     const isExpanded = component.options.is_expanded_by_default;
-    const productGridId = `product-grid-${component.id}`;
+    const productGridId = `product-grid-${component.id || index}`;
     return `
     <section id="${component.id}" class="category-section fade-in-up ${isCollapsible ? '' : 'not-collapsible'}">
         <div class="container">
@@ -202,7 +202,6 @@ function renderMainContent(pageContent) {
                 contentHtml += generateHeroHTML(component);
                 break;
             case 'product_category':
-                // Pass index to generator for unique IDs
                 contentHtml += generateProductCategoryHTML(component, index);
                 break;
             case 'info_card':
@@ -242,7 +241,6 @@ function renderFooter(settings, footer) {
 // =======================================================
 
 function initializePageInteractions() {
-    // Event delegation for accordions and buttons
     document.body.addEventListener('click', e => {
         const toggleAccordion = (header) => {
             const isExpanded = header.getAttribute('aria-expanded') === 'true';
@@ -269,12 +267,11 @@ function initializePageInteractions() {
         }
     });
 
-    // Keyboard accessibility for accordions
     document.body.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') {
             const accordionHeader = e.target.closest('[role="button"][aria-expanded]');
             if (accordionHeader) {
-                e.preventDefault(); // Prevent page scroll on space
+                e.preventDefault();
                 const isExpanded = accordionHeader.getAttribute('aria-expanded') === 'true';
                 accordionHeader.setAttribute('aria-expanded', !isExpanded);
             }
@@ -306,12 +303,8 @@ function initializePageInteractions() {
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-in-up').forEach(el => scrollObserver.observe(el));
 
-    // Initialize Canvas only on desktop
-    if (window.innerWidth > 768) {
-        setupCanvas();
-        const debouncedResize = debounce(setupCanvas, 250);
-        window.addEventListener('resize', debouncedResize);
-    }
+    // Initialize Canvas
+    initializeCanvasAnimation();
 }
 
 function initializeGlobalScripts() {
@@ -319,9 +312,9 @@ function initializeGlobalScripts() {
         const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        // Re-init canvas on theme change only if it exists
-        if (document.getElementById('neuron-canvas') && window.innerWidth > 768) {
-            setupCanvas();
+        // Re-initialize canvas particles on theme change to adopt new colors
+        if (document.getElementById('neuron-canvas')) {
+            initializeCanvasAnimation(true); // Pass true to force re-initialization
         }
     });
 
@@ -386,13 +379,30 @@ function initializeScrollSpy() {
 let animationFrameId;
 let canvas, ctx, particles = [];
 
-function setupCanvas() {
+function initializeCanvasAnimation(forceReinit = false) {
     canvas = document.getElementById('neuron-canvas');
     if (!canvas) return;
+    
     ctx = canvas.getContext('2d');
 
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
+    }
+    
+    // --- Helper Functions ---
+    class Particle {
+        constructor(x, y, dirX, dirY, size, color) { this.x = x; this.y = y; this.directionX = dirX; this.directionY = dirY; this.size = size; this.color = color; }
+        draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); }
+        update() { if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX; if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY; this.x += this.directionX; this.y += this.directionY; this.draw(); }
+    }
+
+    function initParticles() {
+        particles = [];
+        const particleCount = Math.floor((canvas.width * canvas.height) / 12000);
+        const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height, (Math.random() * 0.4) - 0.2, (Math.random() * 0.4) - 0.2, Math.random() * 2 + 1, accentColor));
+        }
     }
 
     function resizeCanvas() {
@@ -400,22 +410,6 @@ function setupCanvas() {
         if (parent) {
             canvas.width = parent.offsetWidth;
             canvas.height = parent.offsetHeight;
-        }
-    }
-
-    class Particle {
-        constructor(x, y, dirX, dirY, size, color) { this.x = x; this.y = y; this.directionX = dirX; this.directionY = dirY; this.size = size; this.color = color; }
-        draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); }
-        update() { if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX; if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY; this.x += this.directionX; this.y += this.directionY; this.draw(); }
-    }
-
-    function initCanvas() {
-        resizeCanvas();
-        particles = [];
-        const particleCount = Math.floor((canvas.width * canvas.height) / 12000);
-        const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height, (Math.random() * 0.4) - 0.2, (Math.random() * 0.4) - 0.2, Math.random() * 2 + 1, accentColor));
         }
     }
 
@@ -444,14 +438,18 @@ function setupCanvas() {
         connect();
     }
     
-    // Check if we need to re-initialize or just resize
-    if (particles.length === 0) {
-        initCanvas();
-    } else {
+    // --- Execution Logic ---
+    if (particles.length === 0 || forceReinit) {
         resizeCanvas();
+        initParticles();
     }
+    
     animate();
+
+    const debouncedResize = debounce(resizeCanvas, 100);
+    window.addEventListener('resize', debouncedResize);
 }
+
 
 // =======================================================
 //          7. ГЛАВНА ИЗПЪЛНЯВАЩА ФУНКЦИЯ (MAIN)
@@ -464,14 +462,12 @@ async function main() {
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
 
-        // Clear skeleton loader
         DOM.mainContainer.innerHTML = ''; 
         
         renderHeader(data.settings, data.navigation);
         renderMainContent(data.page_content);
         renderFooter(data.settings, data.footer);
         
-        // Add loaded class after content is in the DOM
         DOM.mainContainer.classList.add('is-loaded');
 
         initializePageInteractions();
