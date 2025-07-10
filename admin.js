@@ -451,3 +451,4 @@ async function init() {
 
 // Старт на приложението
 init();
+
