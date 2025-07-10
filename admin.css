@@ -568,5 +568,25 @@ h2 {
 		white-space: nowrap;
         content: attr(data-label);
         font-weight: bold;
-	}
+        }
+}
+
+/* Допълнителни корекции за съвсем малки екрани */
+@media (max-width: 480px) {
+    .tab-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+    .orders-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    #order-search-input {
+        width: 100%;
+        min-width: 0;
+    }
+    .modal-container {
+        width: 95%;
+        max-height: 95vh;
+    }
 }
