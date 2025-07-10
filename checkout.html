@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
     <style>
         :root {
             --bg-primary-dark: #0D0F12; --bg-secondary-dark: #12151A; --text-primary-dark: #E9ECEF; --text-secondary-dark: #A0AEC0; --accent-dark: #00E0E0; --border-color-dark: rgba(255, 255, 255, 0.1); --error-color-dark: #ff5c5c;
@@ -74,10 +75,40 @@
     </style>
 </head>
 <body>
+    <header class="main-header">
+        <div class="header-container">
+            <a href="index.html" class="logo-container" id="header-logo-link">
+                <img src="" alt="BIOCODE Logo" id="header-logo-img">
+                <div>
+                    <span class="brand-name" id="header-brand-name">BIOCODE</span>
+                </div>
+            </a>
+            <nav class="main-nav">
+                <ul class="nav-links" id="main-nav-links">
+                    <li><a href="index.html">Начало</a></li>
+                    <li><a href="checkout.html" class="cart-link">Количка (<span id="cart-count">0</span>)</a></li>
+                    <li>
+                        <button id="theme-toggle" aria-label="Смяна на светла/тъмна тема">
+                            <span id="theme-icon-sun" class="theme-icon">🌞</span>
+                            <span id="theme-icon-moon" class="theme-icon">🌙</span>
+                            <span class="theme-toggle-text">Тема</span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+            <button class="menu-toggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+    <div class="nav-overlay"></div>
     <div class="checkout-container">
         <!-- Форма за попълване -->
         <main class="form-section">
             <h1>BIOCODE</h1>
+            <a href="index.html" class="btn-primary" style="display:inline-block;margin-bottom:1rem;">&larr; Обратно към магазина</a>
             <form id="checkout-form" novalidate>
                 <div class="form-step">
                     <h2>Информация за контакт</h2>
@@ -171,7 +202,7 @@
                 <div class="form-step">
                     <div class="checkbox-group">
                         <input type="checkbox" id="terms" name="terms" required>
-                        <label for="terms">Прочетох и се съгласявам с <a href="#" style="color:var(--accent)">Общите условия</a>.</label>
+                        <label for="terms">Прочетох и се съгласявам с <a href="terms.html" style="color:var(--accent)">Общите условия</a>.</label>
                     </div>
                     <div class="error-message" id="terms-error">Трябва да се съгласите с общите условия.</div>
 
@@ -220,8 +251,20 @@
         const shippingEl = document.getElementById('summary-shipping');
         const totalEl = document.getElementById('summary-total');
         const form = document.getElementById('checkout-form');
+        const themeToggle = document.getElementById('theme-toggle');
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        const navOverlay = document.querySelector('.nav-overlay');
+        const cartCountEl = document.getElementById('cart-count');
 
         const saveCart = () => localStorage.setItem('cart', JSON.stringify(cartData));
+
+        const updateCartCount = () => {
+            if (cartCountEl) {
+                const count = cartData.reduce((acc, p) => acc + p.quantity, 0);
+                cartCountEl.textContent = count;
+            }
+        };
         
         // --- 3. РЕНДЕРИРАНЕ И ИЗЧИСЛЕНИЯ ---
         function renderProducts() {
@@ -255,6 +298,7 @@
             });
             updateSummary();
             saveCart();
+            updateCartCount();
         }
 
         function updateSummary() {
@@ -285,6 +329,7 @@
                 }
                 renderProducts();
                 saveCart();
+                updateCartCount();
             }
 
             if (target.matches('.remove-item-btn')) {
@@ -292,6 +337,7 @@
                     cartData.splice(productIndex, 1);
                     renderProducts();
                     saveCart();
+                    updateCartCount();
                 }
             }
         });
@@ -387,6 +433,29 @@
 
         // --- 6. ИНИЦИАЛИЗАЦИЯ ---
         renderProducts();
+        updateCartCount();
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+        }
+
+        if (menuToggle) {
+            const toggleMenu = () => {
+                menuToggle.classList.toggle('active');
+                navLinks.classList.toggle('active');
+                navOverlay.classList.toggle('active');
+                document.body.classList.toggle('nav-open');
+            };
+            menuToggle.addEventListener('click', toggleMenu);
+            navOverlay.addEventListener('click', toggleMenu);
+            navLinks.addEventListener('click', e => {
+                if (e.target.tagName === 'A') toggleMenu();
+            });
+        }
 
     });
     </script>
