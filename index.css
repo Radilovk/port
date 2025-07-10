@@ -95,7 +95,7 @@ body.nav-open {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 1.5rem;
+    padding: 0 1.5rem; /* Changed: Removed top/bottom padding for section control */
 }
 
 /* ======================================================= */
@@ -132,7 +132,7 @@ body.nav-open {
     opacity: 1;
     transition: opacity 0.5s ease-in-out;
 }
-#main-content-container:not(.is-loaded) > *:not(.skeleton-wrapper) {
+#main-content-container:not(.is-loaded) > * {
     opacity: 0;
 }
 
@@ -192,12 +192,13 @@ main { padding-top: var(--header-height); }
 .hero-section {
     min-height: calc(100vh - var(--header-height));
     display: flex; flex-direction: column; justify-content: center; align-items: center;
-    text-align: center; position: relative; padding: 1rem;
+    text-align: center; position: relative;
 }
+.hero-section .container { width: 100%; }
 #neuron-canvas {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
 }
-.hero-content { z-index: 1; }
+.hero-content { z-index: 1; padding: 1rem 0; }
 .hero-content h1 {
     font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 8vw, 5rem);
     font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;
@@ -209,8 +210,9 @@ main { padding-top: var(--header-height); }
 }
 
 /* --- INFO CARD SECTION --- */
-.info-card-section { display: flex; align-items: center; gap: 3rem; margin: 4rem 0; }
-.info-card-section.image-align-right { flex-direction: row-reverse; }
+.info-card-section { padding: 4rem 0; }
+.info-card-section .container { display: flex; align-items: center; gap: 3rem; }
+.info-card-section.image-align-right .container { flex-direction: row-reverse; }
 .info-card-image, .info-card-content { flex: 1; min-width: 300px; }
 .info-card-image img { width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--border-color); }
 .info-card-content h2 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 2.8rem); margin-bottom: 1rem; }
@@ -223,10 +225,13 @@ main { padding-top: var(--header-height); }
 .info-card-content .btn-primary:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 0 20px var(--accent); }
 
 /* --- CATEGORY & ACCORDION --- */
-.category-header { cursor: pointer; }
+.category-section { padding: 2rem 0; }
+.category-header { cursor: pointer; outline: none; }
+.category-header:focus-visible { box-shadow: 0 0 0 2px var(--accent); border-radius: 8px; }
+
 .category-title {
-    font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 700;
-    color: var(--text-primary); margin: 4rem 0 1rem 0; position: relative; padding-bottom: 1rem;
+    font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 5vw, 3rem); font-weight: 700;
+    color: var(--text-primary); margin: 2rem 0 1rem 0; position: relative; padding-bottom: 1rem;
     display: flex; justify-content: space-between; align-items: center;
 }
 .category-title::after {
@@ -237,28 +242,15 @@ main { padding-top: var(--header-height); }
 .category-image-wrapper { width: 100%; border-radius: 16px; overflow: hidden; margin: 1rem 0 2rem 0; border: 1px solid var(--border-color); }
 .category-image-wrapper img { width: 100%; height: auto; object-fit: cover; display: block; }
 
-/* Нова икона-стрелка (шеврон) */
 .expand-icon, .category-expand-icon {
-    flex-shrink: 0;
-    width: 1em;
-    height: 1em;
-    border-style: solid;
-    border-width: 0.15em 0.15em 0 0;
-    border-color: var(--text-secondary);
-    display: inline-block;
-    transform: rotate(135deg); /* Сочи надолу */
+    flex-shrink: 0; width: 1em; height: 1em; border-style: solid;
+    border-width: 0.15em 0.15em 0 0; border-color: var(--text-secondary);
+    display: inline-block; transform: rotate(135deg);
     transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.3s ease;
 }
-.category-expand-icon {
-    width: 0.8em;
-    height: 0.8em;
-    margin-left: 1rem;
-}
-/* Анимация на иконата при разгъване */
-[aria-expanded="true"] .expand-icon,
-[aria-expanded="true"] .category-expand-icon {
-    transform: rotate(-45deg); /* Сочи нагоре */
-    border-color: var(--accent);
+.category-expand-icon { width: 0.8em; height: 0.8em; margin-left: 1rem; }
+[aria-expanded="true"] .expand-icon, [aria-expanded="true"] .category-expand-icon {
+    transform: rotate(-45deg); border-color: var(--accent);
 }
 
 /* --- PRODUCT GRID & CARDS --- */
@@ -283,11 +275,17 @@ main { padding-top: var(--header-height); }
 }
 .product-card:hover::before { opacity: 1; }
 .product-card:hover { border-color: var(--accent); transform: translateY(-8px); box-shadow: 0 10px 30px -5px var(--shadow-color); }
-.card-header { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; cursor: pointer; }
-.product-title { flex-shrink: 0; margin-right: auto; }
+
+.card-header { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1rem; cursor: pointer; outline: none; }
+.card-header:focus-visible { box-shadow: 0 0 0 2px var(--accent); border-radius: 8px; }
+
+.product-title { flex: 1 1 200px; margin-right: auto; }
 .product-title h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
 .product-title p { font-size: 0.85rem; color: var(--accent); font-weight: 500; }
-.product-price { font-weight: 600; margin-left: auto; font-size: 0.9rem; color: var(--accent); }
+.product-price { font-weight: 600; font-size: 0.9rem; color: var(--accent); flex-shrink: 0; }
+.effects-container { flex: 1 1 100%; order: 3; } /* Changed: visible by default */
+.expand-icon { align-self: center; } /* Align icon */
+
 .card-details {
     max-height: 0; opacity: 0; visibility: hidden;
     transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); position: relative; z-index: 2;
@@ -328,7 +326,6 @@ main { padding-top: var(--header-height); }
 .research-note a:hover { color: var(--accent); }
 
 /* --- EFFECT BARS STYLES --- */
-.effects-container { flex-grow: 1; min-width: 280px; }
 .effect-bar-group { margin-bottom: 10px; }
 .effect-bar-group:last-child { margin-bottom: 0; }
 .effect-label { font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
@@ -418,17 +415,10 @@ main { padding-top: var(--header-height); }
 }
 
 @media (max-width: 768px) {
-    .info-card-section, .info-card-section.image-align-right {
+    .info-card-section .container, .info-card-section.image-align-right .container {
         flex-direction: column; text-align: center; gap: 2rem;
     }
     .theme-toggle-text { display: none; } /* Скрий текста до иконата на десктоп */
-
-    /* Добавяне на padding за full-width секциите на мобилни */
-    .hero-section,
-    .info-card-section {
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-    }
 }
 
 @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
