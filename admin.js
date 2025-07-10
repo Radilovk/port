@@ -74,7 +74,9 @@ async function fetchOrders() {
     try {
         const response = await fetch(`${API_URL}/orders?v=${Date.now()}`);
         if (!response.ok) throw new Error(`HTTP грешка! Статус: ${response.status}`);
-        ordersData = await response.json();
+        // Ensure orders have a unique ID if not provided by API
+        const rawOrders = await response.json();
+        ordersData = rawOrders.map((order, index) => ({ ...order, id: order.id || `order_${index}_${Date.now()}` }));
         filteredOrdersData = [...ordersData];
     } catch (error) {
         showNotification('Грешка при зареждане на поръчките.', 'error');
@@ -191,13 +193,13 @@ function renderPageContent() {
         });
         DOM.pageBuilderList.appendChild(item);
     });
-    initSortable(DOM.pageBuilderList, appData.page_content, 'component_id');
+    initSortable(DOM.pageBuilderList, appData.page_content);
 }
 
 function renderFooter() {
     DOM.footerSettingsContainer.innerHTML = '';
      const item = createListItem({
-        type: 'Copyright & Колони',
+        type: 'Copyright',
         title: appData.footer.copyright_text,
         actions: [
             { label: 'Редактирай', action: 'edit-footer', class: 'btn-secondary' }
@@ -280,6 +282,7 @@ function openModal(title, formTemplateId, data, onSave) {
     const formTemplate = document.getElementById(formTemplateId);
     if (!formTemplate) {
         console.error(`Шаблон за форма с ID '${formTemplateId}' не е намерен!`);
+        showNotification(`Грешка: Шаблон за форма '${formTemplateId}' липсва.`, 'error');
         return;
     }
     DOM.modal.body.innerHTML = '';
@@ -291,7 +294,6 @@ function openModal(title, formTemplateId, data, onSave) {
 
     currentModalSaveCallback = onSave;
     
-    // Инициализация на табове в модала, ако има
     initModalTabs();
     
     DOM.modal.container.classList.add('show');
@@ -316,12 +318,13 @@ function populateForm(form, data) {
         }
     });
 
-    // Специална логика за вложени списъци (продукти, ефекти)
     if (data.products) {
         const productsContainer = form.querySelector('#products-editor');
-        data.products.forEach(productData => {
-            addNestedItem(productsContainer, 'product-editor-template', productData);
-        });
+        if(productsContainer) {
+            data.products.forEach(productData => {
+                addNestedItem(productsContainer, 'product-editor-template', productData);
+            });
+        }
     }
 }
 
@@ -329,14 +332,12 @@ function serializeForm(form) {
     const data = {};
     form.querySelectorAll('[data-field]').forEach(input => {
         const path = input.dataset.field;
-        // Пропускаме полетата в шаблоните за вложени елементи
         if (input.closest('.nested-item-template')) return;
         
-        const value = input.type === 'checkbox' ? input.checked : input.value;
+        const value = input.type === 'checkbox' ? input.checked : (input.type === 'number' ? (input.value ? parseFloat(input.value) : null) : input.value);
         setProperty(data, path, value);
     });
 
-    // Сериализация на вложени елементи
     const productsContainer = form.querySelector('#products-editor');
     if (productsContainer) {
         data.products = [];
@@ -344,18 +345,17 @@ function serializeForm(form) {
             const productData = {};
             productNode.querySelectorAll('[data-field]').forEach(input => {
                  const path = input.dataset.field;
-                 const value = input.type === 'checkbox' ? input.checked : (input.type === 'number' ? parseFloat(input.value) : input.value);
+                 const value = input.type === 'checkbox' ? input.checked : (input.type === 'number' ? (input.value ? parseFloat(input.value) : null) : input.value);
                  setProperty(productData, path, value);
             });
 
-            // Сериализация на ефекти
             const effectsContainer = productNode.querySelector('[data-sub-container="effects"]');
             if (effectsContainer) {
                 productData.effects = [];
                 effectsContainer.querySelectorAll(':scope > .nested-sub-item[data-type="effect"]').forEach(effectNode => {
                     const effectData = {};
                     effectNode.querySelectorAll('[data-field]').forEach(input => {
-                        effectData[input.dataset.field] = (input.type === 'number' ? parseFloat(input.value) : input.value);
+                        effectData[input.dataset.field] = (input.type === 'number' ? (input.value ? parseFloat(input.value) : null) : input.value);
                     });
                     productData.effects.push(effectData);
                 });
@@ -363,7 +363,6 @@ function serializeForm(form) {
             data.products.push(productData);
         });
     }
-
     return data;
 }
 
@@ -373,22 +372,21 @@ function addNestedItem(container, templateId, data) {
     const itemElement = newItem.querySelector('.nested-item, .nested-sub-item');
     
     if (data) {
-        // Попълване на полетата
         itemElement.querySelectorAll('[data-field]').forEach(input => {
             const path = input.dataset.field;
             const value = getProperty(data, path);
-            if (value !== undefined) input.value = value;
+            if (value !== undefined && value !== null) input.value = value;
         });
 
-        // Попълване на под-вложени елементи (ефекти)
         if (data.effects) {
             const effectsContainer = itemElement.querySelector('[data-sub-container="effects"]');
-            data.effects.forEach(effectData => {
-                addNestedItem(effectsContainer, 'effect-editor-template', effectData);
-            });
+            if(effectsContainer) {
+                data.effects.forEach(effectData => {
+                    addNestedItem(effectsContainer, 'effect-editor-template', effectData);
+                });
+            }
         }
     }
-    
     container.appendChild(newItem);
 }
 
@@ -401,7 +399,9 @@ function setupEventListeners() {
         const target = e.target.closest('[data-action]');
         if (!target) return;
         
-        e.preventDefault();
+        // Предотвратява презареждане при клик на <a href="#">
+        e.preventDefault(); 
+        
         const action = target.dataset.action;
         const listItem = target.closest('.list-item');
         const id = listItem?.dataset.id;
@@ -459,7 +459,7 @@ function setupEventListeners() {
     
     DOM.orderSearchInput.addEventListener('input', () => filterOrders());
     DOM.refreshOrdersBtn.addEventListener('click', async () => {
-        showNotification('Опресняване на поръчките...');
+        showNotification('Опресняване на поръчките...', 'info');
         await fetchOrders();
         filterOrders();
     });
@@ -476,7 +476,6 @@ function setupEventListeners() {
 function handleAction(action, target, id) {
     const componentType = target.dataset.componentType;
     const templateId = target.dataset.templateId;
-    const component = id ? appData.page_content.find(c => c.component_id === id) : null;
     
     switch(action) {
         // Глобални
@@ -512,35 +511,42 @@ function handleAction(action, target, id) {
             DOM.addComponentDropdown.classList.toggle('show');
             break;
         case 'add-component':
-            openModal(`Добавяне на ${componentType}`, templateId, null,
+            openModal(`Добавяне на: ${componentType.replace(/_/g, ' ')}`, templateId, null,
                 (form) => {
                     const newComponent = serializeForm(form);
                     newComponent.type = componentType;
                     newComponent.component_id = `comp_${Date.now()}`;
+                    if(!newComponent.title) newComponent.title = `Нов ${componentType}`;
                     appData.page_content.push(newComponent);
                     DOM.addComponentDropdown.classList.remove('show');
                     return true;
                 });
             break;
-        case 'edit-component':
+        case 'edit-component': {
+            const component = id ? appData.page_content.find(c => c.component_id === id) : null;
             if (!component) return;
-            const editTemplateId = `form-${component.type}-template`;
-            openModal(`Редакция на ${component.title}`, editTemplateId, component,
+            const correctedType = component.type.replace(/_/g, '-');
+            const editTemplateId = `form-${correctedType}-template`;
+            openModal(`Редакция на: ${component.title}`, editTemplateId, component,
                 (form) => {
                     const updatedData = serializeForm(form);
                     Object.assign(component, updatedData);
                     return true;
                 });
             break;
+        }
         case 'delete-component':
              deleteItemWithUndo('component', id, () => renderPageContent());
             break;
 
         // Футър
         case 'edit-footer':
-            // TODO: Create a dedicated footer form if needed. For now, let's assume it's simple.
-            // This would be extended similarly to other edit actions.
-            showNotification('Функцията за редакция на футъра е в процес на разработка.', 'info');
+            openModal('Редакция на футър', 'form-footer-template', appData.footer,
+                (form) => {
+                    const updatedData = serializeForm(form);
+                    Object.assign(appData.footer, updatedData);
+                    return true;
+                });
             break;
             
         // Вложени елементи в модал
@@ -581,13 +587,12 @@ function initSortable(element, dataArray) {
             dataArray.splice(newIndex, 0, movedItem);
             
             setUnsavedChanges(true);
-            // Re-render to ensure IDs are correctly re-assigned if they are index-based
             if(element.id === 'navigation-list') renderNavigation();
         }
     });
 }
 
-function showNotification(message, type = 'success', duration = 4000) {
+function showNotification(message, type = 'info', duration = 4000) {
     const note = document.createElement('div');
     note.className = `notification ${type}`;
     note.textContent = message;
@@ -612,15 +617,12 @@ function deleteItemWithUndo(itemType, id, renderFunc) {
 
     if (item === undefined) return;
     
-    // Премахваме елемента
     array.splice(index, 1);
     setUnsavedChanges(true);
     renderFunc();
 
-    // Показваме undo
     DOM.undoNotification.classList.add('show');
 
-    // Настройваме действието за възстановяване
     activeUndoAction = () => {
         array.splice(index, 0, item);
         setUnsavedChanges(true);
@@ -629,11 +631,10 @@ function deleteItemWithUndo(itemType, id, renderFunc) {
         activeUndoAction = null;
     };
     
-    // Скриваме undo бара след известно време
     setTimeout(() => {
         if(DOM.undoNotification.classList.contains('show')) {
             DOM.undoNotification.classList.remove('show');
-            activeUndoAction = null; // Изчистваме действието, ако не е използвано
+            activeUndoAction = null;
         }
     }, 5000);
 }
@@ -671,7 +672,6 @@ function initModalTabs() {
     });
 }
 
-// Помощни функции за работа с вложени обекти
 function getProperty(obj, path) {
     return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
