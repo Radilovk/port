@@ -1,4 +1,4 @@
-import { handleRequest } from '../handler.js';
+import { handleRequest } from '../local/handler.js';
 
 function createOrdersEnv(initial = '[]') {
   let stored = initial;
