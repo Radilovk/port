@@ -40,7 +40,21 @@ describe('orders endpoint', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.status).toBe('ok');
-    expect(JSON.parse(env.getStored())).toEqual([payload]);
+    expect(JSON.parse(env.getStored())).toEqual([{ ...payload, status: 'Нова' }]);
+  });
+
+  test('PUT /orders updates status', async () => {
+    const env = createOrdersEnv('[{"id":1,"status":"Нова"}]');
+    const req = new Request('http://localhost/orders', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ index: 0, status: 'Изпратена' })
+    });
+    const res = await handleRequest(req, env);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.status).toBe('ok');
+    expect(JSON.parse(env.getStored())).toEqual([{ id: 1, status: 'Изпратена' }]);
   });
 
   test('POST /orders with invalid JSON returns error', async () => {

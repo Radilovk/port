@@ -204,17 +204,22 @@ function renderFooter() {
 
 function renderOrders() {
     DOM.ordersTableBody.innerHTML = '';
-    ordersData.forEach(order => {
+    ordersData.forEach((order, index) => {
         const rowTemplate = DOM.templates.orderRow.content.cloneNode(true);
         const customer = order.customer || {};
         const products = (order.products || []).map(p => `${p.name} x${p.quantity}`).join('<br>');
+
+        const row = rowTemplate.querySelector('tr');
+        row.dataset.index = index;
 
         rowTemplate.querySelector('.order-customer').textContent = `${customer.firstName || ''} ${customer.lastName || ''}`;
         rowTemplate.querySelector('.order-phone').textContent = customer.phone || '';
         rowTemplate.querySelector('.order-email').textContent = customer.email || '';
         rowTemplate.querySelector('.order-products').innerHTML = products;
-        // TODO: Implement status logic
-        rowTemplate.querySelector('.order-status').textContent = 'Нова'; 
+
+        const statusSelect = rowTemplate.querySelector('.order-status');
+        statusSelect.value = order.status || 'Нова';
+
         DOM.ordersTableBody.appendChild(rowTemplate);
     });
 }
@@ -349,6 +354,26 @@ function setupEventListeners() {
 
     // Бутон за глобален запис
     DOM.saveBtn.addEventListener('click', saveData);
+
+    // Промяна на статус на поръчка
+    DOM.ordersTableBody.addEventListener('change', async e => {
+        if (!e.target.classList.contains('order-status')) return;
+        const row = e.target.closest('tr');
+        const index = Number(row.dataset.index);
+        const newStatus = e.target.value;
+        ordersData[index].status = newStatus;
+        try {
+            await fetch(`${API_URL}/orders`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ index, status: newStatus })
+            });
+            showNotification('Статусът е обновен.', 'success');
+        } catch (err) {
+            showNotification('Грешка при запис на статуса.', 'error');
+            console.error('Update status error:', err);
+        }
+    });
 }
 
 /**
