@@ -4,7 +4,6 @@
 
 const API_URL = 'https://port.radilov-k.workers.dev';
 
-// Централизиран достъп до DOM елементи
 const DOM = {
     mainContainer: document.getElementById('main-content-container'),
     header: {
@@ -26,7 +25,6 @@ const DOM = {
     body: document.body
 };
 
-// Помощна функция за "Debounce"
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -66,7 +64,7 @@ const generateProductCard = (product, index) => {
     const productId = slugify(product.name);
     return `
     <article class="product-card fade-in-up" data-product-id="${productId}">
-        <div class="card-header" role="button" aria-expanded="false" aria-controls="${cardDetailsId}">
+        <div class="card-header" role="button" aria-expanded="false" aria-controls="${cardDetailsId}" tabindex="0">
             <div class="product-title"><h3>${product.name}</h3><p>${product.tagline}</p></div>
             <div class="product-price">${Number(product.price).toFixed(2)} лв.</div>
             <div class="effects-container">
@@ -89,9 +87,11 @@ const generateProductCard = (product, index) => {
 const generateHeroHTML = component => `
     <header class="hero-section">
         <canvas id="neuron-canvas"></canvas>
-        <div class="hero-content">
-            <h1>${component.title}</h1>
-            <p>${component.subtitle}</p>
+        <div class="container">
+            <div class="hero-content">
+                <h1>${component.title}</h1>
+                <p>${component.subtitle}</p>
+            </div>
         </div>
     </header>`;
 
@@ -101,28 +101,32 @@ const generateProductCategoryHTML = component => {
     const productGridId = `product-grid-${component.id}`;
     return `
     <section id="${component.id}" class="category-section fade-in-up ${isCollapsible ? '' : 'not-collapsible'}">
-        <div class="category-header" ${isCollapsible ? `role="button" aria-expanded="${isExpanded}" aria-controls="${productGridId}"` : ''}>
-            <h2 class="category-title">
-                ${component.title}
-                ${isCollapsible ? '<span class="category-expand-icon"></span>' : ''}
-            </h2>
-            ${component.image ? `<div class="category-image-wrapper"><img src="${component.image}" alt="${component.title}" loading="lazy"></div>` : ''}
-        </div>
-        <div class="product-grid" id="${productGridId}">
-            ${component.products.map(generateProductCard).join('')}
+        <div class="container">
+             <div class="category-header" ${isCollapsible ? `role="button" aria-expanded="${isExpanded}" aria-controls="${productGridId}" tabindex="0"` : ''}>
+                <h2 class="category-title">
+                    ${component.title}
+                    ${isCollapsible ? '<span class="category-expand-icon"></span>' : ''}
+                </h2>
+                ${component.image ? `<div class="category-image-wrapper"><img src="${component.image}" alt="${component.title}" loading="lazy"></div>` : ''}
+            </div>
+            <div class="product-grid" id="${productGridId}">
+                ${component.products.map(generateProductCard).join('')}
+            </div>
         </div>
     </section>`;
 }
 
 const generateInfoCardHTML = component => `
-    <section class="info-card-section fade-in-up container ${'image-align-' + (component.options.image_align || 'left')}">
-        <div class="info-card-image">
-            <img src="${component.image}" alt="${component.title}" loading="lazy">
-        </div>
-        <div class="info-card-content">
-            <h2>${component.title}</h2>
-            <p>${component.content}</p>
-            ${component.button && component.button.text ? `<a href="${component.button.url}" class="btn-primary">${component.button.text}</a>` : ''}
+    <section class="info-card-section fade-in-up ${'image-align-' + (component.options.image_align || 'left')}">
+        <div class="container">
+            <div class="info-card-image">
+                <img src="${component.image}" alt="${component.title}" loading="lazy">
+            </div>
+            <div class="info-card-content">
+                <h2>${component.title}</h2>
+                <p>${component.content}</p>
+                ${component.button && component.button.text ? `<a href="${component.button.url}" class="btn-primary">${component.button.text}</a>` : ''}
+            </div>
         </div>
     </section>`;
 
@@ -192,13 +196,14 @@ function renderMainContent(pageContent) {
     if (!DOM.mainContainer) return;
     
     let contentHtml = '';
-    pageContent.forEach(component => {
+    pageContent.forEach((component, index) => {
         switch (component.type) {
             case 'hero_banner':
                 contentHtml += generateHeroHTML(component);
                 break;
             case 'product_category':
-                contentHtml += generateProductCategoryHTML(component);
+                // Pass index to generator for unique IDs
+                contentHtml += generateProductCategoryHTML(component, index);
                 break;
             case 'info_card':
                 contentHtml += generateInfoCardHTML(component);
@@ -209,15 +214,6 @@ function renderMainContent(pageContent) {
     });
 
     DOM.mainContainer.innerHTML = contentHtml;
-
-    DOM.mainContainer.querySelectorAll('.hero-section, .info-card-section').forEach(el => {
-        if (el.parentElement === DOM.mainContainer) {
-            DOM.mainContainer.parentElement.insertBefore(el, DOM.mainContainer);
-            if (el.classList.contains('container')) {
-                el.classList.remove('container');
-            }
-        }
-    });
 }
 
 function renderFooter(settings, footer) {
@@ -246,18 +242,22 @@ function renderFooter(settings, footer) {
 // =======================================================
 
 function initializePageInteractions() {
+    // Event delegation for accordions and buttons
     document.body.addEventListener('click', e => {
+        const toggleAccordion = (header) => {
+            const isExpanded = header.getAttribute('aria-expanded') === 'true';
+            header.setAttribute('aria-expanded', !isExpanded);
+        };
+
         const categoryHeader = e.target.closest('.category-section:not(.not-collapsible) .category-header');
         if (categoryHeader) {
-            const isExpanded = categoryHeader.getAttribute('aria-expanded') === 'true';
-            categoryHeader.setAttribute('aria-expanded', !isExpanded);
+            toggleAccordion(categoryHeader);
             return;
         }
 
         const cardHeader = e.target.closest('.product-card .card-header');
         if (cardHeader && !e.target.closest('.add-to-cart-btn')) {
-            const isExpanded = cardHeader.getAttribute('aria-expanded') === 'true';
-            cardHeader.setAttribute('aria-expanded', !isExpanded);
+            toggleAccordion(cardHeader);
             return;
         }
         
@@ -268,6 +268,19 @@ function initializePageInteractions() {
             return;
         }
     });
+
+    // Keyboard accessibility for accordions
+    document.body.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            const accordionHeader = e.target.closest('[role="button"][aria-expanded]');
+            if (accordionHeader) {
+                e.preventDefault(); // Prevent page scroll on space
+                const isExpanded = accordionHeader.getAttribute('aria-expanded') === 'true';
+                accordionHeader.setAttribute('aria-expanded', !isExpanded);
+            }
+        }
+    });
+
 
     document.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('mousemove', e => {
@@ -293,16 +306,11 @@ function initializePageInteractions() {
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-in-up').forEach(el => scrollObserver.observe(el));
 
-    const heroSection = document.querySelector('.hero-section');
-    if (heroSection && document.getElementById('neuron-canvas')) {
-        const resizeObserver = new ResizeObserver(() => {
-            setupCanvas();
-            resizeObserver.unobserve(heroSection);
-        });
-        resizeObserver.observe(heroSection);
-        
-        const debouncedSetupCanvas = debounce(setupCanvas, 250);
-        window.addEventListener('resize', debouncedSetupCanvas);
+    // Initialize Canvas only on desktop
+    if (window.innerWidth > 768) {
+        setupCanvas();
+        const debouncedResize = debounce(setupCanvas, 250);
+        window.addEventListener('resize', debouncedResize);
     }
 }
 
@@ -311,9 +319,9 @@ function initializeGlobalScripts() {
         const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        if (document.getElementById('neuron-canvas')) {
-            const debouncedSetupCanvas = debounce(setupCanvas, 50);
-            debouncedSetupCanvas();
+        // Re-init canvas on theme change only if it exists
+        if (document.getElementById('neuron-canvas') && window.innerWidth > 768) {
+            setupCanvas();
         }
     });
 
@@ -376,23 +384,24 @@ function initializeScrollSpy() {
 //          6. CANVAS АНИМАЦИЯ (CANVAS LOGIC)
 // =======================================================
 let animationFrameId;
+let canvas, ctx, particles = [];
 
 function setupCanvas() {
-    const canvas = document.getElementById('neuron-canvas');
+    canvas = document.getElementById('neuron-canvas');
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let particles = [];
+    ctx = canvas.getContext('2d');
 
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-
-    function setCanvasSize() {
-        const parent = canvas.parentElement;
-        if (!parent) return;
-        canvas.width = parent.offsetWidth;
-        canvas.height = parent.offsetHeight;
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
     }
-    
-    setCanvasSize();
+
+    function resizeCanvas() {
+        const parent = canvas.parentElement;
+        if (parent) {
+            canvas.width = parent.offsetWidth;
+            canvas.height = parent.offsetHeight;
+        }
+    }
 
     class Particle {
         constructor(x, y, dirX, dirY, size, color) { this.x = x; this.y = y; this.directionX = dirX; this.directionY = dirY; this.size = size; this.color = color; }
@@ -401,6 +410,7 @@ function setupCanvas() {
     }
 
     function initCanvas() {
+        resizeCanvas();
         particles = [];
         const particleCount = Math.floor((canvas.width * canvas.height) / 12000);
         const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
@@ -434,7 +444,12 @@ function setupCanvas() {
         connect();
     }
     
-    initCanvas();
+    // Check if we need to re-initialize or just resize
+    if (particles.length === 0) {
+        initCanvas();
+    } else {
+        resizeCanvas();
+    }
     animate();
 }
 
@@ -449,10 +464,14 @@ async function main() {
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
 
+        // Clear skeleton loader
+        DOM.mainContainer.innerHTML = ''; 
+        
         renderHeader(data.settings, data.navigation);
         renderMainContent(data.page_content);
         renderFooter(data.settings, data.footer);
         
+        // Add loaded class after content is in the DOM
         DOM.mainContainer.classList.add('is-loaded');
 
         initializePageInteractions();
