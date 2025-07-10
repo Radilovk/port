@@ -287,12 +287,26 @@ function initializePageInteractions() {
     document.querySelectorAll('.fade-in-up').forEach(el => scrollObserver.observe(el));
 
     // HERO CANVAS ANIMATION
-   if (document.getElementById('neuron-canvas')) {
-    // ПРОМЯНАТА Е ТУК:
-    setTimeout(() => {
-        setupCanvas();
-        window.addEventListener('resize', setupCanvas);
-    }, 100); // 100 милисекунди забавяне е повече от достатъчно
+   const heroSection = document.querySelector('.hero-section');
+if (heroSection && document.getElementById('neuron-canvas')) {
+    // Създаваме нов наблюдател
+    const resizeObserver = new ResizeObserver(entries => {
+        // Тази функция ще се извика, когато heroSection има ясен размер
+        for (let entry of entries) {
+            if (entry.contentBoxSize) {
+                // Веднъж щом имаме размер, стартираме анимацията
+                // и спираме да следим, за да не го правим излишно.
+                setupCanvas();
+                resizeObserver.unobserve(heroSection);
+            }
+        }
+    });
+
+    // Казваме на наблюдателя да започне да следи heroSection
+    resizeObserver.observe(heroSection);
+
+    // Добавяме и класическия event listener за последващи промени
+    window.addEventListener('resize', setupCanvas);
     }
 }
 
