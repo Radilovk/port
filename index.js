@@ -26,6 +26,19 @@ const DOM = {
     body: document.body
 };
 
+// Помощна функция за "Debounce"
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 
 // =======================================================
 //          2. ГЕНЕРАТОРИ НА HTML (GENERATOR FUNCTIONS)
@@ -59,11 +72,11 @@ const generateProductCard = (product, index) => {
             <div class="effects-container">
                 ${product.effects.map(generateEffectBar).join('')}
             </div>
-            <div class="expand-icon">+</div>
+            <span class="expand-icon"></span>
         </div>
         <div class="card-details" id="${cardDetailsId}">
             <p>${product.description}</p>
-            ${product.research_note ? `<div class="research-note">Източник: <a href="${product.research_note.url}" target="_blank" rel="noopener">${product.research_note.text}</a></div>` : ''}
+            ${product.research_note && product.research_note.url ? `<div class="research-note">Източник: <a href="${product.research_note.url}" target="_blank" rel="noopener">${product.research_note.text}</a></div>` : ''}
             <h4 class="details-section-title">Налични форми:</h4>
             <ul class="product-variants">
                 ${product.variants.map(generateVariantItem).join('')}
@@ -91,7 +104,7 @@ const generateProductCategoryHTML = component => {
         <div class="category-header" ${isCollapsible ? `role="button" aria-expanded="${isExpanded}" aria-controls="${productGridId}"` : ''}>
             <h2 class="category-title">
                 ${component.title}
-                <div class="category-expand-icon">+</div>
+                ${isCollapsible ? '<span class="category-expand-icon"></span>' : ''}
             </h2>
             ${component.image ? `<div class="category-image-wrapper"><img src="${component.image}" alt="${component.title}" loading="lazy"></div>` : ''}
         </div>
@@ -131,7 +144,7 @@ const showAddToCartFeedback = (productId) => {
     const card = document.querySelector(`.product-card[data-product-id="${productId}"]`);
     if (!card) return;
     const btn = card.querySelector('.add-to-cart-btn');
-    if (!btn) return;
+    if (!btn || btn.classList.contains('added')) return;
     
     btn.classList.add('added');
     btn.textContent = 'Добавено ✓';
@@ -168,7 +181,6 @@ function renderHeader(settings, navigation) {
     DOM.header.brandSlogan.textContent = settings.site_slogan;
 
     const navItemsHTML = navigation.map(item => `<li><a href="${item.link}">${item.text}</a></li>`).join('');
-    // Запазваме последните 2 елемента (Количка и Тема) и вмъкваме новите преди тях
     const persistentLis = DOM.header.navLinks.querySelectorAll('li:nth-last-child(-n+2)');
     DOM.header.navLinks.innerHTML = navItemsHTML;
     persistentLis.forEach(li => DOM.header.navLinks.appendChild(li));
@@ -196,14 +208,14 @@ function renderMainContent(pageContent) {
         }
     });
 
-    // Изчистваме скелетите и вмъкваме реалното съдържание
     DOM.mainContainer.innerHTML = contentHtml;
 
-    // Някои компоненти (като hero) трябва да са извън .container
     DOM.mainContainer.querySelectorAll('.hero-section, .info-card-section').forEach(el => {
         if (el.parentElement === DOM.mainContainer) {
             DOM.mainContainer.parentElement.insertBefore(el, DOM.mainContainer);
-            el.classList.remove('container');
+            if (el.classList.contains('container')) {
+                el.classList.remove('container');
+            }
         }
     });
 }
@@ -234,24 +246,29 @@ function renderFooter(settings, footer) {
 // =======================================================
 
 function initializePageInteractions() {
-    // CATEGORY ACCORDION
-    document.querySelectorAll('.category-section:not(.not-collapsible) .category-header').forEach(header => {
-        header.addEventListener('click', () => {
-            const isExpanded = header.getAttribute('aria-expanded') === 'true';
-            header.setAttribute('aria-expanded', !isExpanded);
-        });
+    document.body.addEventListener('click', e => {
+        const categoryHeader = e.target.closest('.category-section:not(.not-collapsible) .category-header');
+        if (categoryHeader) {
+            const isExpanded = categoryHeader.getAttribute('aria-expanded') === 'true';
+            categoryHeader.setAttribute('aria-expanded', !isExpanded);
+            return;
+        }
+
+        const cardHeader = e.target.closest('.product-card .card-header');
+        if (cardHeader && !e.target.closest('.add-to-cart-btn')) {
+            const isExpanded = cardHeader.getAttribute('aria-expanded') === 'true';
+            cardHeader.setAttribute('aria-expanded', !isExpanded);
+            return;
+        }
+        
+        const addToCartBtn = e.target.closest('.add-to-cart-btn');
+        if (addToCartBtn) {
+            e.stopPropagation();
+            addToCart(addToCartBtn.dataset.id, addToCartBtn.dataset.name, addToCartBtn.dataset.price);
+            return;
+        }
     });
 
-    // PRODUCT CARD ACCORDION
-    document.querySelectorAll('.card-header').forEach(header => {
-        header.addEventListener('click', e => {
-            if (e.target.closest('.add-to-cart-btn')) return;
-            const isExpanded = header.getAttribute('aria-expanded') === 'true';
-            header.setAttribute('aria-expanded', !isExpanded);
-        });
-    });
-
-    // CARD SPOTLIGHT EFFECT
     document.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('mousemove', e => {
             const rect = card.getBoundingClientRect();
@@ -260,16 +277,6 @@ function initializePageInteractions() {
         });
     });
 
-    // ADD TO CART BUTTONS
-    DOM.mainContainer.addEventListener('click', e => {
-        const btn = e.target.closest('.add-to-cart-btn');
-        if (btn) {
-            e.stopPropagation();
-            addToCart(btn.dataset.id, btn.dataset.name, btn.dataset.price);
-        }
-    });
-
-    // SCROLL ANIMATIONS (FADE-IN & BARS)
     const scrollObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -286,45 +293,34 @@ function initializePageInteractions() {
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-in-up').forEach(el => scrollObserver.observe(el));
 
-    // HERO CANVAS ANIMATION
-   const heroSection = document.querySelector('.hero-section');
-if (heroSection && document.getElementById('neuron-canvas')) {
-    // Създаваме нов наблюдател
-    const resizeObserver = new ResizeObserver(entries => {
-        // Тази функция ще се извика, когато heroSection има ясен размер
-        for (let entry of entries) {
-            if (entry.contentBoxSize) {
-                // Веднъж щом имаме размер, стартираме анимацията
-                // и спираме да следим, за да не го правим излишно.
-                setupCanvas();
-                resizeObserver.unobserve(heroSection);
-            }
-        }
-    });
-
-    // Казваме на наблюдателя да започне да следи heroSection
-    resizeObserver.observe(heroSection);
-
-    // Добавяме и класическия event listener за последващи промени
-    window.addEventListener('resize', setupCanvas);
+    const heroSection = document.querySelector('.hero-section');
+    if (heroSection && document.getElementById('neuron-canvas')) {
+        const resizeObserver = new ResizeObserver(() => {
+            setupCanvas();
+            resizeObserver.unobserve(heroSection);
+        });
+        resizeObserver.observe(heroSection);
+        
+        const debouncedSetupCanvas = debounce(setupCanvas, 250);
+        window.addEventListener('resize', debouncedSetupCanvas);
     }
 }
 
 function initializeGlobalScripts() {
-    // THEME TOGGLE
     DOM.themeToggle.addEventListener('click', () => {
         const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        if (document.getElementById('neuron-canvas')) setTimeout(setupCanvas, 50);
+        if (document.getElementById('neuron-canvas')) {
+            const debouncedSetupCanvas = debounce(setupCanvas, 50);
+            debouncedSetupCanvas();
+        }
     });
 
-    // BACK TO TOP
     window.addEventListener('scroll', () => {
         DOM.backToTopBtn.classList.toggle('visible', window.scrollY > 300);
     });
 
-    // MOBILE MENU
     const closeMenu = () => {
         DOM.menuToggle.classList.remove('active');
         DOM.navLinksContainer.classList.remove('active');
@@ -349,6 +345,32 @@ function initializeGlobalScripts() {
     updateCartCount();
 }
 
+function initializeScrollSpy() {
+    const sections = document.querySelectorAll('section[id]');
+    if (sections.length === 0) return;
+
+    const navLinks = document.querySelectorAll('.nav-links a');
+    
+    const observer = new IntersectionObserver(entries => {
+        let lastVisibleSectionId = null;
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                lastVisibleSectionId = entry.target.id;
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            const href = link.getAttribute('href');
+            if (href === `#${lastVisibleSectionId}`) {
+                link.classList.add('active');
+            }
+        });
+    }, { rootMargin: '-40% 0px -60% 0px' });
+
+    sections.forEach(section => observer.observe(section));
+}
+
 
 // =======================================================
 //          6. CANVAS АНИМАЦИЯ (CANVAS LOGIC)
@@ -364,9 +386,13 @@ function setupCanvas() {
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
     function setCanvasSize() {
-        canvas.width = canvas.parentElement.offsetWidth;
-        canvas.height = canvas.parentElement.offsetHeight;
+        const parent = canvas.parentElement;
+        if (!parent) return;
+        canvas.width = parent.offsetWidth;
+        canvas.height = parent.offsetHeight;
     }
+    
+    setCanvasSize();
 
     class Particle {
         constructor(x, y, dirX, dirY, size, color) { this.x = x; this.y = y; this.directionX = dirX; this.directionY = dirY; this.size = size; this.color = color; }
@@ -376,7 +402,6 @@ function setupCanvas() {
 
     function initCanvas() {
         particles = [];
-        // ✅ КОРИГИРАНА ЛОГИКА: Броят зависи от площта, за да е консистентен.
         const particleCount = Math.floor((canvas.width * canvas.height) / 12000);
         const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
         for (let i = 0; i < particleCount; i++) {
@@ -386,7 +411,6 @@ function setupCanvas() {
 
     function connect() {
         const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();
-        // ✅ КОРИГИРАНА ЛОГИКА: Разстоянието за връзка се адаптира по-добре.
         const connectDistance = Math.min(canvas.width, canvas.height) / 5;
         const connectArea = connectDistance * connectDistance;
 
@@ -394,7 +418,7 @@ function setupCanvas() {
             for (let b = a + 1; b < particles.length; b++) {
                 let distance = ((particles[a].x - particles[b].x) ** 2) + ((particles[a].y - particles[b].y) ** 2);
                 if (distance < connectArea) {
-                    let opacityValue = 1 - (distance / (connectArea * 1.1)); // По-плавно изчезване
+                    let opacityValue = 1 - (distance / (connectArea * 1.1));
                     ctx.strokeStyle = `rgba(${accentRgb}, ${opacityValue})`;
                     ctx.lineWidth = 1;
                     ctx.beginPath(); ctx.moveTo(particles[a].x, particles[a].y); ctx.lineTo(particles[b].x, particles[b].y); ctx.stroke();
@@ -409,8 +433,7 @@ function setupCanvas() {
         for (let i = 0; i < particles.length; i++) particles[i].update();
         connect();
     }
-
-    setCanvasSize();
+    
     initCanvas();
     animate();
 }
@@ -420,18 +443,20 @@ function setupCanvas() {
 // =======================================================
 async function main() {
     initializeGlobalScripts();
+    
     try {
         const response = await fetch(`${API_URL}/page_content.json?v=${Date.now()}`);
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
 
-        // Рендираме съдържанието
         renderHeader(data.settings, data.navigation);
         renderMainContent(data.page_content);
         renderFooter(data.settings, data.footer);
+        
+        DOM.mainContainer.classList.add('is-loaded');
 
-        // "Съживяваме" страницата, СЛЕД като е рендирана
         initializePageInteractions();
+        initializeScrollSpy();
 
     } catch (error) {
         console.error("Fatal Error: Could not load or render page content.", error);
