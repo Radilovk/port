@@ -685,7 +685,16 @@
                     throw new Error(errorMessage);
                 }
                 
-                const results = JSON.parse(apiResponse.result.response);
+                // Опит за по-надеждно парсване на отговора от AI
+                const cleaned = apiResponse.result.response.trim()
+                    .replace(/^```(?:json)?/i, '')
+                    .replace(/```$/, '');
+                let results;
+                try {
+                    results = JSON.parse(cleaned);
+                } catch (e) {
+                    throw new Error('Невалиден JSON от AI.');
+                }
                 displayResults(results, data.name);
 
             } catch (error) {
