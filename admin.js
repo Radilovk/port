@@ -18,13 +18,8 @@ const DOM = {
     navigationList: document.getElementById('navigation-list'),
     pageBuilderList: document.getElementById('page-builder-list'),
     footerSettingsContainer: document.getElementById('footer-settings-container'),
-    // Поръчки
     ordersTableBody: document.getElementById('orders-table-body'),
-    orderSearchInput: document.getElementById('order-search-input'),
-    refreshOrdersBtn: document.getElementById('refresh-orders-btn'),
-    // Добавяне на компонент
     addComponentDropdown: document.getElementById('add-component-dropdown'),
-    addComponentToggleBtn: document.querySelector('[data-action="toggle-add-component-menu"]'),
     // Модал
     modal: {
         container: document.getElementById('modal-container'),
@@ -49,10 +44,10 @@ const DOM = {
 // Глобално състояние
 let appData = {};
 let ordersData = [];
-let filteredOrdersData = [];
 let unsavedChanges = false;
 let activeUndoAction = null;
 let currentModalSaveCallback = null;
+let currentEditingComponentId = null; // ДОБАВЕНО: За да знаем коя категория се редактира
 
 // =======================================================
 //          2. API КОМУНИКАЦИЯ
@@ -74,15 +69,11 @@ async function fetchOrders() {
     try {
         const response = await fetch(`${API_URL}/orders?v=${Date.now()}`);
         if (!response.ok) throw new Error(`HTTP грешка! Статус: ${response.status}`);
-        // Ensure orders have a unique ID if not provided by API
-        const rawOrders = await response.json();
-        ordersData = rawOrders.map((order, index) => ({ ...order, id: order.id || `order_${index}_${Date.now()}` }));
-        filteredOrdersData = [...ordersData];
+        return await response.json();
     } catch (error) {
         showNotification('Грешка при зареждане на поръчките.', 'error');
         console.error("Грешка при зареждане на поръчки:", error);
-        ordersData = [];
-        filteredOrdersData = [];
+        return [];
     }
 }
 
@@ -136,16 +127,19 @@ function setUnsavedChanges(isDirty) {
 //          4. РЕНДИРАНЕ НА ИНТЕРФЕЙСА (VIEW)
 // =======================================================
 
+/**
+ * Основна функция, която извиква всички останали рендъри
+ */
 function renderAll() {
     renderGlobalSettings();
     renderNavigation();
     renderPageContent();
     renderFooter();
-    filterOrders(); // This will call renderOrders
+    renderOrders();
 }
 
 function renderGlobalSettings() {
-    DOM.globalSettingsContainer.innerHTML = '';
+    DOM.globalSettingsContainer.innerHTML = ''; // Clear existing
     const item = createListItem({
         type: 'Настройки на сайта',
         title: appData.settings.site_name,
@@ -153,7 +147,7 @@ function renderGlobalSettings() {
             { label: 'Редактирай', action: 'edit-global-settings', class: 'btn-secondary' }
         ]
     });
-    item.querySelector('.handle').style.display = 'none';
+    item.querySelector('.handle').style.display = 'none'; // Няма смисъл от влачене
     DOM.globalSettingsContainer.appendChild(item);
 }
 
@@ -193,13 +187,13 @@ function renderPageContent() {
         });
         DOM.pageBuilderList.appendChild(item);
     });
-    initSortable(DOM.pageBuilderList, appData.page_content);
+    initSortable(DOM.pageBuilderList, appData.page_content, 'component_id');
 }
 
 function renderFooter() {
     DOM.footerSettingsContainer.innerHTML = '';
      const item = createListItem({
-        type: 'Copyright',
+        type: 'Copyright & Колони',
         title: appData.footer.copyright_text,
         actions: [
             { label: 'Редактирай', action: 'edit-footer', class: 'btn-secondary' }
@@ -211,15 +205,13 @@ function renderFooter() {
 
 function renderOrders() {
     DOM.ordersTableBody.innerHTML = '';
-    filteredOrdersData.forEach((order) => {
+    ordersData.forEach((order, index) => {
         const rowTemplate = DOM.templates.orderRow.content.cloneNode(true);
         const customer = order.customer || {};
         const products = (order.products || []).map(p => `${p.name} x${p.quantity}`).join('<br>');
 
-        const originalIndex = ordersData.findIndex(o => o.id === order.id);
-
         const row = rowTemplate.querySelector('tr');
-        row.dataset.index = originalIndex;
+        row.dataset.index = index;
 
         rowTemplate.querySelector('.order-customer').textContent = `${customer.firstName || ''} ${customer.lastName || ''}`;
         rowTemplate.querySelector('.order-phone').textContent = customer.phone || '';
@@ -233,10 +225,13 @@ function renderOrders() {
     });
 }
 
+/**
+ * Помощна функция за създаване на елемент от списък от шаблон
+ */
 function createListItem({ id, type, title, actions = [] }) {
     const template = DOM.templates.listItem.content.cloneNode(true);
     const itemElement = template.querySelector('.list-item');
-    if (id !== undefined) itemElement.dataset.id = id;
+    if (id) itemElement.dataset.id = id;
 
     template.querySelector('.item-type').textContent = type;
     template.querySelector('.item-title').textContent = title || '(без заглавие)';
@@ -253,24 +248,6 @@ function createListItem({ id, type, title, actions = [] }) {
     return itemElement;
 }
 
-function populateAddComponentMenu() {
-    DOM.addComponentDropdown.innerHTML = '';
-    const componentTemplates = {
-        'hero_banner': { label: 'Hero Banner', templateId: 'form-hero-banner-template' },
-        'info_card': { label: 'Инфо Кард', templateId: 'form-info-card-template' },
-        'product_category': { label: 'Продуктова Категория', templateId: 'form-product-category-template' },
-    };
-
-    for (const [type, info] of Object.entries(componentTemplates)) {
-        const link = document.createElement('a');
-        link.href = '#';
-        link.textContent = `Добави ${info.label}`;
-        link.dataset.action = 'add-component';
-        link.dataset.componentType = type;
-        link.dataset.templateId = info.templateId;
-        DOM.addComponentDropdown.appendChild(link);
-    }
-}
 
 // =======================================================
 //          5. УПРАВЛЕНИЕ НА МОДАЛЕН ПРОЗОРЕЦ
@@ -279,23 +256,22 @@ function populateAddComponentMenu() {
 function openModal(title, formTemplateId, data, onSave) {
     DOM.modal.title.textContent = title;
     
+    // Клонираме и поставяме формата
     const formTemplate = document.getElementById(formTemplateId);
     if (!formTemplate) {
         console.error(`Шаблон за форма с ID '${formTemplateId}' не е намерен!`);
-        showNotification(`Грешка: Шаблон за форма '${formTemplateId}' липсва.`, 'error');
         return;
     }
     DOM.modal.body.innerHTML = '';
     DOM.modal.body.appendChild(formTemplate.content.cloneNode(true));
     
+    // Попълваме формата с данни
     if (data) {
         populateForm(DOM.modal.body.querySelector('form'), data);
     }
 
     currentModalSaveCallback = onSave;
-    
-    initModalTabs();
-    
+
     DOM.modal.container.classList.add('show');
     DOM.modal.backdrop.classList.add('show');
 }
@@ -304,9 +280,12 @@ function closeModal() {
     DOM.modal.container.classList.remove('show');
     DOM.modal.backdrop.classList.remove('show');
     currentModalSaveCallback = null;
-    DOM.modal.body.innerHTML = ''; // Изчистване
+    currentEditingComponentId = null; // ДОБАВЕНО: Изчистваме ID-то при затваряне
 }
 
+/**
+ * Попълва форма с данни от обект, поддържа вложени полета (e.g., "button.text")
+ */
 function populateForm(form, data) {
     form.querySelectorAll('[data-field]').forEach(input => {
         const path = input.dataset.field;
@@ -317,98 +296,39 @@ function populateForm(form, data) {
             input.value = value ?? '';
         }
     });
-
-    if (data.products) {
-        const productsContainer = form.querySelector('#products-editor');
-        if(productsContainer) {
-            data.products.forEach(productData => {
-                addNestedItem(productsContainer, 'product-editor-template', productData);
-            });
-        }
-    }
 }
 
+/**
+ * Сериализира данните от форма в обект
+ */
 function serializeForm(form) {
     const data = {};
     form.querySelectorAll('[data-field]').forEach(input => {
         const path = input.dataset.field;
-        if (input.closest('.nested-item-template')) return;
-        
-        const value = input.type === 'checkbox' ? input.checked : (input.type === 'number' ? (input.value ? parseFloat(input.value) : null) : input.value);
+        const value = input.type === 'checkbox' ? input.checked : input.value;
         setProperty(data, path, value);
     });
-
-    const productsContainer = form.querySelector('#products-editor');
-    if (productsContainer) {
-        data.products = [];
-        productsContainer.querySelectorAll(':scope > .nested-item[data-type="product"]').forEach(productNode => {
-            const productData = {};
-            productNode.querySelectorAll('[data-field]').forEach(input => {
-                 const path = input.dataset.field;
-                 const value = input.type === 'checkbox' ? input.checked : (input.type === 'number' ? (input.value ? parseFloat(input.value) : null) : input.value);
-                 setProperty(productData, path, value);
-            });
-
-            const effectsContainer = productNode.querySelector('[data-sub-container="effects"]');
-            if (effectsContainer) {
-                productData.effects = [];
-                effectsContainer.querySelectorAll(':scope > .nested-sub-item[data-type="effect"]').forEach(effectNode => {
-                    const effectData = {};
-                    effectNode.querySelectorAll('[data-field]').forEach(input => {
-                        effectData[input.dataset.field] = (input.type === 'number' ? (input.value ? parseFloat(input.value) : null) : input.value);
-                    });
-                    productData.effects.push(effectData);
-                });
-            }
-            data.products.push(productData);
-        });
-    }
     return data;
 }
 
-function addNestedItem(container, templateId, data) {
-    const template = document.getElementById(templateId);
-    const newItem = template.content.cloneNode(true);
-    const itemElement = newItem.querySelector('.nested-item, .nested-sub-item');
-    
-    if (data) {
-        itemElement.querySelectorAll('[data-field]').forEach(input => {
-            const path = input.dataset.field;
-            const value = getProperty(data, path);
-            if (value !== undefined && value !== null) input.value = value;
-        });
-
-        if (data.effects) {
-            const effectsContainer = itemElement.querySelector('[data-sub-container="effects"]');
-            if(effectsContainer) {
-                data.effects.forEach(effectData => {
-                    addNestedItem(effectsContainer, 'effect-editor-template', effectData);
-                });
-            }
-        }
-    }
-    container.appendChild(newItem);
-}
 
 // =======================================================
 //          6. ГЛАВЕН КОНТРОЛЕР И EVENT LISTENERS
 // =======================================================
 
 function setupEventListeners() {
+    // Делегация на събития за всички [data-action] бутони
     document.body.addEventListener('click', e => {
         const target = e.target.closest('[data-action]');
         if (!target) return;
         
-        // Предотвратява презареждане при клик на <a href="#">
-        e.preventDefault(); 
-        
         const action = target.dataset.action;
-        const listItem = target.closest('.list-item');
-        const id = listItem?.dataset.id;
+        const id = target.closest('.list-item')?.dataset.id;
         
-        handleAction(action, target, id);
+        handleAction(action, id);
     });
 
+    // Модални бутони
     DOM.modal.saveBtn.addEventListener('click', () => {
         if (currentModalSaveCallback) {
             const form = DOM.modal.body.querySelector('form');
@@ -422,12 +342,14 @@ function setupEventListeners() {
             }
         }
     });
-
-    [DOM.modal.cancelBtn, DOM.modal.closeBtn, DOM.modal.backdrop].forEach(el => el.addEventListener('click', closeModal));
+    DOM.modal.cancelBtn.addEventListener('click', closeModal);
+    DOM.modal.closeBtn.addEventListener('click', closeModal);
+    DOM.modal.backdrop.addEventListener('click', closeModal);
     
+    // Табове
     DOM.tabNav.addEventListener('click', e => {
         const target = e.target.closest('.tab-btn');
-        if (!target || target.classList.contains('active')) return;
+        if (!target) return;
         
         DOM.tabNav.querySelector('.active').classList.remove('active');
         target.classList.add('active');
@@ -436,8 +358,10 @@ function setupEventListeners() {
         document.getElementById(target.dataset.tab).classList.add('active');
     });
 
+    // Бутон за глобален запис
     DOM.saveBtn.addEventListener('click', saveData);
 
+    // Промяна на статус на поръчка
     DOM.ordersTableBody.addEventListener('change', async e => {
         if (!e.target.classList.contains('order-status')) return;
         const row = e.target.closest('tr');
@@ -448,7 +372,7 @@ function setupEventListeners() {
             await fetch(`${API_URL}/orders`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: ordersData[index].id, status: newStatus })
+                body: JSON.stringify({ index, status: newStatus })
             });
             showNotification('Статусът е обновен.', 'success');
         } catch (err) {
@@ -456,125 +380,140 @@ function setupEventListeners() {
             console.error('Update status error:', err);
         }
     });
-    
-    DOM.orderSearchInput.addEventListener('input', () => filterOrders());
-    DOM.refreshOrdersBtn.addEventListener('click', async () => {
-        showNotification('Опресняване на поръчките...', 'info');
-        await fetchOrders();
-        filterOrders();
-    });
 
-    DOM.undoBtn.addEventListener('click', () => {
-        if (activeUndoAction) {
-            activeUndoAction();
-            activeUndoAction = null;
-            DOM.undoNotification.classList.remove('show');
+    // ДОБАВЕНО: Слушател за импортиране на продукт. Делегираме от `document`,
+    // тъй като input-ът се създава динамично в модалния прозорец.
+    document.addEventListener('change', e => {
+        if (e.target.id === 'product-import-input') {
+            handleProductImport(e);
         }
     });
 }
 
-function handleAction(action, target, id) {
-    const componentType = target.dataset.componentType;
-    const templateId = target.dataset.templateId;
-    
+/**
+ * Централен разпределител на действия (action handler)
+ */
+function handleAction(action, id) {
+    // Тук можете да добавите логика за всяко действие
     switch(action) {
-        // Глобални
         case 'edit-global-settings':
-            openModal('Редакция на глобални настройки', 'form-global-settings-template', appData.settings,
+            openModal(
+                'Редакция на глобални настройки', 
+                'form-global-settings-template', 
+                appData.settings,
                 (form) => {
                     appData.settings = serializeForm(form);
                     return true;
-                });
-            break;
-
-        // Навигация
-        case 'add-nav-item':
-             openModal('Добавяне на нов линк', 'form-nav-item-template', { text: '', link: '#' },
-                (form) => {
-                    appData.navigation.push(serializeForm(form));
-                    return true;
-                });
+                }
+            );
             break;
         case 'edit-nav-item':
-            openModal('Редакция на линк', 'form-nav-item-template', appData.navigation[id],
+            openModal(
+                'Редакция на линк',
+                'form-nav-item-template',
+                appData.navigation[id],
                 (form) => {
                     Object.assign(appData.navigation[id], serializeForm(form));
                     return true;
-                });
+                }
+            );
             break;
-        case 'delete-nav-item':
-            deleteItemWithUndo('nav-item', id, () => renderNavigation());
-            break;
-
-        // Съдържание (компоненти)
-        case 'toggle-add-component-menu':
-            DOM.addComponentDropdown.classList.toggle('show');
-            break;
-        case 'add-component':
-            openModal(`Добавяне на: ${componentType.replace(/_/g, ' ')}`, templateId, null,
-                (form) => {
-                    const newComponent = serializeForm(form);
-                    newComponent.type = componentType;
-                    newComponent.component_id = `comp_${Date.now()}`;
-                    if(!newComponent.title) newComponent.title = `Нов ${componentType}`;
-                    appData.page_content.push(newComponent);
-                    DOM.addComponentDropdown.classList.remove('show');
-                    return true;
-                });
-            break;
-        case 'edit-component': {
-            const component = id ? appData.page_content.find(c => c.component_id === id) : null;
+        // ПРОМЕНЕНО: Добавена е логика за запазване на ID и по-комплексен запис
+        case 'edit-component':
+            const component = appData.page_content.find(c => c.component_id === id);
             if (!component) return;
-            const correctedType = component.type.replace(/_/g, '-');
-            const editTemplateId = `form-${correctedType}-template`;
-            openModal(`Редакция на: ${component.title}`, editTemplateId, component,
-                (form) => {
-                    const updatedData = serializeForm(form);
-                    Object.assign(component, updatedData);
-                    return true;
-                });
-            break;
-        }
-        case 'delete-component':
-             deleteItemWithUndo('component', id, () => renderPageContent());
-            break;
-
-        // Футър
-        case 'edit-footer':
-            openModal('Редакция на футър', 'form-footer-template', appData.footer,
-                (form) => {
-                    const updatedData = serializeForm(form);
-                    Object.assign(appData.footer, updatedData);
-                    return true;
-                });
-            break;
             
-        // Вложени елементи в модал
-        case 'add-nested-item': {
-            const containerSelector = target.dataset.container;
-            const nestedTemplateId = target.dataset.template;
-            const container = target.closest('.modal-body').querySelector(containerSelector);
-            if (container) {
-                addNestedItem(container, nestedTemplateId, null);
+            currentEditingComponentId = id; // ПРОМЕНЕНО: Запазваме ID-то на компонента
+
+            const formTemplateId = `form-${component.type}-template`;
+            openModal(
+                `Редакция на: ${component.title}`,
+                formTemplateId,
+                component,
+                (form) => {
+                    // TODO: Тази логика трябва да се направи по-сложна, за да запазва и вложените продукти
+                    Object.assign(component, serializeForm(form));
+                    return true;
+                }
+            );
+            break;
+        // ДОБАВЕНО: ново действие за задействане на импорта
+        case 'import-product':
+            const importInput = document.getElementById('product-import-input');
+            if (importInput) {
+                importInput.click();
             }
             break;
-        }
-        case 'delete-nested-item': {
-            const itemToDelete = target.closest('.nested-item, .nested-sub-item');
-            if (itemToDelete) {
-                itemToDelete.remove();
-            }
-            break;
-        }
     }
 }
 
+/**
+ * ДОБАВЕНА НОВА ФУНКЦИЯ
+ * Обработва импортирането на продукт от JSON файл.
+ */
+function handleProductImport(event) {
+    const file = event.target.files[0];
+    if (!file || !currentEditingComponentId) {
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        try {
+            const importedData = JSON.parse(e.target.result);
+
+            // Валидация на структурата на файла
+            if (!importedData.product_id || !importedData.public_data || !importedData.system_data) {
+                 throw new Error("Файлът не съдържа необходимите ключове: product_id, public_data, system_data.");
+            }
+            
+            // Намиране на целевата категория
+            const targetCategory = appData.page_content.find(c => c.component_id === currentEditingComponentId);
+            if (!targetCategory || targetCategory.type !== 'product_category') {
+                showNotification('Грешка: Не е избрана валидна продуктова категория.', 'error');
+                return;
+            }
+
+            // Създаване на новия обект за продукта
+            const newProduct = {
+                ...importedData.public_data,
+                price: 0, // Цената е 0 по подразбиране
+                system_data: importedData.system_data // Добавяме цялата системна информация
+            };
+
+            // Добавяне на продукта към данните
+            if (!targetCategory.products) {
+                targetCategory.products = [];
+            }
+            targetCategory.products.push(newProduct);
+
+            setUnsavedChanges(true);
+            showNotification(`Продукт "${newProduct.name}" е добавен успешно.`, 'success');
+
+            // Презареждане на модалния прозорец, за да се види новият продукт
+            closeModal();
+            setTimeout(() => {
+                handleAction('edit-component', currentEditingComponentId);
+            }, 100); // Малко забавяне, за да се обработи затварянето
+
+        } catch (error) {
+            console.error("Грешка при импортиране:", error);
+            showNotification(`Грешка при импорт: ${error.message}`, 'error');
+        } finally {
+            // Изчистване на input-а, за да може да се качи същия файл отново
+            event.target.value = '';
+        }
+    };
+
+    reader.readAsText(file);
+}
 
 // =======================================================
 //          7. ПОМОЩНИ ФУНКЦИИ (UTILITIES)
 // =======================================================
 
-function initSortable(element, dataArray) {
+function initSortable(element, dataArray, idKey = null) {
     new Sortable(element, {
         handle: '.handle',
         animation: 150,
@@ -583,95 +522,29 @@ function initSortable(element, dataArray) {
             const { oldIndex, newIndex } = evt;
             if (oldIndex === newIndex) return;
             
+            // Преместване на елемента в масива с данни
             const [movedItem] = dataArray.splice(oldIndex, 1);
             dataArray.splice(newIndex, 0, movedItem);
             
             setUnsavedChanges(true);
-            if(element.id === 'navigation-list') renderNavigation();
+            // DOM-ът се пренарежда от SortableJS, няма нужда от renderAll()
         }
     });
 }
 
-function showNotification(message, type = 'info', duration = 4000) {
+function showNotification(message, type = 'success') {
     const note = document.createElement('div');
     note.className = `notification ${type}`;
     note.textContent = message;
     DOM.notificationContainer.appendChild(note);
     setTimeout(() => {
-        note.classList.add('fade-out');
-        note.addEventListener('transitionend', () => note.remove());
-    }, duration);
+        note.style.opacity = '0';
+        note.style.transform = 'translateX(100%)';
+        setTimeout(() => note.remove(), 300);
+    }, 4000);
 }
 
-function deleteItemWithUndo(itemType, id, renderFunc) {
-    let item, index, array;
-    if (itemType === 'nav-item') {
-        array = appData.navigation;
-        index = parseInt(id, 10);
-        item = array[index];
-    } else if (itemType === 'component') {
-        array = appData.page_content;
-        index = array.findIndex(c => c.component_id === id);
-        item = array[index];
-    }
-
-    if (item === undefined) return;
-    
-    array.splice(index, 1);
-    setUnsavedChanges(true);
-    renderFunc();
-
-    DOM.undoNotification.classList.add('show');
-
-    activeUndoAction = () => {
-        array.splice(index, 0, item);
-        setUnsavedChanges(true);
-        renderFunc();
-        showNotification('Елементът е възстановен.', 'success');
-        activeUndoAction = null;
-    };
-    
-    setTimeout(() => {
-        if(DOM.undoNotification.classList.contains('show')) {
-            DOM.undoNotification.classList.remove('show');
-            activeUndoAction = null;
-        }
-    }, 5000);
-}
-
-function filterOrders() {
-    const searchTerm = DOM.orderSearchInput.value.toLowerCase().trim();
-    if (!searchTerm) {
-        filteredOrdersData = [...ordersData];
-    } else {
-        filteredOrdersData = ordersData.filter(order => {
-            const customer = order.customer || {};
-            const fullName = `${customer.firstName || ''} ${customer.lastName || ''}`.toLowerCase();
-            const phone = (customer.phone || '').toLowerCase();
-            const email = (customer.email || '').toLowerCase();
-            return fullName.includes(searchTerm) || phone.includes(searchTerm) || email.includes(searchTerm);
-        });
-    }
-    renderOrders();
-}
-
-function initModalTabs() {
-    const tabNav = DOM.modal.body.querySelector('.modal-tab-nav');
-    if (!tabNav) return;
-
-    tabNav.addEventListener('click', e => {
-        const target = e.target.closest('.modal-tab-btn');
-        if (!target || target.classList.contains('active')) return;
-
-        const container = target.closest('.modal-form');
-        container.querySelector('.modal-tab-btn.active').classList.remove('active');
-        container.querySelector('.modal-tab-pane.active').classList.remove('active');
-        
-        target.classList.add('active');
-        container.querySelector(target.dataset.modalTab).classList.add('active');
-    });
-}
-
+// Помощни функции за работа с вложени обекти
 function getProperty(obj, path) {
     return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
@@ -690,10 +563,9 @@ function setProperty(obj, path, value) {
 
 async function init() {
     setupEventListeners();
-    populateAddComponentMenu();
-
+    
     appData = await fetchData();
-    await fetchOrders();
+    ordersData = await fetchOrders();
 
     if (appData) {
         renderAll();
