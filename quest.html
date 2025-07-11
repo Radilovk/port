@@ -42,7 +42,7 @@
         .nav-btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .nav-btn#back-btn { background-color: transparent; color: var(--text-secondary); border: 1px solid var(--border-color); } .nav-btn#back-btn:hover { background-color: var(--bg-primary); border-color: var(--accent); color: var(--accent); }
         .nav-btn#next-btn { background-color: var(--accent); color: var(--bg-primary); } [data-theme="dark"] .nav-btn#next-btn { color: #000; } .nav-btn#next-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px -5px var(--accent); }
-        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: var(--text-secondary); }
         .hidden { display: none !important; } .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; }
         .loading-animation { width: 80px; height: 80px; position: relative; margin-bottom: 2rem; } .loading-animation::before, .loading-animation::after { content: ''; position: absolute; border: 4px solid var(--accent); border-radius: 50%; width: 100%; height: 100%; animation: pulse 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
         .loading-animation::after { animation-delay: -0.75s; } @keyframes pulse { 0% { transform: scale(0.1); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
@@ -60,6 +60,14 @@
         #reset-btn { display: block; margin: 2rem auto 0 auto; width: 100%; max-width: 250px; }
         #theme-toggle { position: fixed; top: 20px; right: 20px; z-index: 1000; width: 44px; height: 44px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; }
         #theme-toggle:hover { border-color: var(--accent); transform: scale(1.1); } #theme-toggle svg { width: 20px; height: 20px; fill: var(--text-secondary); }
+        /* ПОДОБРЕНИЕ: Стил за контейнера за грешки */
+        #form-error-container { 
+            border-left-color: var(--error-color); 
+            margin-top: 2rem; 
+        }
+        #form-error-container h3 { 
+            color: var(--error-color); 
+        }
     </style>
 </head>
 <body>
@@ -88,12 +96,20 @@
                     <button type="button" class="nav-btn" id="next-btn">Напред</button>
                 </div>
             </form>
+
+            <!-- ПОДОБРЕНИЕ: Контейнер за показване на грешки от сървъра -->
+            <div id="form-error-container" class="result-card hidden" aria-live="polite">
+                <h3>Възникна грешка</h3>
+                <p id="form-error-text"></p>
+            </div>
         </div>
+
         <div class="loading-container hidden" id="loading-container">
             <div class="loading-animation"></div>
             <h2>Анализираме Вашите данни...</h2>
             <p>Генерираме Вашия персонализиран BIOCODE протокол.</p>
         </div>
+
         <div class="results-container hidden" id="results-container">
             <div class="results-header"><h1>Здравейте, <span id="results-name"></span>!</h1><p>Ето Вашия персонален BIOCODE план:</p></div>
             <div id="results-content">
@@ -118,6 +134,9 @@
         const backBtn = document.getElementById('back-btn');
         const progressBar = document.getElementById('progress-bar');
         const resetBtn = document.getElementById('reset-btn');
+        const formErrorContainer = document.getElementById('form-error-container');
+        const formErrorText = document.getElementById('form-error-text');
+        
         let currentStepIndex = 0;
         const totalSteps = steps.length;
         const WORKER_URL = 'https://port.radilov-k.workers.dev/quest-submit';
@@ -167,30 +186,46 @@
 
         function validateCurrentStep() {
             const currentStep = steps[currentStepIndex];
+            // Първо изчистваме старите грешки за текущата стъпка
             currentStep.querySelectorAll('.input-error').forEach(el => clearError(el));
             currentStep.querySelectorAll('.error-message').forEach(el => {
                 el.textContent = '';
                 el.style.display = 'none';
             });
+
             let isValid = true;
             const inputs = currentStep.querySelectorAll('input, textarea');
             for (const input of inputs) {
                 const name = input.name;
                 const value = input.value.trim();
+                
+                // Проверка за празни задължителни полета
                 if (input.hasAttribute('id') && !['gender', 'goals', 'activity', 'duration', 'consent'].includes(name) && value === '') {
                     isValid = false; showError(input, 'Това поле е задължително.'); continue;
                 }
+                
+                // Специфични валидации
                 switch (input.id) {
                     case 'age': if (isNaN(value) || +value < 18 || +value > 100) { isValid = false; showError(input, 'Моля, въведете валидна възраст (18-100).'); } break;
                     case 'height': if (isNaN(value) || +value < 100 || +value > 250) { isValid = false; showError(input, 'Моля, въведете валиден ръст в см (100-250).'); } break;
                     case 'weight': if (isNaN(value) || +value < 30 || +value > 300) { isValid = false; showError(input, 'Моля, въведете валидно тегло в кг (30-300).'); } break;
-                    case 'main-goal': if (value.length < 10) { isValid = false; showError(input, 'Моля, опишете целта си с поне 10 символа.'); } break;
+                    case 'main-goal': if (value.length > 0 && value.length < 10) { isValid = false; showError(input, 'Моля, опишете целта си с поне 10 символа.'); } break;
+                    // ПОДОБРЕНИЕ: По-строга валидация за текстови полета, за да се насърчи по-добър отговор
+                    case 'conditions':
+                    case 'medications':
+                    case 'allergies':
+                        if (value.length > 0 && value.length < 3) {
+                            isValid = false; showError(input, 'Моля, опишете по-подробно или въведете \'Нямам\'/\'Не\'.');
+                        }
+                        break;
                     case 'sleep': if (isNaN(value) || +value < 1 || +value > 16) { isValid = false; showError(input, 'Моля, въведете валиден брой часове (1-16).'); } break;
                     case 'stress': if (isNaN(value) || +value < 1 || +value > 10) { isValid = false; showError(input, 'Моля, въведете число от 1 до 10.'); } break;
                     case 'email': const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailRegex.test(value)) { isValid = false; showError(input, 'Моля, въведете валиден имейл адрес.'); } break;
                     case 'phone': const phoneRegex = /^[0-9\s+()-]{9,}$/; if (!phoneRegex.test(value)) { isValid = false; showError(input, 'Моля, въведете валиден телефонен номер.'); } break;
                 }
             }
+            
+            // Валидация за радио/чекбокс групи
             const checkGroups = (name, message) => {
                 const group = currentStep.querySelector(`input[name="${name}"]`);
                 if (group && !form.querySelector(`input[name="${name}"]:checked`)) {
@@ -199,9 +234,13 @@
                     if (errorContainer) { errorContainer.textContent = message; errorContainer.style.display = 'block'; }
                 }
             };
-            checkGroups('gender', 'Моля, изберете пол.'); checkGroups('goals', 'Моля, изберете поне една цел.');
-            checkGroups('activity', 'Моля, изберете ниво на активност.'); checkGroups('duration', 'Моля, изберете период на прием.');
-            checkGroups('consent', 'Трябва да се съгласите с условието.');
+            if(currentStepIndex === 0) checkGroups('gender', 'Моля, изберете пол.');
+            if(currentStepIndex === 1) checkGroups('goals', 'Моля, изберете поне една цел.');
+            if(currentStepIndex === 3) checkGroups('activity', 'Моля, изберете ниво на активност.');
+            if(currentStepIndex === 4) {
+                checkGroups('duration', 'Моля, изберете период на прием.');
+                checkGroups('consent', 'Трябва да се съгласите с условието.');
+            }
             return isValid;
         }
 
@@ -227,6 +266,12 @@
         });
 
         async function submitForm() {
+            // ПОДОБРЕНИЕ: Деактивираме бутоните, за да предотвратим двойно изпращане
+            nextBtn.disabled = true;
+            backBtn.disabled = true;
+            nextBtn.textContent = 'Анализираме...';
+            formErrorContainer.classList.add('hidden'); // Скриваме стари грешки
+
             const formData = new FormData(form);
             const data = {};
             for (const [key, value] of formData.entries()) {
@@ -260,16 +305,27 @@
                 }
                 
                 displayResults(results, data.name);
+
             } catch (error) {
                 console.error('Submission failed:', error);
-                alert(`Грешка при генериране на резултатите: ${error.message}`);
+                
+                // ПОДОБРЕНИЕ: Показваме грешката в интерфейса, вместо с alert()
+                formErrorText.textContent = `Грешка при генериране на резултатите: ${error.message}. Моля, проверете връзката си и опитайте отново.`;
+                formErrorContainer.classList.remove('hidden');
+                
                 loadingContainer.classList.add('hidden');
                 questionnaireContainer.classList.remove('hidden');
+
+                // Активираме бутоните отново, за да може потребителят да опита пак
+                nextBtn.disabled = false;
+                backBtn.disabled = false;
+                updateForm(); // Връщаме текста на бутона
             }
         }
 
         function displayResults(results, name) {
-            document.getElementById('results-name').textContent = name.split(' ')[0];
+            // ПОДОБРЕНИЕ: Показваме пълното име
+            document.getElementById('results-name').textContent = name;
             document.getElementById('analysis-text').textContent = results.analysis;
             document.getElementById('protocol-details').textContent = results.protocol_details;
             document.getElementById('results-disclaimer').textContent = results.disclaimer;
