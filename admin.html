@@ -33,7 +33,7 @@
         </nav>
 
         <!-- КОНТЕЙНЕР ЗА СЪДЪРЖАНИЕТО НА ТАБОВЕТЕ -->
-        <main class="tab-content-container">
+        <main class="tab-content">
             
             <!-- Секция: Глобални настройки -->
             <section id="tab-global" class="tab-pane active">
@@ -47,7 +47,7 @@
             <section id="tab-navigation" class="tab-pane">
                 <h2>Основна навигация</h2>
                 <p class="instructions">Подредете линковете с влачене (☰).</p>
-                <div id="navigation-list" class="item-list">
+                <div id="navigation-list" class="item-list sortable-list">
                     <!-- Съдържанието ще се генерира от JS -->
                 </div>
                 <button class="btn btn-primary" data-action="add-nav-item">Добави нов линк</button>
@@ -57,11 +57,11 @@
             <section id="tab-content" class="tab-pane">
                 <h2>Съдържание на страницата</h2>
                 <p class="instructions">Подредете секциите с влачене (☰).</p>
-                <div id="page-builder-list" class="item-list">
+                <div id="page-builder-list" class="item-list sortable-list">
                     <!-- Съдържанието ще се генерира от JS -->
                 </div>
                 <div class="dropdown">
-                    <button class="btn btn-primary" data-action="toggle-add-component-menu">Добави нова секция ▼</button>
+                    <button class="btn btn-primary dropdown-toggle" data-action="toggle-add-component-menu">Добави нова секция ▼</button>
                     <div id="add-component-dropdown" class="dropdown-menu">
                         <!-- Линковете за добавяне ще се генерират от JS -->
                     </div>
@@ -110,7 +110,7 @@
     <div id="modal-container" class="modal-container">
         <header class="modal-header">
             <h3 id="modal-title"></h3>
-            <button id="close-modal-btn" class="close-modal-btn" aria-label="Затвори">×</button>
+            <button id="close-modal-btn" class="close-modal-btn">×</button>
         </header>
         <main id="modal-body" class="modal-body">
             <!-- Формата за редакция ще се зареди тук от <template> -->
@@ -123,7 +123,7 @@
     
     <!-- Нотификации -->
     <div id="notification-container"></div>
-    <div id="undo-notification" class="undo-bar">
+    <div id="undo-notification" class="notification undo-bar">
         <span>Елементът е изтрит.</span>
         <button id="undo-delete-btn" class="btn-link">Възстанови</button>
     </div>
@@ -252,8 +252,8 @@
         <form class="modal-form">
             <!-- Табове вътре в модала -->
             <nav class="modal-tab-nav">
-                <button type="button" class="modal-tab-btn active" data-modal-tab="#tab-cat-general">Основни</button>
-                <button type="button" class="modal-tab-btn" data-modal-tab="#tab-cat-products">Продукти</button>
+                <button type="button" class="modal-tab-btn active" data-modal-tab="tab-cat-general">Основни</button>
+                <button type="button" class="modal-tab-btn" data-modal-tab="tab-cat-products">Продукти</button>
             </nav>
 
             <!-- Съдържание на табовете -->
@@ -285,9 +285,11 @@
                 <div id="tab-cat-products" class="modal-tab-pane">
                     <h4>Продукти в категорията</h4>
                     <div id="products-editor" class="nested-list-container">
-                        <!-- Продуктите ще се генерират тук от JS -->
+                        <!-- Продуктите ще се генерират тук -->
                     </div>
-                    <button type="button" class="btn btn-secondary" data-action="add-nested-item" data-container="#products-editor" data-template="product-editor-template">Добави продукт</button>
+                    <button type="button" class="btn btn-secondary" data-action="add-nested-item" data-container="products-editor" data-template="product-editor-template">Добави продукт ръчно</button>
+                    <button type="button" class="btn btn-primary" data-action="import-product">Импортирай продукт (JSON)</button>
+                    <input type="file" id="product-import-input" accept=".json" style="display: none;">
                 </div>
             </div>
         </form>
@@ -296,10 +298,10 @@
     <!-- Вложен шаблон за редактор на един продукт -->
     <template id="product-editor-template">
         <div class="nested-item" data-type="product">
-            <div class="nested-item-header">
+            <h5 class="nested-item-header">
                 <span>Продукт</span>
-                <button type="button" class="btn-icon delete-nested-btn" data-action="delete-nested-item" title="Изтрий продукта">×</button>
-            </div>
+                <button type="button" class="btn-icon delete-nested-btn" title="Изтрий продукта">×</button>
+            </h5>
             <div class="form-row">
                 <div class="form-group">
                     <label>Име</label>
@@ -330,9 +332,7 @@
                 </div>
             </div>
             <h6>Ефекти</h6>
-            <div class="nested-sublist-container" data-sub-container="effects">
-                <!-- Ефектите ще се генерират тук от JS -->
-            </div>
+            <div class="nested-sublist-container" data-sub-container="effects"></div>
             <button type="button" class="btn btn-sm btn-secondary" data-action="add-nested-item" data-template="effect-editor-template" data-container="[data-sub-container='effects']">Добави ефект</button>
         </div>
     </template>
@@ -346,23 +346,12 @@
             </div>
              <div class="form-group">
                 <label>Стойност (0-100)</label>
-                <input type="number" data-field="value" min="0" max="100">
+                <input type="number" data-field="value">
             </div>
-            <button type="button" class="btn-icon delete-nested-btn" data-action="delete-nested-item" title="Изтрий ефекта">×</button>
+            <button type="button" class="btn-icon delete-nested-btn" title="Изтрий ефекта">×</button>
         </div>
     </template>
     
-    <!-- Форма: Настройки на футър -->
-    <template id="form-footer-template">
-        <form class="modal-form">
-            <div class="form-group">
-                <label for="footer_copyright">Copyright текст</label>
-                <input type="text" id="footer_copyright" data-field="copyright_text">
-            </div>
-            <!-- Тук може да се добави редактор за колоните, ако е нужно в бъдеще -->
-        </form>
-    </template>
-
     <!-- Връзка към външния JavaScript файл. type="module" е важен за модерния JS. -->
     <script src="admin.js" type="module"></script>
 
