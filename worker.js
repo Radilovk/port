@@ -1,7 +1,8 @@
-// ==== ПОСТАВИ ЦЕЛИЯ ТОЗИ КОД В worker.js ====
+// ==== ФИНАЛНА, ПЪЛНА И КОРЕГИРАНА ВЕРСИЯ НА worker.js ====
 
 export default {
-  async fetch(request, env) {
+  // Добавен е 'ctx' като трети параметър за достъп до waitUntil
+  async fetch(request, env, ctx) {
 
     // --- CORS Headers ---
     const corsHeaders = {
@@ -18,8 +19,101 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders });
     }
 
+    // ==========================================================
+    // ### НОВ МАРШРУТ: /quest-submit ###
+    // Логика за обработка на въпросника и AI
+    // ==========================================================
+    if (url.pathname === '/quest-submit') {
+      if (method !== 'POST') {
+        return new Response('Method Not Allowed. Please use POST.', { status: 405, headers: corsHeaders });
+      }
+
+      try {
+        const formData = await request.json();
+        formData.id = `client-${Date.now()}`;
+        formData.timestamp = new Date().toISOString();
+
+        // Запис на клиента в KV (във фонов режим)
+        const clientsListPromise = env.PAGE_CONTENT.get('clients', { type: 'json' }).then(list => {
+          const updatedList = list || [];
+          updatedList.push(formData);
+          return env.PAGE_CONTENT.put('clients', JSON.stringify(updatedList, null, 2));
+        });
+        ctx.waitUntil(clientsListPromise);
+        
+        const mainPrompt = await env.PAGE_CONTENT.get('bot_prompt');
+        const productListJSON = await env.PAGE_CONTENT.get('products');
+
+        if (!mainPrompt || !productListJSON) {
+          throw new Error("AI prompt or product list not configured in KV (PAGE_CONTENT).");
+        }
+        if (!env.ACCOUNT_ID || !env.AI_TOKEN) {
+          throw new Error("ACCOUNT_ID or AI_TOKEN is not configured in worker secrets.");
+        }
+
+        const finalPrompt = mainPrompt
+            .replace('{{productList}}', productListJSON)
+            .replace('{{clientData}}', JSON.stringify(formData, null, 2));
+
+        const model = '@cf/meta/llama-3-8b-instruct';
+        const cfEndpoint = `https://api.cloudflare.com/client/v4/accounts/${env.ACCOUNT_ID}/ai/run/${model}`;
+        
+        const payload = {
+            messages: [{ role: 'system', content: finalPrompt }]
+        };
+
+        const response = await fetch(cfEndpoint, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${env.AI_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const resultText = await response.text();
+
+        if (!response.ok) {
+            throw new Error(`AI API request failed: ${resultText}`);
+        }
+        
+        // Запис на резултата от AI във фонов режим
+        try {
+            const resultData = JSON.parse(resultText);
+            const resultsListPromise = env.PAGE_CONTENT.get('results', { type: 'json' }).then(list => {
+                const updatedList = list || [];
+                updatedList.push({
+                    clientId: formData.id,
+                    timestamp: new Date().toISOString(),
+                    recommendation: resultData
+                });
+                return env.PAGE_CONTENT.put('results', JSON.stringify(updatedList, null, 2));
+            });
+            ctx.waitUntil(resultsListPromise);
+        } catch (e) {
+            console.error("Could not save non-JSON AI result to KV:", e.message);
+        }
+
+        // Връщаме СУРОВИЯ отговор към фронтенда
+        return new Response(resultText, {
+          status: response.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+
+      } catch (e) {
+        console.error("Error in /quest-submit:", e.message);
+        return new Response(JSON.stringify({ error: e.message }), { 
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        });
+      }
+    }
+    
+    // ==========================================================
+    // ### СЪЩЕСТВУВАЩА ЛОГИКА (НАПЪЛНО ЗАПАЗЕНА) ###
+    // ==========================================================
+
     // --- Route: /orders ---
-    if (url.pathname === '/orders') {
+    else if (url.pathname === '/orders') {
       switch (method) {
         case 'GET': {
           if (!env.ORDERS) {
