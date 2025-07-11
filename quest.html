@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Персонализиран Въпросник</title>
+    <title>Персонализиран Въпросник - BIOCODE</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -51,9 +51,7 @@
             box-sizing: border-box;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
+        html { scroll-behavior: smooth; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -63,14 +61,18 @@
             transition: background-color 0.4s ease, color 0.4s ease;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Aligned to top for long content */
             min-height: 100vh;
-            padding: 1.5rem;
+            padding: 2rem 1rem;
         }
-
-        .questionnaire-container {
+        
+        .main-container {
             width: 100%;
             max-width: 700px;
+        }
+
+        .questionnaire-container, .loading-container, .results-container {
+            width: 100%;
             background: var(--bg-secondary);
             border-radius: 16px;
             border: 1px solid var(--border-color);
@@ -78,15 +80,10 @@
             box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1);
             transition: all 0.4s ease;
         }
-        
+
         @media (max-width: 768px) {
-            .questionnaire-container {
+            .questionnaire-container, .loading-container, .results-container {
                 padding: 1.5rem;
-            }
-             body {
-                padding: 1rem;
-                align-items: flex-start;
-                padding-top: 2rem;
             }
         }
         
@@ -104,235 +101,208 @@
             font-size: 1rem;
         }
 
-        /* Progress Bar */
         .progress-bar-container {
-            width: 100%;
-            height: 8px;
-            background-color: var(--bg-primary);
-            border-radius: 4px;
-            margin-bottom: 2rem;
-            overflow: hidden;
+            width: 100%; height: 8px; background-color: var(--bg-primary);
+            border-radius: 4px; margin-bottom: 2rem; overflow: hidden;
         }
         .progress-bar-fill {
-            height: 100%;
-            width: 0%;
-            background-color: var(--accent);
-            border-radius: 4px;
-            transition: width 0.5s ease;
+            height: 100%; width: 0%; background-color: var(--accent);
+            border-radius: 4px; transition: width 0.5s ease;
         }
 
-        /* Form Steps */
-        .form-step {
-            display: none;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        .form-step.active {
-            display: block;
-        }
+        .form-step { display: none; animation: fadeIn 0.5s ease-in-out; }
+        .form-step.active { display: block; }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .step-title {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 700;
-            font-size: 1.4rem;
-            margin-bottom: 1.5rem;
-            color: var(--text-primary);
-            border-left: 3px solid var(--accent);
-            padding-left: 1rem;
+            font-weight: 700; font-size: 1.4rem; margin-bottom: 1.5rem;
+            border-left: 3px solid var(--accent); padding-left: 1rem;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group > label {
+            display: block; margin-bottom: 0.5rem; font-weight: 600;
+            color: var(--text-secondary); font-size: 0.9rem;
         }
 
-        .form-group > label { /* Target only direct labels of form-group */
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .form-group input[type="text"],
-        .form-group input[type="number"],
-        .form-group input[type="email"],
-        .form-group input[type="tel"],
+        .form-group input[type="text"], .form-group input[type="number"],
+        .form-group input[type="email"], .form-group input[type="tel"],
         .form-group textarea {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border-color);
-            background-color: var(--bg-primary);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1rem;
+            width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color);
+            background-color: var(--bg-primary); border-radius: 8px; color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem;
             transition: border-color 0.3s ease;
         }
         
-        .form-group input:focus, 
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--accent);
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--accent);
         }
 
-        .form-group textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
+        .form-group textarea { min-height: 120px; resize: vertical; }
         
-        /* Custom Checkbox/Radio Styles -- CORRECTED */
-        .choice-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
+        .choice-group { display: flex; flex-direction: column; gap: 0.75rem; }
         .choice-item {
-            display: flex;
-            align-items: center;
-            background-color: var(--bg-primary);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: all 0.3s ease;
+            display: flex; align-items: center; background-color: var(--bg-primary);
+            padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);
+            cursor: pointer; transition: all 0.3s ease;
         }
-        .choice-item:hover {
-            border-color: var(--accent);
-        }
-        .choice-item input {
-            display: none;
-        }
+        .choice-item:hover { border-color: var(--accent); }
+        .choice-item input { display: none; }
         .choice-item .checkmark {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--text-secondary);
-            border-radius: 50%; /* For radio */
-            margin-right: 1rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease;
+            width: 20px; height: 20px; border: 2px solid var(--text-secondary);
+            border-radius: 50%; margin-right: 1rem; display: flex;
+            justify-content: center; align-items: center; transition: all 0.3s ease;
             flex-shrink: 0;
         }
-        .choice-item input[type="checkbox"] + .checkmark {
-            border-radius: 4px; /* For checkbox */
-        }
+        .choice-item input[type="checkbox"] + .checkmark { border-radius: 4px; }
         .choice-item .checkmark::after {
-            content: '';
-            display: block;
-            width: 10px;
-            height: 10px;
-            background-color: var(--accent);
-            border-radius: 50%;
-            transform: scale(0);
-            transition: transform 0.3s ease;
+            content: ''; display: block; width: 10px; height: 10px;
+            background-color: var(--accent); border-radius: 50%;
+            transform: scale(0); transition: transform 0.3s ease;
         }
         .choice-item input[type="checkbox"] + .checkmark::after {
-            width: 5px;
-            height: 10px;
-            border-radius: 0;
-            background-color: transparent;
-            border: solid var(--accent);
-            border-width: 0 3px 3px 0;
+            width: 5px; height: 10px; border-radius: 0; background-color: transparent;
+            border: solid var(--accent); border-width: 0 3px 3px 0;
             transform: rotate(45deg) scale(0);
         }
-        .choice-item input:checked + .checkmark {
-            border-color: var(--accent);
-        }
-        .choice-item input:checked + .checkmark::after {
-            transform: scale(1);
-        }
-        .choice-item input[type="checkbox"]:checked + .checkmark::after {
-             transform: rotate(45deg) scale(1);
-        }
-        .choice-item .choice-label {
-            margin: 0;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
+        .choice-item input:checked + .checkmark { border-color: var(--accent); }
+        .choice-item input:checked + .checkmark::after { transform: scale(1); }
+        .choice-item input[type="checkbox"]:checked + .checkmark::after { transform: rotate(45deg) scale(1); }
+        .choice-item .choice-label { margin: 0; font-weight: 500; }
 
-        /* Navigation Buttons */
-        .navigation-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 2.5rem;
-        }
+        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2.5rem; }
         .nav-btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            padding: 0.75rem 1.5rem; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
         }
         .nav-btn#back-btn {
-            background-color: transparent;
-            color: var(--text-secondary);
+            background-color: transparent; color: var(--text-secondary);
             border: 1px solid var(--border-color);
         }
-        .nav-btn#back-btn:hover {
-            background-color: var(--bg-primary);
-            border-color: var(--accent);
-            color: var(--accent);
+        .nav-btn#back-btn:hover { background-color: var(--bg-primary); border-color: var(--accent); color: var(--accent); }
+        .nav-btn#next-btn { background-color: var(--accent); color: var(--bg-primary); }
+        [data-theme="dark"] .nav-btn#next-btn { color: #000; }
+        .nav-btn#next-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px -5px var(--accent); }
+        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* --- НОВИ СТИЛОВЕ: Loading & Results --- */
+        .hidden { display: none !important; }
+
+        /* Loading Container */
+        .loading-container {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; min-height: 400px; text-align: center;
         }
-        .nav-btn#next-btn {
-            background-color: var(--accent);
-            color: var(--bg-primary);
+        .loading-animation {
+            width: 80px; height: 80px; position: relative; margin-bottom: 2rem;
         }
-        [data-theme="dark"] .nav-btn#next-btn {
-             color: #000;
+        .loading-animation::before, .loading-animation::after {
+            content: ''; position: absolute; border: 4px solid var(--accent);
+            border-radius: 50%; width: 100%; height: 100%;
+            animation: pulse 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
         }
-        .nav-btn#next-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px -5px var(--accent);
+        .loading-animation::after { animation-delay: -0.75s; }
+        @keyframes pulse {
+            0% { transform: scale(0.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
         }
-        .nav-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .loading-container h2 { font-family: 'Playfair Display', serif; margin-bottom: 0.5rem; }
+        .loading-container p { color: var(--text-secondary); }
+
+        /* Results Container */
+        .results-container {
+            animation: fadeIn 0.8s ease-out;
+        }
+        .results-header { text-align: center; margin-bottom: 2.5rem; }
+        .results-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 6vw, 2.8rem); }
+        .results-header p { font-size: 1.1rem; color: var(--text-secondary); margin-top: 0.5rem; }
+        
+        .result-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUpFadeIn 0.6s ease-out forwards;
+        }
+        /* Staggered animation delays will be added by JS */
+        @keyframes slideUpFadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* Final Step Message */
-        #final-message p {
-            font-size: 1.2rem;
+        .result-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+        .result-card p, .result-card ul {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+        .result-card strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        .result-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .result-card ul li {
+            padding-left: 1.5rem;
+            position: relative;
+            margin-bottom: 0.5rem;
+        }
+        .result-card ul li::before {
+            content: '✓';
+            color: var(--accent);
+            font-weight: 700;
+            position: absolute;
+            left: 0;
+            top: 1px;
+        }
+
+        #protocol-details p { white-space: pre-wrap; /* Preserve newlines from AI */ }
+        
+        .disclaimer {
+            font-size: 0.8rem;
             text-align: center;
             color: var(--text-secondary);
-            line-height: 1.8;
-        }
-        #final-message p strong {
-            color: var(--accent);
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--bg-primary);
+            border-radius: 8px;
         }
 
-        /* Theme Toggle Button */
+        #reset-btn {
+            display: block;
+            margin: 2rem auto 0 auto;
+            width: 100%;
+            max-width: 250px;
+        }
+
+        /* Theme Toggle */
         #theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            width: 44px;
-            height: 44px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease;
+            position: fixed; top: 20px; right: 20px; z-index: 1000;
+            width: 44px; height: 44px; background: var(--bg-secondary);
+            border: 1px solid var(--border-color); border-radius: 50%;
+            cursor: pointer; display: flex; justify-content: center;
+            align-items: center; transition: all 0.3s ease;
         }
-        #theme-toggle:hover {
-            border-color: var(--accent);
-            transform: scale(1.1);
-        }
-        #theme-toggle svg {
-            width: 20px;
-            height: 20px;
-            fill: var(--text-secondary);
-        }
+        #theme-toggle:hover { border-color: var(--accent); transform: scale(1.1); }
+        #theme-toggle svg { width: 20px; height: 20px; fill: var(--text-secondary); }
     </style>
 </head>
 <body>
@@ -342,233 +312,181 @@
         <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.758a.75.75 0 00-1.06-1.06l-1.59 1.591a.75.75 0 101.06 1.06l1.59-1.591z"/></svg>
     </button>
     
-    <div class="questionnaire-container">
-        <div class="questionnaire-header">
-            <h1>Вашият Път към Оптимизация</h1>
-            <p>Отговорете на въпросите, за да изготвим Вашата персонална програма.</p>
+    <div class="main-container">
+
+        <!-- ### ВЪПРОСНИК ### -->
+        <div class="questionnaire-container">
+            <div class="questionnaire-header">
+                <h1>Вашият Път към Оптимизация</h1>
+                <p>Отговорете на въпросите, за да изготвим Вашата персонална програма.</p>
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-bar"></div>
+            </div>
+
+            <form id="questionnaire-form" novalidate>
+                <!-- Стъпка 1: Основна информация -->
+                <div class="form-step active" data-step="1">
+                    <h2 class="step-title">Стъпка 1: За Вас</h2>
+                    <div class="form-group"><label>Пол</label><div class="choice-group"><label class="choice-item" for="male"><input type="radio" id="male" name="gender" value="male" required><span class="checkmark"></span><span class="choice-label">Мъж</span></label><label class="choice-item" for="female"><input type="radio" id="female" name="gender" value="female"><span class="checkmark"></span><span class="choice-label">Жена</span></label></div></div>
+                    <div class="form-group"><label for="age">Възраст</label><input type="number" id="age" name="age" placeholder="Години" min="18" max="100" required></div>
+                    <div class="form-group"><label for="height">Ръст (в см)</label><input type="number" id="height" name="height" placeholder="180" min="100" max="250" required></div>
+                    <div class="form-group"><label for="weight">Тегло (в кг)</label><input type="number" id="weight" name="weight" placeholder="80" min="30" max="300" required></div>
+                </div>
+
+                <!-- Стъпка 2: Вашите цели -->
+                <div class="form-step" data-step="2">
+                    <h2 class="step-title">Стъпка 2: Вашите Цели</h2>
+                    <div class="form-group"><label>Моля, отбележете всички цели, които са важни за Вас:</label><div class="choice-group"><label class="choice-item" for="goal1"><input type="checkbox" id="goal1" name="goals" value="anti-aging"><span class="checkmark"></span><span class="choice-label">Анти-ейджинг и виталност</span></label><label class="choice-item" for="goal2"><input type="checkbox" id="goal2" name="goals" value="skin-health"><span class="checkmark"></span><span class="choice-label">Подобряване на кожата</span></label><label class="choice-item" for="goal3"><input type="checkbox" id="goal3" name="goals" value="cognitive"><span class="checkmark"></span><span class="choice-label">Фокус, памет и настроение</span></label><label class="choice-item" for="goal4"><input type="checkbox" id="goal4" name="goals" value="sleep"><span class="checkmark"></span><span class="choice-label">Подобряване на съня</span></label><label class="choice-item" for="goal5"><input type="checkbox" id="goal5" name="goals" value="muscle-gain"><span class="checkmark"></span><span class="choice-label">Покачване на мускулна маса</span></label><label class="choice-item" for="goal6"><input type="checkbox" id="goal6" name="goals" value="fat-loss"><span class="checkmark"></span><span class="choice-label">Изгаряне на мазнини</span></label><label class="choice-item" for="goal7"><input type="checkbox" id="goal7" name="goals" value="recovery"><span class="checkmark"></span><span class="choice-label">Възстановяване (тренировки/травми)</span></label><label class="choice-item" for="goal8"><input type="checkbox" id="goal8" name="goals" value="libido"><span class="checkmark"></span><span class="choice-label">Повишаване на либидото</span></label></div></div>
+                    <div class="form-group"><label for="main-goal">Опишете с 1-2 изречения най-важната си цел</label><textarea id="main-goal" name="main_goal" placeholder="Пример: Искам да повиша енергията си през деня и да подобря възстановяването си след фитнес." required></textarea></div>
+                </div>
+
+                <!-- Стъпка 3: Здравословно състояние -->
+                <div class="form-step" data-step="3">
+                    <h2 class="step-title">Стъпка 3: Здраве</h2>
+                    <div class="form-group"><label for="conditions">Имате ли диагностицирани заболявания или състояния?</label><textarea id="conditions" name="conditions" placeholder="Пример: Високо кръвно, диабет... Ако нямате, напишете 'Нямам'." required></textarea></div>
+                    <div class="form-group"><label for="medications">Приемате ли лекарства или други добавки?</label><textarea id="medications" name="medications" placeholder="Избройте всичко. Ако не, напишете 'Не приемам'." required></textarea></div>
+                    <div class="form-group"><label for="allergies">Имате ли известни алергии?</label><textarea id="allergies" name="allergies" placeholder="Ако нямате, напишете 'Нямам'." required></textarea></div>
+                </div>
+
+                <!-- Стъпка 4: Начин на живот -->
+                <div class="form-step" data-step="4">
+                    <h2 class="step-title">Стъпка 4: Начин на живот</h2>
+                    <div class="form-group"><label>Физическа активност (тренировки на седмица)</label><div class="choice-group"><label class="choice-item" for="activity1"><input type="radio" id="activity1" name="activity" value="0" required><span class="checkmark"></span><span class="choice-label">0 (заседнал)</span></label><label class="choice-item" for="activity2"><input type="radio" id="activity2" name="activity" value="1-2"><span class="checkmark"></span><span class="choice-label">1-2 пъти</span></label><label class="choice-item" for="activity3"><input type="radio" id="activity3" name="activity" value="3-4"><span class="checkmark"></span><span class="choice-label">3-4 пъти</span></label><label class="choice-item" for="activity4"><input type="radio" id="activity4" name="activity" value="5+"><span class="checkmark"></span><span class="choice-label">5+ пъти</span></label></div></div>
+                    <div class="form-group"><label for="sleep">Средно часове сън на нощ?</label><input type="number" id="sleep" name="sleep" placeholder="8" min="1" max="12" required></div>
+                    <div class="form-group"><label for="stress">Ниво на ежедневен стрес (от 1 до 10)</label><input type="number" id="stress" name="stress" placeholder="7" min="1" max="10" required></div>
+                </div>
+                
+                <!-- Стъпка 5: Контакт и Финализиране -->
+                <div class="form-step" data-step="5">
+                    <h2 class="step-title">Стъпка 5: Контакт и Финализиране</h2>
+                    <div class="form-group"><label for="name">Име</label><input type="text" id="name" name="name" placeholder="Вашето име" required></div>
+                    <div class="form-group"><label for="email">Имейл</label><input type="email" id="email" name="email" placeholder="primer@email.com" required></div>
+                    <div class="form-group"><label for="phone">Телефон</label><input type="tel" id="phone" name="phone" placeholder="0888123456" required></div>
+                    <div class="form-group"><label>За какъв период планирате приема?</label><div class="choice-group"><label class="choice-item" for="duration1"><input type="radio" id="duration1" name="duration" value="1-2m" required><span class="checkmark"></span><span class="choice-label">1-2 месеца</span></label><label class="choice-item" for="duration2"><input type="radio" id="duration2" name="duration" value="3-4m"><span class="checkmark"></span><span class="choice-label">3-4 месеца</span></label><label class="choice-item" for="duration3"><input type="radio" id="duration3" name="duration" value="6m+"><span class="checkmark"></span><span class="choice-label">6+ месеца</span></label></div></div>
+                    <div class="form-group"><label>Съгласие</label><div class="choice-group"><label class="choice-item" for="consent"><input type="checkbox" id="consent" name="consent" required><span class="checkmark"></span><span class="choice-label">Потвърждавам, че предоставената информация е точна.</span></label></div></div>
+                </div>
+
+                <div class="navigation-buttons">
+                    <button type="button" class="nav-btn" id="back-btn">Назад</button>
+                    <button type="button" class="nav-btn" id="next-btn">Напред</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- ### ЕКРАН ЗА ЗАРЕЖДАНЕ ### -->
+        <div class="loading-container hidden" id="loading-container">
+            <div class="loading-animation"></div>
+            <h2>Анализираме Вашите данни...</h2>
+            <p>Генерираме Вашия персонализиран BIOCODE протокол.</p>
         </div>
 
-        <div class="progress-bar-container">
-            <div class="progress-bar-fill" id="progress-bar"></div>
+
+        <!-- ### ЕКРАН С РЕЗУЛТАТИ ### -->
+        <div class="results-container hidden" id="results-container">
+            <div class="results-header">
+                <h1>Здравейте, <span id="results-name"></span>!</h1>
+                <p>Ето Вашия персонален BIOCODE план:</p>
+            </div>
+
+            <div id="results-content">
+                <!-- Анализ -->
+                <div class="result-card" id="analysis-card">
+                    <h3>Анализ на Вашата ситуация</h3>
+                    <p id="analysis-text"></p>
+                </div>
+                
+                <!-- Препоръчани продукти -->
+                <div class="result-card" id="products-card">
+                     <h3>Препоръчителни Продукти</h3>
+                     <div id="products-list"></div>
+                </div>
+
+                <!-- Протокол -->
+                 <div class="result-card" id="protocol-card">
+                    <h3>Протокол за Прием</h3>
+                    <p id="protocol-details"></p>
+                </div>
+
+                <!-- Лайфстайл съвети -->
+                 <div class="result-card" id="tips-card">
+                    <h3>Съвети за Начина на Живот</h3>
+                    <ul id="tips-list"></ul>
+                </div>
+            </div>
+
+            <p class="disclaimer" id="results-disclaimer"></p>
+            
+            <button type="button" class="nav-btn" id="reset-btn">Започни отначало</button>
         </div>
 
-        <form id="questionnaire-form">
-            <!-- Стъпка 1: Основна информация -->
-            <div class="form-step active" data-step="1">
-                <h2 class="step-title">Стъпка 1: За Вас</h2>
-                <div class="form-group">
-                    <label>Пол</label>
-                    <div class="choice-group">
-                        <label class="choice-item" for="male"><input type="radio" id="male" name="gender" value="male" required><span class="checkmark"></span><span class="choice-label">Мъж</span></label>
-                        <label class="choice-item" for="female"><input type="radio" id="female" name="gender" value="female"><span class="checkmark"></span><span class="choice-label">Жена</span></label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="age">Възраст</label>
-                    <input type="number" id="age" name="age" placeholder="Години" min="18" max="100" required>
-                </div>
-                <div class="form-group">
-                    <label for="height">Ръст (в см)</label>
-                    <input type="number" id="height" name="height" placeholder="180" min="100" max="250" required>
-                </div>
-                <div class="form-group">
-                    <label for="weight">Тегло (в кг)</label>
-                    <input type="number" id="weight" name="weight" placeholder="80" min="30" max="300" required>
-                </div>
-            </div>
-
-            <!-- Стъпка 2: Вашите цели -->
-            <div class="form-step" data-step="2">
-                <h2 class="step-title">Стъпка 2: Вашите Цели</h2>
-                <div class="form-group">
-                    <label>Моля, отбележете всички цели, които са важни за Вас:</label>
-                    <div class="choice-group">
-                        <label class="choice-item" for="goal1"><input type="checkbox" id="goal1" name="goals" value="anti-aging"><span class="checkmark"></span><span class="choice-label">Анти-ейджинг и виталност</span></label>
-                        <label class="choice-item" for="goal2"><input type="checkbox" id="goal2" name="goals" value="skin-health"><span class="checkmark"></span><span class="choice-label">Подобряване на кожата</span></label>
-                        <label class="choice-item" for="goal3"><input type="checkbox" id="goal3" name="goals" value="cognitive"><span class="checkmark"></span><span class="choice-label">Фокус, памет и настроение</span></label>
-                        <label class="choice-item" for="goal4"><input type="checkbox" id="goal4" name="goals" value="sleep"><span class="checkmark"></span><span class="choice-label">Подобряване на съня</span></label>
-                        <label class="choice-item" for="goal5"><input type="checkbox" id="goal5" name="goals" value="muscle-gain"><span class="checkmark"></span><span class="choice-label">Покачване на мускулна маса</span></label>
-                        <label class="choice-item" for="goal6"><input type="checkbox" id="goal6" name="goals" value="fat-loss"><span class="checkmark"></span><span class="choice-label">Изгаряне на мазнини</span></label>
-                        <label class="choice-item" for="goal7"><input type="checkbox" id="goal7" name="goals" value="recovery"><span class="checkmark"></span><span class="choice-label">Възстановяване (тренировки/травми)</span></label>
-                        <label class="choice-item" for="goal8"><input type="checkbox" id="goal8" name="goals" value="libido"><span class="checkmark"></span><span class="choice-label">Повишаване на либидото</span></label>
-                    </div>
-                </div>
-                 <div class="form-group">
-                    <label for="main-goal">Опишете с 1-2 изречения най-важната си цел</label>
-                    <textarea id="main-goal" name="main-goal" placeholder="Пример: Искам да повиша енергията си през деня и да подобря възстановяването си след фитнес." required></textarea>
-                </div>
-            </div>
-
-            <!-- Стъпка 3: Здравословно състояние -->
-            <div class="form-step" data-step="3">
-                <h2 class="step-title">Стъпка 3: Здраве</h2>
-                <div class="form-group">
-                    <label for="conditions">Имате ли диагностицирани заболявания или състояния?</label>
-                    <textarea id="conditions" name="conditions" placeholder="Пример: Високо кръвно, диабет, проблеми с щитовидната жлеза, автоимунни заболявания и др. Ако нямате, напишете 'Нямам'." required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="medications">Приемате ли лекарства или други добавки в момента?</label>
-                    <textarea id="medications" name="medications" placeholder="Избройте всички лекарства, витамини, билки и др. Ако не приемате, напишете 'Не приемам'." required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="allergies">Имате ли известни алергии?</label>
-                    <textarea id="allergies" name="allergies" placeholder="Ако нямате, напишете 'Нямам'." required></textarea>
-                </div>
-            </div>
-
-            <!-- Стъпка 4: Начин на живот -->
-            <div class="form-step" data-step="4">
-                <h2 class="step-title">Стъпка 4: Начин на живот</h2>
-                <div class="form-group">
-                    <label>Физическа активност (тренировки на седмица)</label>
-                    <div class="choice-group">
-                        <label class="choice-item" for="activity1"><input type="radio" id="activity1" name="activity" value="0" required><span class="checkmark"></span><span class="choice-label">0 (заседнал)</span></label>
-                        <label class="choice-item" for="activity2"><input type="radio" id="activity2" name="activity" value="1-2"><span class="checkmark"></span><span class="choice-label">1-2 пъти</span></label>
-                        <label class="choice-item" for="activity3"><input type="radio" id="activity3" name="activity" value="3-4"><span class="checkmark"></span><span class="choice-label">3-4 пъти</span></label>
-                        <label class="choice-item" for="activity4"><input type="radio" id="activity4" name="activity" value="5+"><span class="checkmark"></span><span class="choice-label">5+ пъти</span></label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="sleep">Средно часове сън на нощ?</label>
-                    <input type="number" id="sleep" name="sleep" placeholder="8" min="1" max="12" required>
-                </div>
-                <div class="form-group">
-                    <label for="stress">Ниво на ежедневен стрес (от 1 до 10)</label>
-                    <input type="number" id="stress" name="stress" placeholder="7" min="1" max="10" required>
-                </div>
-            </div>
-            
-            <!-- Стъпка 5: Контакт и Финализиране -->
-            <div class="form-step" data-step="5">
-                <h2 class="step-title">Стъпка 5: Контакт и Финализиране</h2>
-                <div class="form-group">
-                    <label for="name">Име</label>
-                    <input type="text" id="name" name="name" placeholder="Вашето име" required>
-                </div>
-                 <div class="form-group">
-                    <label for="email">Имейл</label>
-                    <input type="email" id="email" name="email" placeholder="primer@email.com" required>
-                </div>
-                 <div class="form-group">
-                    <label for="phone">Телефон</label>
-                    <input type="tel" id="phone" name="phone" placeholder="0888123456" required>
-                </div>
-                <div class="form-group">
-                    <label>За какъв период планирате приема?</label>
-                    <div class="choice-group">
-                        <label class="choice-item" for="duration1"><input type="radio" id="duration1" name="duration" value="1-2m" required><span class="checkmark"></span><span class="choice-label">1-2 месеца</span></label>
-                        <label class="choice-item" for="duration2"><input type="radio" id="duration2" name="duration" value="3-4m"><span class="checkmark"></span><span class="choice-label">3-4 месеца</span></label>
-                        <label class="choice-item" for="duration3"><input type="radio" id="duration3" name="duration" value="6m+"><span class="checkmark"></span><span class="choice-label">6+ месеца</span></label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Съгласие</label>
-                    <div class="choice-group">
-                        <label class="choice-item" for="consent">
-                           <input type="checkbox" id="consent" name="consent" required>
-                           <span class="checkmark"></span>
-                           <span class="choice-label">Потвърждавам, че предоставената информация е точна и разбирам, че препоръките са с информативна цел.</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Финално съобщение -->
-            <div class="form-step" id="final-message">
-                <p><strong>Благодарим Ви!</strong><br>Вашият въпросник е изпратен успешно. Ще анализираме отговорите Ви и ще се свържем с Вас с персонализирана програма в рамките на 2-3 работни дни.</p>
-            </div>
-
-
-            <div class="navigation-buttons">
-                <button type="button" class="nav-btn" id="back-btn">Назад</button>
-                <button type="button" class="nav-btn" id="next-btn">Напред</button>
-            </div>
-        </form>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // --- THEME TOGGLE LOGIC ---
+            // --- DOM елементи ---
+            const questionnaireContainer = document.querySelector('.questionnaire-container');
+            const loadingContainer = document.getElementById('loading-container');
+            const resultsContainer = document.getElementById('results-container');
+            
+            const form = document.getElementById('questionnaire-form');
+            const steps = Array.from(form.querySelectorAll('.form-step'));
+            const nextBtn = document.getElementById('next-btn');
+            const backBtn = document.getElementById('back-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const resetBtn = document.getElementById('reset-btn');
+
+            let currentStepIndex = 0;
+            const totalSteps = steps.length;
+            const WORKER_URL = 'https://port.radilov-k.workers.dev/quest-submit';
+
+            // --- Логика за темата ---
             const themeToggle = document.getElementById('theme-toggle');
             const sunIcon = document.getElementById('theme-icon-sun');
             const moonIcon = document.getElementById('theme-icon-moon');
             const htmlEl = document.documentElement;
 
-            const currentTheme = localStorage.getItem('theme') || 'dark';
-            htmlEl.setAttribute('data-theme', currentTheme);
-            if (currentTheme === 'light') {
-                sunIcon.style.display = 'none';
-                moonIcon.style.display = 'block';
+            function applyTheme(theme) {
+                htmlEl.setAttribute('data-theme', theme);
+                sunIcon.style.display = theme === 'dark' ? 'block' : 'none';
+                moonIcon.style.display = theme === 'light' ? 'block' : 'none';
             }
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            applyTheme(savedTheme);
 
             themeToggle.addEventListener('click', () => {
                 const newTheme = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                htmlEl.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
-                sunIcon.style.display = newTheme === 'dark' ? 'block' : 'none';
-                moonIcon.style.display = newTheme === 'light' ? 'block' : 'none';
+                applyTheme(newTheme);
             });
 
-            // --- MULTI-STEP FORM LOGIC ---
-            const form = document.getElementById('questionnaire-form');
-            const steps = Array.from(form.querySelectorAll('.form-step:not(#final-message)'));
-            const finalMessage = document.getElementById('final-message');
-            const nextBtn = document.getElementById('next-btn');
-            const backBtn = document.getElementById('back-btn');
-            const progressBar = document.getElementById('progress-bar');
-            let currentStepIndex = 0;
-            const totalSteps = steps.length;
-            
+            // --- Логика за многоетапната форма ---
             function updateForm() {
-                // Hide all steps
-                steps.forEach(step => step.classList.remove('active'));
-                // Show current step
-                steps[currentStepIndex].classList.add('active');
-
-                // Update progress bar
+                steps.forEach((step, index) => {
+                    step.classList.toggle('active', index === currentStepIndex);
+                });
                 progressBar.style.width = `${(currentStepIndex / (totalSteps - 1)) * 100}%`;
-                
-                // Update buttons
-                if (currentStepIndex === 0) {
-                    backBtn.style.display = 'none';
-                } else {
-                    backBtn.style.display = 'block';
-                }
-
-                if (currentStepIndex === totalSteps - 1) {
-                    nextBtn.textContent = 'Изпрати';
-                } else {
-                    nextBtn.textContent = 'Напред';
-                }
+                backBtn.style.display = currentStepIndex === 0 ? 'none' : 'block';
+                nextBtn.textContent = currentStepIndex === totalSteps - 1 ? 'Генерирай Протокол' : 'Напред';
             }
 
             function validateCurrentStep() {
                 const currentStep = steps[currentStepIndex];
                 const inputs = currentStep.querySelectorAll('input[required], textarea[required]');
                 let isValid = true;
-                
-                inputs.forEach(input => {
+                for (const input of inputs) {
                     if (input.type === 'radio' || input.type === 'checkbox') {
-                         const groupName = input.name;
-                         if (!form.querySelector(`input[name="${groupName}"]:checked`)) {
-                            isValid = false;
-                         }
+                        if (!form.querySelector(`input[name="${input.name}"]:checked`)) isValid = false;
                     } else if (!input.value.trim()) {
                         isValid = false;
                     }
-                });
-                
-                if (!isValid) {
-                     // The browser's default validation message on the submit button will handle showing errors.
-                     // You could add custom error messages here if needed.
                 }
-
                 return isValid;
             }
 
             nextBtn.addEventListener('click', () => {
                 if (!validateCurrentStep()) {
-                    // Create a temporary submit button to trigger HTML5 validation UI
                     const tempSubmit = document.createElement('button');
                     tempSubmit.type = 'submit';
                     tempSubmit.style.display = 'none';
@@ -582,17 +500,7 @@
                     currentStepIndex++;
                     updateForm();
                 } else {
-                    // This is the "Изпрати" click
-                    // Here you would typically send the form data to a server
-                    console.log('Form submitted!');
-                    
-                    // Hide the form and show the final message
-                    steps.forEach(step => step.style.display = 'none');
-                    document.querySelector('.navigation-buttons').style.display = 'none';
-                    document.querySelector('.progress-bar-container').style.display = 'none';
-                    document.querySelector('.questionnaire-header h1').textContent = "Готово!";
-                    document.querySelector('.questionnaire-header p').style.display = 'none';
-                    finalMessage.classList.add('active');
+                    submitForm();
                 }
             });
 
@@ -602,12 +510,91 @@
                     updateForm();
                 }
             });
+
+            // --- Логика за изпращане и показване на резултати ---
+            async function submitForm() {
+                const formData = new FormData(form);
+                const data = {};
+                
+                data.goals = formData.getAll('goals');
+                formData.delete('goals');
+
+                for (const [key, value] of formData.entries()) {
+                    data[key] = value;
+                }
+                
+                // 1. Показване на екрана за зареждане
+                questionnaireContainer.classList.add('hidden');
+                loadingContainer.classList.remove('hidden');
+
+                try {
+                    // 2. Изпращане на заявка към Worker-a
+                    const response = await fetch(WORKER_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Възникна грешка при комуникация със сървъра.');
+                    }
+                    
+                    const results = await response.json();
+
+                    // 3. Показване на резултатите
+                    displayResults(results, data.name);
+
+                } catch (error) {
+                    console.error('Submission failed:', error);
+                    alert(`Грешка: ${error.message}\nМоля, опитайте отново.`);
+                    // Връщаме потребителя към въпросника
+                    loadingContainer.classList.add('hidden');
+                    questionnaireContainer.classList.remove('hidden');
+                }
+            }
+
+            function displayResults(results, name) {
+                // Попълване на данните
+                document.getElementById('results-name').textContent = name.split(' ')[0]; // Само първото име
+                
+                document.getElementById('analysis-text').textContent = results.analysis;
+                document.getElementById('protocol-details').textContent = results.protocol_details;
+                document.getElementById('results-disclaimer').textContent = results.disclaimer;
+                
+                const productsList = document.getElementById('products-list');
+                productsList.innerHTML = ''; // Изчистване
+                results.recommended_products.forEach(product => {
+                    const productDiv = document.createElement('div');
+                    productDiv.className = 'product-item';
+                    productDiv.innerHTML = `<strong>${product.name}:</strong> <p>${product.reason}</p>`;
+                    productsList.appendChild(productDiv);
+                });
+
+                const tipsList = document.getElementById('tips-list');
+                tipsList.innerHTML = ''; // Изчистване
+                results.lifestyle_tips.forEach(tip => {
+                    const tipLi = document.createElement('li');
+                    tipLi.textContent = tip;
+                    tipsList.appendChild(tipLi);
+                });
+
+                // Показване на контейнера с анимация
+                loadingContainer.classList.add('hidden');
+                resultsContainer.classList.remove('hidden');
+
+                // Прилагане на забавяне на анимацията за картите
+                const resultCards = resultsContainer.querySelectorAll('.result-card');
+                resultCards.forEach((card, index) => {
+                    card.style.animationDelay = `${index * 0.15}s`;
+                });
+            }
             
-            form.addEventListener('submit', (e) => {
-                e.preventDefault(); // Prevent actual form submission for this demo
+            resetBtn.addEventListener('click', () => {
+                location.reload(); // Най-простият начин за рестарт
             });
 
-            // Initial form state
+            // Първоначална настройка
             updateForm();
         });
     </script>
