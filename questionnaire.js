@@ -61,42 +61,54 @@
         // --- Управление на Темата ---
         function applyTheme(theme) {
           htmlEl.setAttribute("data-theme", theme);
-          sunIcon.style.display = theme === "dark" ? "block" : "none";
-          moonIcon.style.display = theme === "light" ? "block" : "none";
+          if (sunIcon) {
+            sunIcon.style.display = theme === "dark" ? "block" : "none";
+          }
+          if (moonIcon) {
+            moonIcon.style.display = theme === "light" ? "block" : "none";
+          }
         }
         const savedTheme = localStorage.getItem("theme") || "dark";
         applyTheme(savedTheme);
-        themeToggle.addEventListener("click", () => {
-          const newTheme =
-            htmlEl.getAttribute("data-theme") === "dark" ? "light" : "dark";
-          localStorage.setItem("theme", newTheme);
-          applyTheme(newTheme);
-        });
+        if (themeToggle) {
+          themeToggle.addEventListener("click", () => {
+            const newTheme =
+              htmlEl.getAttribute("data-theme") === "dark" ? "light" : "dark";
+            localStorage.setItem("theme", newTheme);
+            applyTheme(newTheme);
+          });
+        }
 
         // --- Мобилно меню ---
         const menuToggle = document.querySelector(".menu-toggle");
         const navLinksContainer = document.querySelector(".nav-links");
         const navOverlay = document.querySelector(".nav-overlay");
         function closeMenu() {
-          menuToggle.classList.remove("active");
-          navLinksContainer.classList.remove("active");
-          navOverlay.classList.remove("active");
+          if (menuToggle) menuToggle.classList.remove("active");
+          if (navLinksContainer) navLinksContainer.classList.remove("active");
+          if (navOverlay) navOverlay.classList.remove("active");
           document.body.classList.remove("nav-open");
         }
-        menuToggle.addEventListener("click", () => {
-          menuToggle.classList.toggle("active");
-          navLinksContainer.classList.toggle("active");
-          navOverlay.classList.toggle("active");
-          document.body.classList.toggle("nav-open");
-        });
-        navOverlay.addEventListener("click", closeMenu);
-        navLinksContainer.addEventListener("click", (e) => {
-          if (e.target.tagName === "A" || e.target.closest("button")) {
-            if (!e.target.closest("#theme-toggle")) {
-              closeMenu();
+        if (menuToggle) {
+          menuToggle.addEventListener("click", () => {
+            menuToggle.classList.toggle("active");
+            if (navLinksContainer) navLinksContainer.classList.toggle("active");
+            if (navOverlay) navOverlay.classList.toggle("active");
+            document.body.classList.toggle("nav-open");
+          });
+        }
+        if (navOverlay) {
+          navOverlay.addEventListener("click", closeMenu);
+        }
+        if (navLinksContainer) {
+          navLinksContainer.addEventListener("click", (e) => {
+            if (e.target.tagName === "A" || e.target.closest("button")) {
+              if (!e.target.closest("#theme-toggle")) {
+                closeMenu();
+              }
             }
-          }
-        });
+          });
+        }
         // --- Навигация и Валидация на Формата (остава почти непроменена) ---
         function updateForm() {
           steps.forEach((step, index) =>
