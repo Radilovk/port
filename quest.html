@@ -15,7 +15,39 @@
     <link rel="stylesheet" href="questionnaire.css" />
   </head>
   <body>
-
+    <header class="main-header">
+      <div class="header-container">
+        <a href="#" class="logo-container" id="header-logo-link">
+          <img src="" alt="BIOCODE Logo" id="header-logo-img" />
+          <div>
+            <span class="brand-name" id="header-brand-name"></span>
+            <span class="brand-slogan" id="header-brand-slogan"></span>
+          </div>
+        </a>
+        <nav class="main-nav">
+          <ul class="nav-links" id="main-nav-links">
+            <li>
+              <a href="checkout.html" class="cart-link"
+                >Количка (<span id="cart-count">0</span>)</a
+              >
+            </li>
+            <li>
+              <button id="theme-toggle" aria-label="Смяна на светла/тъмна тема">
+                <span id="theme-icon-sun" class="theme-icon">🌞</span>
+                <span id="theme-icon-moon" class="theme-icon">🌙</span>
+                <span class="theme-toggle-text">Тема</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+        <button class="menu-toggle" aria-label="Toggle Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+    <div class="nav-overlay"></div>
 
     <main class="main-container">
       <div class="questionnaire-container">
