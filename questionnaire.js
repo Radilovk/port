@@ -103,7 +103,7 @@
             step.classList.toggle("active", index === currentStepIndex),
           );
           progressBar.style.width = `${(currentStepIndex / (totalSteps - 1)) * 100}%`;
-          backBtn.style.display = currentStepIndex === 0 ? "none" : "block";
+          backBtn.style.display = "block";
           nextBtn.textContent =
             currentStepIndex === totalSteps - 1
               ? "Генерирай Протокол"
@@ -297,6 +297,15 @@
             currentStepIndex--;
             updateForm();
             window.scrollTo(0, 0);
+          } else {
+            if (
+              window.parent &&
+              typeof window.parent.closeQuestModal === "function"
+            ) {
+              window.parent.closeQuestModal();
+            } else {
+              window.location.href = "index.html";
+            }
           }
         });
 

@@ -246,13 +246,13 @@
       .navigation-buttons {
         display: flex;
         justify-content: center;
-        gap: 1rem;
-        margin-top: 2.5rem;
+        gap: 0.5rem;
+        margin-top: 1rem;
       }
       .nav-btn {
-        padding: 0.75rem 1.5rem;
+        padding: 0.5rem 1rem;
         border: none;
-        border-radius: 8px;
+        border-radius: 6px;
         font-family: "Plus Jakarta Sans", sans-serif;
         font-size: 1rem;
         font-weight: 600;
@@ -268,17 +268,6 @@
         background-color: var(--bg-primary);
         border-color: var(--accent);
         color: var(--accent);
-      }
-      .nav-btn#menu-btn {
-        background-color: var(--accent);
-        color: var(--bg-primary);
-      }
-      [data-theme="dark"] .nav-btn#menu-btn {
-        color: #000;
-      }
-      .nav-btn#menu-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px -5px var(--accent);
       }
       .nav-btn#next-btn {
         background-color: var(--accent);
