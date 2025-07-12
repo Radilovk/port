@@ -26,8 +26,7 @@ const DOM = {
     questModal: {
         backdrop: document.getElementById('quest-modal-backdrop'),
         container: document.getElementById('quest-modal-container'),
-        iframe: document.getElementById('quest-modal-iframe'),
-        closeBtn: document.getElementById('close-quest-modal-btn')
+        iframe: document.getElementById('quest-modal-iframe')
     }
 };
 
@@ -374,7 +373,6 @@ function initializeGlobalScripts() {
         DOM.questModal.iframe.src = '';
         DOM.body.classList.remove('modal-open');
     }
-    DOM.questModal.closeBtn.addEventListener('click', closeQuestModal);
     DOM.questModal.backdrop.addEventListener('click', closeQuestModal);
     document.addEventListener('click', e => {
         const questLink = e.target.closest('a[href$="quest.html"]');
