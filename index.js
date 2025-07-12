@@ -42,8 +42,6 @@ function debounce(func, wait) {
 //          2. ГЕНЕРАТОРИ НА HTML (GENERATOR FUNCTIONS)
 // =======================================================
 
-const slugify = str => str ? str.toLowerCase().replace(/\s+/g, '-') : '';
-
 const generateVariantItem = variant => `
     <li class="variant-item">
         <strong>${variant.title}</strong>
@@ -59,30 +57,41 @@ const generateEffectBar = effect => `
         </div>
     </div>`;
 
-const generateProductCard = (product, index) => {
-    const cardDetailsId = `card-details-${index}`;
-    const productId = slugify(product.name);
+// --- START: MODIFIED FUNCTION ---
+const generateProductCard = (product) => {
+    // Проверка за сигурност: ако продуктът няма public_data, не го рендираме.
+    if (!product.public_data) {
+        console.warn(`Продукт с ID '${product.product_id}' няма 'public_data' и няма да бъде рендиран.`);
+        return '';
+    }
+
+    const publicData = product.public_data;
+    const productId = product.product_id; // Използваме надеждния уникален ID
+    const cardDetailsId = `card-details-${productId}`;
+
     return `
     <article class="product-card fade-in-up" data-product-id="${productId}">
         <div class="card-header" role="button" aria-expanded="false" aria-controls="${cardDetailsId}" tabindex="0">
-            <div class="product-title"><h3>${product.name}</h3><p>${product.tagline}</p></div>
-            <div class="product-price">${Number(product.price).toFixed(2)} лв.</div>
+            <div class="product-title"><h3>${publicData.name}</h3><p>${publicData.tagline}</p></div>
+            <div class="product-price">${Number(publicData.price).toFixed(2)} лв.</div>
             <div class="effects-container">
-                ${product.effects.map(generateEffectBar).join('')}
+                ${(publicData.effects || []).map(generateEffectBar).join('')}
             </div>
             <span class="expand-icon"></span>
         </div>
         <div class="card-details" id="${cardDetailsId}">
-            <p>${product.description}</p>
-            ${product.research_note && product.research_note.url ? `<div class="research-note">Източник: <a href="${product.research_note.url}" target="_blank" rel="noopener">${product.research_note.text}</a></div>` : ''}
+            <p>${publicData.description}</p>
+            ${publicData.research_note && publicData.research_note.url ? `<div class="research-note">Източник: <a href="${publicData.research_note.url}" target="_blank" rel="noopener">${publicData.research_note.text}</a></div>` : ''}
             <h4 class="details-section-title">Налични форми:</h4>
             <ul class="product-variants">
-                ${product.variants.map(generateVariantItem).join('')}
+                ${(publicData.variants || []).map(generateVariantItem).join('')}
             </ul>
-            <button class="add-to-cart-btn" data-id="${productId}" data-name="${product.name}" data-price="${product.price}">Добави в количката</button>
+            <button class="add-to-cart-btn" data-id="${productId}" data-name="${publicData.name}" data-price="${publicData.price}">Добави в количката</button>
         </div>
     </article>`;
 }
+// --- END: MODIFIED FUNCTION ---
+
 
 const generateHeroHTML = component => `
     <header class="hero-section">
@@ -95,6 +104,7 @@ const generateHeroHTML = component => `
         </div>
     </header>`;
 
+// --- START: MODIFIED FUNCTION ---
 const generateProductCategoryHTML = (component, index) => {
     const isCollapsible = component.options.is_collapsible;
     const isExpanded = component.options.is_expanded_by_default;
@@ -110,11 +120,12 @@ const generateProductCategoryHTML = (component, index) => {
                 ${component.image ? `<div class="category-image-wrapper"><img src="${component.image}" alt="${component.title}" loading="lazy"></div>` : ''}
             </div>
             <div class="product-grid" id="${productGridId}">
-                ${component.products.map(generateProductCard).join('')}
+                ${(component.products || []).map(generateProductCard).join('')}
             </div>
         </div>
     </section>`;
 }
+// --- END: MODIFIED FUNCTION ---
 
 const generateInfoCardHTML = component => `
     <section class="info-card-section fade-in-up ${'image-align-' + (component.options.image_align || 'left')}">
