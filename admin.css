@@ -242,7 +242,23 @@ h2 {
     width: 100%; padding: 0.75rem; border: 1px solid var(--border-color);
     border-radius: 4px; font-size: 1rem; box-sizing: border-box;
 }
+.modal-form input[readonly] { background-color: var(--bg-light); cursor: not-allowed; }
 .modal-form textarea { min-height: 120px; resize: vertical; }
+
+.modal-form fieldset {
+    border: 1px solid var(--border-color);
+    padding: 1rem 1.5rem 0.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 6px;
+}
+.modal-form legend {
+    font-weight: 500;
+    padding: 0 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-left: 0.5rem;
+}
+
 .form-row { display: flex; flex-direction: column; gap: 0; }
 .form-row .form-group { margin-bottom: 1.2rem; }
 
@@ -255,6 +271,12 @@ h2 {
 .nested-item { background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
 .nested-item-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--bg-light); padding-bottom: 0.75rem; margin-bottom: 1rem; }
 .nested-item-header span { font-size: 1.1rem; font-weight: 500; }
+.nested-sublist-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
 .nested-sub-item { display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1rem; background: #fdfdfd; padding: 1rem; border: 1px solid var(--border-color); border-radius: 4px; }
 .nested-sub-item .form-group { flex: 1; margin-bottom: 0; }
 .nested-sub-item .form-group label { font-size: 0.8rem; }
