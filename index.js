@@ -202,8 +202,9 @@ function renderHeader(settings, navigation) {
     DOM.header.brandSlogan.textContent = settings.site_slogan;
 
     const navItemsHTML = navigation.map(item => `<li><a href="${item.link}">${item.text}</a></li>`).join('');
+    const questionnaireLink = '<li><a href="quest.html">Въпросник</a></li>';
     const persistentLis = DOM.header.navLinks.querySelectorAll('li:nth-last-child(-n+2)');
-    DOM.header.navLinks.innerHTML = navItemsHTML;
+    DOM.header.navLinks.innerHTML = navItemsHTML + questionnaireLink;
     persistentLis.forEach(li => DOM.header.navLinks.appendChild(li));
 
     updateCartCount();
