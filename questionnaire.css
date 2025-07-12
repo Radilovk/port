@@ -415,30 +415,6 @@
         width: 100%;
         max-width: 250px;
       }
-      #theme-toggle {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1000;
-        width: 44px;
-        height: 44px;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        transition: all 0.3s ease;
-      }
-      #theme-toggle:hover {
-        border-color: var(--accent);
-        transform: scale(1.1);
-      }
-      #theme-toggle svg {
-        width: 20px;
-        height: 20px;
-        fill: var(--text-secondary);
       }
       #form-error-container {
         border-left-color: var(--error-color);
