@@ -22,7 +22,13 @@ const DOM = {
     menuToggle: document.querySelector('.menu-toggle'),
     navLinksContainer: document.querySelector('.nav-links'),
     navOverlay: document.querySelector('.nav-overlay'),
-    body: document.body
+    body: document.body,
+    questModal: {
+        backdrop: document.getElementById('quest-modal-backdrop'),
+        container: document.getElementById('quest-modal-container'),
+        iframe: document.getElementById('quest-modal-iframe'),
+        closeBtn: document.getElementById('close-quest-modal-btn')
+    }
 };
 
 function debounce(func, wait) {
@@ -355,7 +361,28 @@ function initializeGlobalScripts() {
         }
     });
 
-    // Показване на въпросника в отделна страница
+    // --- Quest Modal ---
+    function openQuestModal(url) {
+        DOM.questModal.iframe.src = url || 'quest.html';
+        DOM.questModal.container.classList.add('show');
+        DOM.questModal.backdrop.classList.add('show');
+        DOM.body.classList.add('modal-open');
+    }
+    function closeQuestModal() {
+        DOM.questModal.container.classList.remove('show');
+        DOM.questModal.backdrop.classList.remove('show');
+        DOM.questModal.iframe.src = '';
+        DOM.body.classList.remove('modal-open');
+    }
+    DOM.questModal.closeBtn.addEventListener('click', closeQuestModal);
+    DOM.questModal.backdrop.addEventListener('click', closeQuestModal);
+    document.addEventListener('click', e => {
+        const questLink = e.target.closest('a[href$="quest.html"]');
+        if (questLink) {
+            e.preventDefault();
+            openQuestModal(questLink.getAttribute('href'));
+        }
+    });
 
     updateCartCount();
 }
