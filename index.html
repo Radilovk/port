@@ -36,6 +36,9 @@
                         <a href="checkout.html" class="cart-link">Количка (<span id="cart-count">0</span>)</a>
                     </li>
                     <li>
+                        <a href="quest.html" class="quest-link">Въпросник</a>
+                    </li>
+                    <li>
                         <button id="theme-toggle" aria-label="Смяна на светла/тъмна тема">
                             <span id="theme-icon-sun" class="theme-icon">🌞</span>
                             <span id="theme-icon-moon" class="theme-icon">🌙</span>
@@ -53,7 +56,13 @@
     </header>
     <div class="nav-overlay"></div>
 
-    <!-- 
+    <div id="quest-modal-backdrop" class="modal-backdrop"></div>
+    <div id="quest-modal-container" class="modal-container">
+        <button id="quest-close-btn" class="close-modal-btn" aria-label="Затвори">×</button>
+        <iframe id="quest-iframe" title="BIOCODE Въпросник" src="" loading="lazy"></iframe>
+    </div>
+
+    <!--
         Контейнерът вече няма class="container", защото всяка секция ще управлява свой собствен.
     -->
     <main id="main-content-container">
