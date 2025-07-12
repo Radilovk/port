@@ -18,8 +18,13 @@ const DOM = {
     navigationList: document.getElementById('navigation-list'),
     pageBuilderList: document.getElementById('page-builder-list'),
     footerSettingsContainer: document.getElementById('footer-settings-container'),
+    // Поръчки
     ordersTableBody: document.getElementById('orders-table-body'),
+    orderSearchInput: document.getElementById('order-search-input'),
+    refreshOrdersBtn: document.getElementById('refresh-orders-btn'),
+    // Добавяне на компонент
     addComponentDropdown: document.getElementById('add-component-dropdown'),
+    addComponentToggleBtn: document.querySelector('[data-action="toggle-add-component-menu"]'),
     // Модал
     modal: {
         container: document.getElementById('modal-container'),
@@ -44,10 +49,10 @@ const DOM = {
 // Глобално състояние
 let appData = {};
 let ordersData = [];
+let filteredOrdersData = [];
 let unsavedChanges = false;
 let activeUndoAction = null;
 let currentModalSaveCallback = null;
-let currentEditingComponentId = null; // НОВО: За да знаем коя категория се редактира
 
 // =======================================================
 //          2. API КОМУНИКАЦИЯ
@@ -69,11 +74,14 @@ async function fetchOrders() {
     try {
         const response = await fetch(`${API_URL}/orders?v=${Date.now()}`);
         if (!response.ok) throw new Error(`HTTP грешка! Статус: ${response.status}`);
-        return await response.json();
+        const rawOrders = await response.json();
+        ordersData = rawOrders.map((order, index) => ({ ...order, id: order.id || `order_${index}_${Date.now()}` }));
+        filteredOrdersData = [...ordersData];
     } catch (error) {
         showNotification('Грешка при зареждане на поръчките.', 'error');
         console.error("Грешка при зареждане на поръчки:", error);
-        return [];
+        ordersData = [];
+        filteredOrdersData = [];
     }
 }
 
@@ -132,7 +140,7 @@ function renderAll() {
     renderNavigation();
     renderPageContent();
     renderFooter();
-    renderOrders();
+    filterOrders(); // This will call renderOrders
 }
 
 function renderGlobalSettings() {
@@ -184,13 +192,13 @@ function renderPageContent() {
         });
         DOM.pageBuilderList.appendChild(item);
     });
-    initSortable(DOM.pageBuilderList, appData.page_content, 'component_id');
+    initSortable(DOM.pageBuilderList, appData.page_content);
 }
 
 function renderFooter() {
     DOM.footerSettingsContainer.innerHTML = '';
      const item = createListItem({
-        type: 'Copyright & Колони',
+        type: 'Copyright',
         title: appData.footer.copyright_text,
         actions: [
             { label: 'Редактирай', action: 'edit-footer', class: 'btn-secondary' }
@@ -202,22 +210,19 @@ function renderFooter() {
 
 function renderOrders() {
     DOM.ordersTableBody.innerHTML = '';
-    ordersData.forEach((order, index) => {
+    filteredOrdersData.forEach((order) => {
         const rowTemplate = DOM.templates.orderRow.content.cloneNode(true);
         const customer = order.customer || {};
         const products = (order.products || []).map(p => `${p.name} x${p.quantity}`).join('<br>');
-
+        const originalIndex = ordersData.findIndex(o => o.id === order.id);
         const row = rowTemplate.querySelector('tr');
-        row.dataset.index = index;
-
+        row.dataset.index = originalIndex;
         rowTemplate.querySelector('.order-customer').textContent = `${customer.firstName || ''} ${customer.lastName || ''}`;
         rowTemplate.querySelector('.order-phone').textContent = customer.phone || '';
         rowTemplate.querySelector('.order-email').textContent = customer.email || '';
         rowTemplate.querySelector('.order-products').innerHTML = products;
-
         const statusSelect = rowTemplate.querySelector('.order-status');
         statusSelect.value = order.status || 'Нова';
-
         DOM.ordersTableBody.appendChild(rowTemplate);
     });
 }
@@ -225,11 +230,9 @@ function renderOrders() {
 function createListItem({ id, type, title, actions = [] }) {
     const template = DOM.templates.listItem.content.cloneNode(true);
     const itemElement = template.querySelector('.list-item');
-    if (id) itemElement.dataset.id = id;
-
+    if (id !== undefined) itemElement.dataset.id = id;
     template.querySelector('.item-type').textContent = type;
     template.querySelector('.item-title').textContent = title || '(без заглавие)';
-
     const actionsContainer = template.querySelector('.item-actions');
     actions.forEach(actionInfo => {
         const button = document.createElement('button');
@@ -238,32 +241,46 @@ function createListItem({ id, type, title, actions = [] }) {
         button.dataset.action = actionInfo.action;
         actionsContainer.appendChild(button);
     });
-
     return itemElement;
 }
 
+function populateAddComponentMenu() {
+    DOM.addComponentDropdown.innerHTML = '';
+    const componentTemplates = {
+        'hero_banner': { label: 'Hero Banner', templateId: 'form-hero-banner-template' },
+        'info_card': { label: 'Инфо Кард', templateId: 'form-info-card-template' },
+        'product_category': { label: 'Продуктова Категория', templateId: 'form-product-category-template' },
+    };
+    for (const [type, info] of Object.entries(componentTemplates)) {
+        const link = document.createElement('a');
+        link.href = '#';
+        link.textContent = `Добави ${info.label}`;
+        link.dataset.action = 'add-component';
+        link.dataset.componentType = type;
+        link.dataset.templateId = info.templateId;
+        DOM.addComponentDropdown.appendChild(link);
+    }
+}
 
 // =======================================================
-//          5. УПРАВЛЕНИЕ НА МОДАЛЕН ПРОЗОРЕЦ
+//          5. УПРАВЛЕНИЕ НА МОДАЛЕН ПРОЗОРЕЦ И ФОРМИ
 // =======================================================
 
 function openModal(title, formTemplateId, data, onSave) {
     DOM.modal.title.textContent = title;
-    
     const formTemplate = document.getElementById(formTemplateId);
     if (!formTemplate) {
         console.error(`Шаблон за форма с ID '${formTemplateId}' не е намерен!`);
+        showNotification(`Грешка: Шаблон за форма '${formTemplateId}' липсва.`, 'error');
         return;
     }
     DOM.modal.body.innerHTML = '';
     DOM.modal.body.appendChild(formTemplate.content.cloneNode(true));
-    
     if (data) {
         populateForm(DOM.modal.body.querySelector('form'), data);
     }
-
     currentModalSaveCallback = onSave;
-
+    initModalTabs(DOM.modal.body);
     DOM.modal.container.classList.add('show');
     DOM.modal.backdrop.classList.add('show');
 }
@@ -272,7 +289,7 @@ function closeModal() {
     DOM.modal.container.classList.remove('show');
     DOM.modal.backdrop.classList.remove('show');
     currentModalSaveCallback = null;
-    currentEditingComponentId = null; // НОВО: Изчистваме ID-то при затваряне
+    DOM.modal.body.innerHTML = '';
 }
 
 function populateForm(form, data) {
@@ -281,20 +298,128 @@ function populateForm(form, data) {
         const value = getProperty(data, path);
         if (input.type === 'checkbox') {
             input.checked = !!value;
+        } else if (Array.isArray(value)) {
+            input.value = value.join(', ');
         } else {
             input.value = value ?? '';
         }
     });
+
+    // Специално за продуктова категория - попълва списъка с продукти
+    if (data.products) {
+        const productsContainer = form.querySelector('#products-editor');
+        if (productsContainer) {
+            productsContainer.innerHTML = ''; // Изчистване преди попълване
+            data.products.forEach(productData => {
+                addNestedItem(productsContainer, 'product-editor-template', productData);
+            });
+        }
+    }
 }
 
 function serializeForm(form) {
     const data = {};
     form.querySelectorAll('[data-field]').forEach(input => {
+        // Пропускаме полета от шаблони за вложени елементи
+        if (input.closest('.nested-item-template, .nested-sub-item-template')) return;
+
         const path = input.dataset.field;
-        const value = input.type === 'checkbox' ? input.checked : input.value;
+        let value;
+        if (input.type === 'checkbox') {
+            value = input.checked;
+        } else if (input.type === 'number') {
+            value = input.value ? parseFloat(input.value) : null;
+        } else if (path.includes('goals') || path.includes('synergy_products')) {
+            value = input.value.split(',').map(s => s.trim()).filter(Boolean);
+        } else {
+            value = input.value;
+        }
         setProperty(data, path, value);
     });
+
+    // Специално за продуктова категория - събира данните от всички продукти
+    const productsContainer = form.querySelector('#products-editor');
+    if (productsContainer) {
+        data.products = [];
+        productsContainer.querySelectorAll(':scope > .nested-item[data-type="product"]').forEach(productNode => {
+            const productData = {};
+            // Сериализираме основните полета на продукта
+            productNode.querySelectorAll('[data-field]').forEach(input => {
+                const path = input.dataset.field;
+                let value;
+                 if (input.type === 'checkbox') {
+                    value = input.checked;
+                } else if (input.type === 'number') {
+                    value = input.value ? parseFloat(input.value) : null;
+                } else if (path.includes('goals') || path.includes('synergy_products')) {
+                    value = input.value.split(',').map(s => s.trim()).filter(Boolean);
+                } else {
+                    value = input.value;
+                }
+                setProperty(productData, path, value);
+            });
+
+            // Сериализираме вложените списъци (ефекти, варианти)
+            ['effects', 'variants'].forEach(subListName => {
+                const subContainer = productNode.querySelector(`[data-sub-container="${subListName}"]`);
+                if (subContainer) {
+                    const subList = [];
+                    subContainer.querySelectorAll(`:scope > .nested-sub-item[data-type="${subListName.slice(0,-1)}"]`).forEach(subItemNode => {
+                        const subItemData = {};
+                        subItemNode.querySelectorAll('[data-field]').forEach(input => {
+                            subItemData[input.dataset.field] = (input.type === 'number' ? (input.value ? parseFloat(input.value) : null) : input.value);
+                        });
+                        subList.push(subItemData);
+                    });
+                    setProperty(productData, `public_data.${subListName}`, subList);
+                }
+            });
+            data.products.push(productData);
+        });
+    }
     return data;
+}
+
+function addNestedItem(container, templateId, data) {
+    const template = document.getElementById(templateId);
+    if (!template) { console.error(`Template ${templateId} not found`); return; }
+    
+    const newItemFragment = template.content.cloneNode(true);
+    const itemElement = newItemFragment.querySelector('.nested-item, .nested-sub-item');
+    
+    if (data) {
+        // Попълваме основните полета
+        itemElement.querySelectorAll('[data-field]').forEach(input => {
+            const path = input.dataset.field;
+            const value = getProperty(data, path);
+            if (value !== undefined && value !== null) {
+                if(Array.isArray(value)) {
+                    input.value = value.join(', ');
+                } else {
+                    input.value = value;
+                }
+            }
+        });
+        // Попълваме вложените списъци
+        ['effects', 'variants'].forEach(subListName => {
+            const subContainer = itemElement.querySelector(`[data-sub-container="${subListName}"]`);
+            const subData = getProperty(data, `public_data.${subListName}`);
+            if (subContainer && Array.isArray(subData)) {
+                subData.forEach(subItemData => {
+                    const subTemplateId = `${subListName.slice(0, -1)}-editor-template`;
+                    addNestedItem(subContainer, subTemplateId, subItemData);
+                });
+            }
+        });
+    } else if (templateId === 'product-editor-template') {
+        // Генериране на ID за чисто нов продукт
+        const newId = `prod-${Date.now()}`;
+        setProperty(data = {}, 'product_id', newId);
+        itemElement.querySelector('[data-field="product_id"]').value = newId;
+    }
+
+    container.appendChild(newItemFragment);
+    initNestedItemUI(itemElement, data); // Инициализираме табове и заглавие
 }
 
 
@@ -307,10 +432,13 @@ function setupEventListeners() {
         const target = e.target.closest('[data-action]');
         if (!target) return;
         
-        const action = target.dataset.action;
-        const id = target.closest('.list-item')?.dataset.id;
+        e.preventDefault();
         
-        handleAction(action, id);
+        const action = target.dataset.action;
+        const listItem = target.closest('.list-item');
+        const id = listItem?.dataset.id;
+        
+        handleAction(action, target, id);
     });
 
     DOM.modal.saveBtn.addEventListener('click', () => {
@@ -326,13 +454,12 @@ function setupEventListeners() {
             }
         }
     });
-    DOM.modal.cancelBtn.addEventListener('click', closeModal);
-    DOM.modal.closeBtn.addEventListener('click', closeModal);
-    DOM.modal.backdrop.addEventListener('click', closeModal);
+
+    [DOM.modal.cancelBtn, DOM.modal.closeBtn, DOM.modal.backdrop].forEach(el => el.addEventListener('click', closeModal));
     
     DOM.tabNav.addEventListener('click', e => {
         const target = e.target.closest('.tab-btn');
-        if (!target) return;
+        if (!target || target.classList.contains('active')) return;
         
         DOM.tabNav.querySelector('.active').classList.remove('active');
         target.classList.add('active');
@@ -353,7 +480,7 @@ function setupEventListeners() {
             await fetch(`${API_URL}/orders`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ index, status: newStatus })
+                body: JSON.stringify({ id: ordersData[index].id, status: newStatus })
             });
             showNotification('Статусът е обновен.', 'success');
         } catch (err) {
@@ -361,128 +488,129 @@ function setupEventListeners() {
             console.error('Update status error:', err);
         }
     });
+    
+    DOM.orderSearchInput.addEventListener('input', () => filterOrders());
+    DOM.refreshOrdersBtn.addEventListener('click', async () => {
+        showNotification('Опресняване на поръчките...', 'info');
+        await fetchOrders();
+        filterOrders();
+    });
 
-    // НОВО: Слушател за промяна на скритото поле за качване на файл.
-    // Използваме делегиране от `document`, защото полето се създава динамично.
-    document.addEventListener('change', e => {
-        if (e.target.id === 'product-import-input') {
-            handleProductImport(e);
+    DOM.undoBtn.addEventListener('click', () => {
+        if (activeUndoAction) {
+            activeUndoAction();
+            activeUndoAction = null;
+            DOM.undoNotification.classList.remove('show');
         }
     });
 }
 
-function handleAction(action, id) {
+function handleAction(action, target, id) {
+    const componentType = target.dataset.componentType;
+    const templateId = target.dataset.templateId;
+    
     switch(action) {
+        // Глобални
         case 'edit-global-settings':
-            openModal(
-                'Редакция на глобални настройки', 
-                'form-global-settings-template', 
-                appData.settings,
+            openModal('Редакция на глобални настройки', 'form-global-settings-template', appData.settings,
                 (form) => {
                     appData.settings = serializeForm(form);
                     return true;
-                }
-            );
+                });
+            break;
+
+        // Навигация
+        case 'add-nav-item':
+             openModal('Добавяне на нов линк', 'form-nav-item-template', { text: '', link: '#' },
+                (form) => {
+                    appData.navigation.push(serializeForm(form));
+                    return true;
+                });
             break;
         case 'edit-nav-item':
-            openModal(
-                'Редакция на линк',
-                'form-nav-item-template',
-                appData.navigation[id],
+            openModal('Редакция на линк', 'form-nav-item-template', appData.navigation[id],
                 (form) => {
                     Object.assign(appData.navigation[id], serializeForm(form));
                     return true;
-                }
-            );
+                });
             break;
-        // ПРОМЕНЕНО: Добавяме запазване на ID-то на компонента, който се редактира
-        case 'edit-component':
-            const component = appData.page_content.find(c => c.component_id === id);
-            if (!component) return;
+        case 'delete-nav-item':
+            deleteItemWithUndo('nav-item', id, () => renderNavigation());
+            break;
 
-            currentEditingComponentId = id; // Запазваме ID-то за бъдещо ползване (от импорта)
-
-            const formTemplateId = `form-${component.type}-template`;
-            openModal(
-                `Редакция на: ${component.title}`,
-                formTemplateId,
-                component,
+        // Съдържание (компоненти)
+        case 'toggle-add-component-menu':
+            DOM.addComponentDropdown.classList.toggle('show');
+            break;
+        case 'add-component':
+            openModal(`Добавяне на: ${componentType.replace(/_/g, ' ')}`, templateId, null,
                 (form) => {
-                    // Тази логика трябва да се направи по-сложна, за да запазва и вложените елементи.
-                    // Засега запазва само основните полета.
-                    Object.assign(component, serializeForm(form));
+                    const newComponent = serializeForm(form);
+                    newComponent.type = componentType;
+                    newComponent.component_id = `comp_${Date.now()}`;
+                    if(!newComponent.title) newComponent.title = `Нова ${componentType.replace(/_/g, ' ')}`;
+                    appData.page_content.push(newComponent);
+                    DOM.addComponentDropdown.classList.remove('show');
                     return true;
-                }
-            );
+                });
             break;
-        // НОВО: Действие, което задейства клик върху скритото поле за качване
-        case 'import-product':
-            const importInput = document.getElementById('product-import-input');
-            if (importInput) {
-                importInput.click();
-            }
+        case 'edit-component': {
+            const component = id ? appData.page_content.find(c => c.component_id === id) : null;
+            if (!component) return;
+            const correctedType = component.type.replace(/_/g, '-');
+            const editTemplateId = `form-${correctedType}-template`;
+            openModal(`Редакция на: ${component.title}`, editTemplateId, component,
+                (form) => {
+                    const updatedData = serializeForm(form);
+                    Object.assign(component, updatedData);
+                    return true;
+                });
             break;
-    }
-}
-
-// НОВО: ЦЯЛАТА ФУНКЦИЯ ЗА ОБРАБОТКА НА ИМПОРТА
-function handleProductImport(event) {
-    const file = event.target.files[0];
-    if (!file || !currentEditingComponentId) {
-        return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-        try {
-            const importedData = JSON.parse(e.target.result);
-
-            if (!importedData.product_id || !importedData.public_data || !importedData.system_data) {
-                 throw new Error("Файлът не съдържа необходимите ключове: product_id, public_data, system_data.");
-            }
-            
-            const targetCategory = appData.page_content.find(c => c.component_id === currentEditingComponentId);
-            if (!targetCategory || targetCategory.type !== 'product_category') {
-                showNotification('Грешка: Не е избрана валидна продуктова категория.', 'error');
-                return;
-            }
-
-            const newProduct = {
-                ...importedData.public_data,
-                price: 0, 
-                system_data: importedData.system_data
-            };
-
-            if (!targetCategory.products) {
-                targetCategory.products = [];
-            }
-            targetCategory.products.push(newProduct);
-
-            setUnsavedChanges(true);
-            showNotification(`Продукт "${newProduct.name}" е добавен успешно.`, 'success');
-
-            closeModal();
-            setTimeout(() => {
-                handleAction('edit-component', currentEditingComponentId);
-            }, 100);
-
-        } catch (error) {
-            console.error("Грешка при импортиране:", error);
-            showNotification(`Грешка при импорт: ${error.message}`, 'error');
-        } finally {
-            event.target.value = '';
         }
-    };
+        case 'delete-component':
+             deleteItemWithUndo('component', id, () => renderPageContent());
+            break;
 
-    reader.readAsText(file);
+        // Футър
+        case 'edit-footer':
+            openModal('Редакция на футър', 'form-footer-template', appData.footer,
+                (form) => {
+                    const updatedData = serializeForm(form);
+                    Object.assign(appData.footer, updatedData);
+                    return true;
+                });
+            break;
+            
+        // Вложени елементи в модал
+        case 'add-nested-item': {
+            const container = target.closest('.modal-body, .nested-item').querySelector(target.dataset.container);
+            if (container) {
+                addNestedItem(container, target.dataset.template, null);
+            }
+            break;
+        }
+        case 'delete-nested-item': {
+            const itemToDelete = target.closest('.nested-item, .nested-sub-item');
+            if (itemToDelete) {
+                itemToDelete.remove();
+            }
+            break;
+        }
+        case 'import-product': {
+            const fileInput = target.parentElement.querySelector('#product-import-input');
+            fileInput.onchange = (e) => handleProductImport(e, target);
+            fileInput.click();
+            break;
+        }
+    }
 }
 
 // =======================================================
 //          7. ПОМОЩНИ ФУНКЦИИ (UTILITIES)
 // =======================================================
 
-function initSortable(element, dataArray, idKey = null) {
+function initSortable(element, dataArray) {
+    if(!element) return;
     new Sortable(element, {
         handle: '.handle',
         animation: 150,
@@ -490,28 +618,143 @@ function initSortable(element, dataArray, idKey = null) {
         onEnd: (evt) => {
             const { oldIndex, newIndex } = evt;
             if (oldIndex === newIndex) return;
-            
             const [movedItem] = dataArray.splice(oldIndex, 1);
             dataArray.splice(newIndex, 0, movedItem);
-            
             setUnsavedChanges(true);
+            if(element.id === 'navigation-list') renderNavigation();
         }
     });
 }
 
-function showNotification(message, type = 'success') {
+function showNotification(message, type = 'info', duration = 4000) {
     const note = document.createElement('div');
     note.className = `notification ${type}`;
     note.textContent = message;
     DOM.notificationContainer.appendChild(note);
     setTimeout(() => {
-        note.style.opacity = '0';
-        note.style.transform = 'translateX(100%)';
-        setTimeout(() => note.remove(), 300);
-    }, 4000);
+        note.classList.add('fade-out');
+        note.addEventListener('transitionend', () => note.remove());
+    }, duration);
+}
+
+function deleteItemWithUndo(itemType, id, renderFunc) {
+    let item, index, array;
+    if (itemType === 'nav-item') {
+        array = appData.navigation;
+        index = parseInt(id, 10);
+        item = array[index];
+    } else if (itemType === 'component') {
+        array = appData.page_content;
+        index = array.findIndex(c => c.component_id === id);
+        item = array[index];
+    }
+    if (item === undefined) return;
+    array.splice(index, 1);
+    setUnsavedChanges(true);
+    renderFunc();
+    DOM.undoNotification.classList.add('show');
+    activeUndoAction = () => {
+        array.splice(index, 0, item);
+        setUnsavedChanges(true);
+        renderFunc();
+        showNotification('Елементът е възстановен.', 'success');
+        activeUndoAction = null;
+    };
+    setTimeout(() => {
+        if(DOM.undoNotification.classList.contains('show')) {
+            DOM.undoNotification.classList.remove('show');
+            activeUndoAction = null;
+        }
+    }, 5000);
+}
+
+function filterOrders() {
+    const searchTerm = DOM.orderSearchInput.value.toLowerCase().trim();
+    if (!searchTerm) {
+        filteredOrdersData = [...ordersData];
+    } else {
+        filteredOrdersData = ordersData.filter(order => {
+            const customer = order.customer || {};
+            const fullName = `${customer.firstName || ''} ${customer.lastName || ''}`.toLowerCase();
+            const phone = (customer.phone || '').toLowerCase();
+            const email = (customer.email || '').toLowerCase();
+            return fullName.includes(searchTerm) || phone.includes(searchTerm) || email.includes(searchTerm);
+        });
+    }
+    renderOrders();
+}
+
+function initModalTabs(container) {
+    const tabNav = container.querySelector('.modal-tab-nav');
+    if (!tabNav) return;
+    tabNav.addEventListener('click', e => {
+        const target = e.target.closest('.modal-tab-btn');
+        if (!target || target.classList.contains('active')) return;
+        const parent = target.closest('.modal-form, .nested-item');
+        parent.querySelector('.modal-tab-btn.active').classList.remove('active');
+        parent.querySelector('.modal-tab-pane.active').classList.remove('active');
+        target.classList.add('active');
+        parent.querySelector(target.dataset.modalTab).classList.add('active');
+    });
+}
+
+function initNestedItemUI(itemElement, data) {
+    if (itemElement.matches('[data-type="product"]')) {
+        // Задаваме заглавие на редактора на продукта
+        const titleSpan = itemElement.querySelector('.product-editor-title');
+        if (titleSpan) {
+            titleSpan.textContent = getProperty(data, 'public_data.name') || 'Нов Продукт';
+        }
+        // Инициализираме вложените табове в продукта
+        initModalTabs(itemElement);
+    }
+}
+
+function handleProductImport(event, triggerButton) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            
+            // Валидация
+            if (!importedData.product_id || !importedData.public_data || !importedData.system_data) {
+                throw new Error("Невалиден формат на JSON файла. Липсват ключови полета.");
+            }
+
+            // Изчистваме цената според изискването
+            delete importedData.public_data.price;
+
+            // Проверка за уникалност на ID
+            const productsContainer = triggerButton.closest('.modal-tab-pane').querySelector('#products-editor');
+            const existingIds = Array.from(productsContainer.querySelectorAll('[data-field="product_id"]')).map(input => input.value);
+            let newId = importedData.product_id;
+            while(existingIds.includes(newId)) {
+                newId = `${newId}-copy`;
+            }
+            importedData.product_id = newId;
+
+            addNestedItem(productsContainer, 'product-editor-template', importedData);
+            showNotification('Продуктът е импортиран успешно. Въведете цена.', 'success');
+
+        } catch (error) {
+            showNotification(`Грешка при импортиране: ${error.message}`, 'error');
+            console.error(error);
+        } finally {
+            // Изчистваме file input-a, за да може да се избере същия файл отново
+            event.target.value = '';
+        }
+    };
+    reader.onerror = () => {
+        showNotification('Неуспешно прочитане на файла.', 'error');
+    };
+    reader.readAsText(file);
 }
 
 function getProperty(obj, path) {
+    if(obj === null || obj === undefined) return undefined;
     return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
 
@@ -522,17 +765,15 @@ function setProperty(obj, path, value) {
     target[last] = value;
 }
 
-
 // =======================================================
 //          8. ИНИЦИАЛИЗАЦИЯ НА ПРИЛОЖЕНИЕТО
 // =======================================================
 
 async function init() {
     setupEventListeners();
-    
+    populateAddComponentMenu();
     appData = await fetchData();
-    ordersData = await fetchOrders();
-
+    await fetchOrders();
     if (appData) {
         renderAll();
     } else {
@@ -540,4 +781,5 @@ async function init() {
     }
 }
 
+// Старт на приложението
 init();
