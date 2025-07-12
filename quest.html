@@ -54,19 +54,119 @@
         .result-card h3 { font-size: 1rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
         .result-card p, .result-card ul { font-size: 1rem; color: var(--text-secondary); } .result-card strong { color: var(--text-primary); font-weight: 600; } .result-card ul { list-style: none; padding-left: 0; }
         .result-card ul li { padding-left: 1.5rem; position: relative; margin-bottom: 0.5rem; } .result-card ul li::before { content: '✓'; color: var(--accent); font-weight: 700; position: absolute; left: 0; top: 1px; }
-        #products-list .product-item { margin-bottom: 1.25rem; } #products-list .product-item:last-child { margin-bottom: 0; } #products-list .product-item p { margin-top: 0.25rem; }
         #protocol-details { white-space: pre-wrap; }
         .disclaimer { font-size: 0.8rem; text-align: center; color: var(--text-secondary); margin-top: 2rem; padding: 1rem; background: var(--bg-primary); border-radius: 8px; }
         #reset-btn { display: block; margin: 2rem auto 0 auto; width: 100%; max-width: 250px; }
         #theme-toggle { position: fixed; top: 20px; right: 20px; z-index: 1000; width: 44px; height: 44px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; }
         #theme-toggle:hover { border-color: var(--accent); transform: scale(1.1); } #theme-toggle svg { width: 20px; height: 20px; fill: var(--text-secondary); }
-        /* ПОДОБРЕНИЕ: Стил за контейнера за грешки */
-        #form-error-container { 
-            border-left-color: var(--error-color); 
-            margin-top: 2rem; 
+        #form-error-container { border-left-color: var(--error-color); margin-top: 2rem; }
+        #form-error-container h3 { color: var(--error-color); }
+        
+        /* --- НОВИ СТИЛОВЕ ЗА КАРТАТА С РЕЗУЛТАТИ --- */
+        #products-list .product-result-card {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUpFadeIn 0.6s ease-out forwards;
         }
-        #form-error-container h3 { 
-            color: var(--error-color); 
+        .product-header {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        .product-header img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: white; /* за PNG с прозрачност */
+        }
+        .product-header .product-title h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin: 0;
+            color: var(--text-primary);
+        }
+        .product-header .product-title .tagline {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            margin: 0.25rem 0 0 0;
+        }
+        .ai-reason {
+            border-left: 3px solid var(--accent);
+            padding-left: 1rem;
+        }
+        .ai-reason h3, .effects-section h3, .variants-section h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        .ai-reason p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin: 0;
+        }
+        .effect-bar-container { margin-bottom: 0.5rem; }
+        .effect-bar-container .effect-label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        .effect-bar-background {
+            height: 8px;
+            width: 100%;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .effect-bar-fill {
+            height: 100%;
+            background-color: var(--accent);
+            border-radius: 4px;
+            transition: width 0.8s ease-out;
+        }
+        .variants-section ul { list-style: none; padding: 0; }
+        .variants-section ul li a {
+            display: block;
+            padding: 0.75rem 1rem;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .variants-section ul li a:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateX(4px);
+        }
+        .research-link-container { text-align: right; margin-top: -1rem; }
+        .research-link-container a {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-bottom: 1px dashed var(--text-secondary);
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .research-link-container a:hover {
+            color: var(--accent);
+            border-color: var(--accent);
         }
     </style>
 </head>
@@ -97,7 +197,6 @@
                 </div>
             </form>
 
-            <!-- ПОДОБРЕНИЕ: Контейнер за показване на грешки от сървъра -->
             <div id="form-error-container" class="result-card hidden" aria-live="polite">
                 <h3>Възникна грешка</h3>
                 <p id="form-error-text"></p>
@@ -114,7 +213,14 @@
             <div class="results-header"><h1>Здравейте, <span id="results-name"></span>!</h1><p>Ето Вашия персонален BIOCODE план:</p></div>
             <div id="results-content">
                 <div class="result-card" id="analysis-card"><h3>Анализ на Вашата ситуация</h3><p id="analysis-text"></p></div>
-                <div class="result-card" id="products-card"><h3>Препоръчителни Продукти</h3><div id="products-list"></div></div>
+                <!-- НОВА СЕКЦИЯ ЗА ПРОДУКТИ -->
+                <div class="result-card" id="products-card">
+                    <h3>Препоръчителни Продукти</h3>
+                    <div id="products-list">
+                        <!-- Тук ще се генерират динамично новите, по-богати карти -->
+                    </div>
+                </div>
+                <!-- КРАЙ НА НОВА СЕКЦИЯ -->
                 <div class="result-card" id="protocol-card"><h3>Протокол за Прием</h3><p id="protocol-details"></p></div>
                 <div class="result-card" id="tips-card"><h3>Съвети за Начина на Живот</h3><ul id="tips-list"></ul></div>
             </div>
@@ -124,7 +230,8 @@
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', async function () {
+        // --- Елементи от DOM ---
         const questionnaireContainer = document.querySelector('.questionnaire-container');
         const loadingContainer = document.getElementById('loading-container');
         const resultsContainer = document.getElementById('results-container');
@@ -136,16 +243,45 @@
         const resetBtn = document.getElementById('reset-btn');
         const formErrorContainer = document.getElementById('form-error-container');
         const formErrorText = document.getElementById('form-error-text');
-        
-        let currentStepIndex = 0;
-        const totalSteps = steps.length;
-        const WORKER_URL = 'https://port.radilov-k.workers.dev/quest-submit';
-
         const themeToggle = document.getElementById('theme-toggle');
         const sunIcon = document.getElementById('theme-icon-sun');
         const moonIcon = document.getElementById('theme-icon-moon');
         const htmlEl = document.documentElement;
 
+        // --- Конфигурация ---
+        const BASE_URL = 'https://port.radilov-k.workers.dev';
+        const WORKER_SUBMIT_URL = `${BASE_URL}/quest-submit`;
+        const PAGE_CONTENT_URL = `${BASE_URL}/page_content.json`;
+        
+        // --- Глобално състояние ---
+        let currentStepIndex = 0;
+        const totalSteps = steps.length;
+        let allProductsData = []; // Тук ще пазим данните за всички продукти
+
+        // --- НОВА ЛОГИКА: Извличане на данните за продуктите при зареждане ---
+        async function fetchAndProcessProductData() {
+            try {
+                const response = await fetch(PAGE_CONTENT_URL);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const pageContent = await response.json();
+
+                // Извличаме и "сплескваме" продуктите от всички категории в един масив
+                allProductsData = pageContent.page_content
+                    .filter(component => component.type === 'product_category' && component.products)
+                    .flatMap(category => category.products);
+                
+                console.log("Product data loaded successfully:", allProductsData);
+                nextBtn.disabled = false; // Активираме бутона след успешно зареждане
+            } catch (error) {
+                console.error("Failed to load product data:", error);
+                formErrorText.textContent = "Неуспешно зареждане на продуктовата информация. Моля, презаредете страницата.";
+                formErrorContainer.classList.remove('hidden');
+                nextBtn.disabled = true; // Деактивираме бутоните, ако данните не са заредени
+                backBtn.disabled = true;
+            }
+        }
+        
+        // --- Управление на Темата ---
         function applyTheme(theme) {
             htmlEl.setAttribute('data-theme', theme);
             sunIcon.style.display = theme === 'dark' ? 'block' : 'none';
@@ -159,6 +295,7 @@
             applyTheme(newTheme);
         });
 
+        // --- Навигация и Валидация на Формата (остава почти непроменена) ---
         function updateForm() {
             steps.forEach((step, index) => step.classList.toggle('active', index === currentStepIndex));
             progressBar.style.width = `${(currentStepIndex / (totalSteps - 1)) * 100}%`;
@@ -169,63 +306,42 @@
         function showError(inputElement, message) {
             inputElement.classList.add('input-error');
             const errorContainer = inputElement.parentElement.querySelector('.error-message');
-            if (errorContainer) {
-                errorContainer.textContent = message;
-                errorContainer.style.display = 'block';
-            }
+            if (errorContainer) { errorContainer.textContent = message; errorContainer.style.display = 'block';}
         }
 
         function clearError(inputElement) {
             inputElement.classList.remove('input-error');
             const errorContainer = inputElement.parentElement.querySelector('.error-message');
-            if (errorContainer) {
-                errorContainer.textContent = '';
-                errorContainer.style.display = 'none';
-            }
+            if (errorContainer) { errorContainer.textContent = ''; errorContainer.style.display = 'none';}
         }
-
+        
         function validateCurrentStep() {
             const currentStep = steps[currentStepIndex];
-            // Първо изчистваме старите грешки за текущата стъпка
             currentStep.querySelectorAll('.input-error').forEach(el => clearError(el));
             currentStep.querySelectorAll('.error-message').forEach(el => {
-                el.textContent = '';
-                el.style.display = 'none';
+                el.textContent = ''; el.style.display = 'none';
             });
-
             let isValid = true;
             const inputs = currentStep.querySelectorAll('input, textarea');
             for (const input of inputs) {
                 const name = input.name;
                 const value = input.value.trim();
-                
-                // Проверка за празни задължителни полета
                 if (input.hasAttribute('id') && !['gender', 'goals', 'activity', 'duration', 'consent'].includes(name) && value === '') {
                     isValid = false; showError(input, 'Това поле е задължително.'); continue;
                 }
-                
-                // Специфични валидации
                 switch (input.id) {
                     case 'age': if (isNaN(value) || +value < 18 || +value > 100) { isValid = false; showError(input, 'Моля, въведете валидна възраст (18-100).'); } break;
                     case 'height': if (isNaN(value) || +value < 100 || +value > 250) { isValid = false; showError(input, 'Моля, въведете валиден ръст в см (100-250).'); } break;
                     case 'weight': if (isNaN(value) || +value < 30 || +value > 300) { isValid = false; showError(input, 'Моля, въведете валидно тегло в кг (30-300).'); } break;
                     case 'main-goal': if (value.length > 0 && value.length < 10) { isValid = false; showError(input, 'Моля, опишете целта си с поне 10 символа.'); } break;
-                    // ПОДОБРЕНИЕ: По-строга валидация за текстови полета, за да се насърчи по-добър отговор
-                    case 'conditions':
-                    case 'medications':
-                    case 'allergies':
-                        if (value.length > 0 && value.length < 3) {
-                            isValid = false; showError(input, 'Моля, опишете по-подробно или въведете \'Нямам\'/\'Не\'.');
-                        }
-                        break;
+                    case 'conditions': case 'medications': case 'allergies':
+                        if (value.length > 0 && value.length < 3) {isValid = false; showError(input, 'Моля, опишете по-подробно или въведете \'Нямам\'/\'Не\'.');} break;
                     case 'sleep': if (isNaN(value) || +value < 1 || +value > 16) { isValid = false; showError(input, 'Моля, въведете валиден брой часове (1-16).'); } break;
                     case 'stress': if (isNaN(value) || +value < 1 || +value > 10) { isValid = false; showError(input, 'Моля, въведете число от 1 до 10.'); } break;
                     case 'email': const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailRegex.test(value)) { isValid = false; showError(input, 'Моля, въведете валиден имейл адрес.'); } break;
                     case 'phone': const phoneRegex = /^[0-9\s+()-]{9,}$/; if (!phoneRegex.test(value)) { isValid = false; showError(input, 'Моля, въведете валиден телефонен номер.'); } break;
                 }
             }
-            
-            // Валидация за радио/чекбокс групи
             const checkGroups = (name, message) => {
                 const group = currentStep.querySelector(`input[name="${name}"]`);
                 if (group && !form.querySelector(`input[name="${name}"]:checked`)) {
@@ -260,31 +376,24 @@
         });
 
         backBtn.addEventListener('click', () => {
-            if (currentStepIndex > 0) {
-                currentStepIndex--; updateForm(); window.scrollTo(0, 0);
-            }
+            if (currentStepIndex > 0) { currentStepIndex--; updateForm(); window.scrollTo(0, 0); }
         });
 
+        // --- Изпращане на данните (остава почти непроменено) ---
         async function submitForm() {
-            // ПОДОБРЕНИЕ: Деактивираме бутоните, за да предотвратим двойно изпращане
-            nextBtn.disabled = true;
-            backBtn.disabled = true;
+            nextBtn.disabled = true; backBtn.disabled = true;
             nextBtn.textContent = 'Анализираме...';
-            formErrorContainer.classList.add('hidden'); // Скриваме стари грешки
+            formErrorContainer.classList.add('hidden');
 
             const formData = new FormData(form);
             const data = {};
             for (const [key, value] of formData.entries()) {
-                if (key === 'goals') continue;
-                data[key] = value;
+                if (key === 'goals') continue; data[key] = value;
             }
             data.goals = formData.getAll('goals');
-            
             const fieldsToSanitize = ['name', 'main_goal', 'conditions', 'medications', 'allergies'];
             fieldsToSanitize.forEach(fieldName => {
-                if (data[fieldName]) {
-                    data[fieldName] = data[fieldName].replace(/"/g, "'").replace(/\\/g, '');
-                }
+                if (data[fieldName]) { data[fieldName] = data[fieldName].replace(/"/g, "'").replace(/\\/g, ''); }
             });
             
             questionnaireContainer.classList.add('hidden');
@@ -292,51 +401,98 @@
             window.scrollTo(0, 0);
 
             try {
-                const response = await fetch(WORKER_URL, {
+                const response = await fetch(WORKER_SUBMIT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-
                 const results = await response.json();
-
                 if (!response.ok || results.error) {
                     throw new Error(results.error || 'Възникна неочаквана грешка от сървъра.');
                 }
-                
                 displayResults(results, data.name);
-
             } catch (error) {
                 console.error('Submission failed:', error);
-                
-                // ПОДОБРЕНИЕ: Показваме грешката в интерфейса, вместо с alert()
                 formErrorText.textContent = `Грешка при генериране на резултатите: ${error.message}. Моля, проверете връзката си и опитайте отново.`;
                 formErrorContainer.classList.remove('hidden');
-                
                 loadingContainer.classList.add('hidden');
                 questionnaireContainer.classList.remove('hidden');
-
-                // Активираме бутоните отново, за да може потребителят да опита пак
-                nextBtn.disabled = false;
-                backBtn.disabled = false;
-                updateForm(); // Връщаме текста на бутона
+                nextBtn.disabled = false; backBtn.disabled = false;
+                updateForm();
             }
         }
 
+        // --- НОВА ЛОГИКА: Показване на по-богати резултати ---
         function displayResults(results, name) {
-            // ПОДОБРЕНИЕ: Показваме пълното име
             document.getElementById('results-name').textContent = name;
             document.getElementById('analysis-text').textContent = results.analysis;
             document.getElementById('protocol-details').textContent = results.protocol_details;
             document.getElementById('results-disclaimer').textContent = results.disclaimer;
 
             const productsList = document.getElementById('products-list');
-            productsList.innerHTML = '';
-            results.recommended_products.forEach(product => {
-                const productDiv = document.createElement('div');
-                productDiv.className = 'product-item';
-                productDiv.innerHTML = `<strong>${product.name}:</strong><p>${product.reason}</p>`;
-                productsList.appendChild(productDiv);
+            productsList.innerHTML = ''; // Изчистваме старите резултати
+
+            results.recommended_products.forEach(rec => {
+                // Намираме пълната информация за продукта по ID
+                const productDetails = allProductsData.find(p => p.product_id === rec.product_id);
+                if (!productDetails) {
+                    console.warn(`Product with ID ${rec.product_id} not found in local data.`);
+                    return; // Пропускаме, ако продуктът не е намерен
+                }
+
+                // Генерираме HTML за ефектите
+                const effectsHtml = productDetails.public_data.effects.map(effect => `
+                    <div class="effect-bar-container">
+                        <span class="effect-label">${effect.label}</span>
+                        <div class="effect-bar-background">
+                            <div class="effect-bar-fill" style="width: ${effect.value}%;"></div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Генерираме HTML за вариантите
+                const variantsHtml = productDetails.public_data.variants.map(variant => `
+                    <li>
+                        <a href="${variant.url}" target="_blank" rel="noopener noreferrer">
+                            ${variant.title} <small>- ${variant.description}</small>
+                        </a>
+                    </li>
+                `).join('');
+                
+                // Сглобяваме цялата карта на продукта
+                const productCardHtml = `
+                    <div class="product-result-card">
+                        <div class="product-header">
+                            <img src="${productDetails.public_data.image_url}" alt="${productDetails.public_data.name}" onerror="this.style.display='none'">
+                            <div class="product-title">
+                                <h2>${productDetails.public_data.name}</h2>
+                                <p class="tagline">${productDetails.public_data.tagline}</p>
+                            </div>
+                        </div>
+
+                        <div class="ai-reason">
+                            <h3>Защо го препоръчваме за Вас?</h3>
+                            <p>${rec.reason}</p>
+                        </div>
+                        
+                        <div class="effects-section">
+                            <h3>Ключови ефекти</h3>
+                            ${effectsHtml}
+                        </div>
+                        
+                        <div class="variants-section">
+                            <h3>Налични варианти за покупка</h3>
+                            <ul>${variantsHtml}</ul>
+                        </div>
+                        
+                        <div class="research-link-container">
+                             <a href="${productDetails.public_data.research_note.url}" target="_blank" rel="noopener noreferrer">
+                                Виж научното изследване (${productDetails.public_data.research_note.text})
+                             </a>
+                        </div>
+                    </div>
+                `;
+                productsList.innerHTML += productCardHtml;
             });
 
             const tipsList = document.getElementById('tips-list');
@@ -350,14 +506,23 @@
             loadingContainer.classList.add('hidden');
             resultsContainer.classList.remove('hidden');
 
-            const resultCards = resultsContainer.querySelectorAll('.result-card');
+            const resultCards = resultsContainer.querySelectorAll('.result-card, .product-result-card');
             resultCards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.15}s`;
+                card.style.animationDelay = `${index * 0.1}s`;
             });
         }
         
         resetBtn.addEventListener('click', () => { location.reload(); });
-        updateForm();
+        
+        // --- Инициализация ---
+        async function initialize() {
+            nextBtn.disabled = true; // Деактивираме бутона, докато данните се зареждат
+            nextBtn.textContent = 'Зареждане...';
+            await fetchAndProcessProductData();
+            updateForm();
+        }
+
+        initialize();
     });
     </script>
 </body>
