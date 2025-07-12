@@ -33,7 +33,7 @@
         </nav>
 
         <!-- КОНТЕЙНЕР ЗА СЪДЪРЖАНИЕТО НА ТАБОВЕТЕ -->
-        <main class="tab-content">
+        <main class="tab-content-container">
             
             <!-- Секция: Глобални настройки -->
             <section id="tab-global" class="tab-pane active">
@@ -47,7 +47,7 @@
             <section id="tab-navigation" class="tab-pane">
                 <h2>Основна навигация</h2>
                 <p class="instructions">Подредете линковете с влачене (☰).</p>
-                <div id="navigation-list" class="item-list sortable-list">
+                <div id="navigation-list" class="item-list">
                     <!-- Съдържанието ще се генерира от JS -->
                 </div>
                 <button class="btn btn-primary" data-action="add-nav-item">Добави нов линк</button>
@@ -57,11 +57,11 @@
             <section id="tab-content" class="tab-pane">
                 <h2>Съдържание на страницата</h2>
                 <p class="instructions">Подредете секциите с влачене (☰).</p>
-                <div id="page-builder-list" class="item-list sortable-list">
+                <div id="page-builder-list" class="item-list">
                     <!-- Съдържанието ще се генерира от JS -->
                 </div>
                 <div class="dropdown">
-                    <button class="btn btn-primary dropdown-toggle" data-action="toggle-add-component-menu">Добави нова секция ▼</button>
+                    <button class="btn btn-primary" data-action="toggle-add-component-menu">Добави нова секция ▼</button>
                     <div id="add-component-dropdown" class="dropdown-menu">
                         <!-- Линковете за добавяне ще се генерират от JS -->
                     </div>
@@ -110,7 +110,7 @@
     <div id="modal-container" class="modal-container">
         <header class="modal-header">
             <h3 id="modal-title"></h3>
-            <button id="close-modal-btn" class="close-modal-btn">×</button>
+            <button id="close-modal-btn" class="close-modal-btn" aria-label="Затвори">×</button>
         </header>
         <main id="modal-body" class="modal-body">
             <!-- Формата за редакция ще се зареди тук от <template> -->
@@ -123,7 +123,7 @@
     
     <!-- Нотификации -->
     <div id="notification-container"></div>
-    <div id="undo-notification" class="notification undo-bar">
+    <div id="undo-notification" class="undo-bar">
         <span>Елементът е изтрит.</span>
         <button id="undo-delete-btn" class="btn-link">Възстанови</button>
     </div>
@@ -252,8 +252,8 @@
         <form class="modal-form">
             <!-- Табове вътре в модала -->
             <nav class="modal-tab-nav">
-                <button type="button" class="modal-tab-btn active" data-modal-tab="tab-cat-general">Основни</button>
-                <button type="button" class="modal-tab-btn" data-modal-tab="tab-cat-products">Продукти</button>
+                <button type="button" class="modal-tab-btn active" data-modal-tab="#tab-cat-general">Основни</button>
+                <button type="button" class="modal-tab-btn" data-modal-tab="#tab-cat-products">Продукти</button>
             </nav>
 
             <!-- Съдържание на табовете -->
@@ -285,59 +285,136 @@
                 <div id="tab-cat-products" class="modal-tab-pane">
                     <h4>Продукти в категорията</h4>
                     <div id="products-editor" class="nested-list-container">
-                        <!-- Продуктите ще се генерират тук -->
+                        <!-- Продуктите ще се генерират тук от JS -->
                     </div>
-                    <button type="button" class="btn btn-secondary" data-action="add-nested-item" data-container="products-editor" data-template="product-editor-template">Добави продукт ръчно</button>
-                    <button type="button" class="btn btn-primary" data-action="import-product">Импортирай продукт (JSON)</button>
-                    <input type="file" id="product-import-input" accept=".json" style="display: none;">
+                    <div class="header-actions" style="justify-content: flex-start; margin-top: 1rem;">
+                        <button type="button" class="btn btn-secondary" data-action="add-nested-item" data-container="#products-editor" data-template="product-editor-template">Добави продукт</button>
+                        <button type="button" class="btn btn-primary" data-action="import-product">Импортирай продукт (JSON)</button>
+                        <input type="file" id="product-import-input" style="display: none;" accept=".json">
+                    </div>
                 </div>
             </div>
         </form>
     </template>
 
-    <!-- Вложен шаблон за редактор на един продукт -->
+    <!-- ======================================================= -->
+    <!--  НОВИ ШАБЛОНИ ЗА РЕДАКЦИЯ НА ПРОДУКТИ (СЛЕДВАТ НОВАТА СТРУКТУРА) -->
+    <!-- ======================================================= -->
+
+    <!-- Вложен шаблон за редактор на ЕДИН ПРОДУКТ (с табове) -->
     <template id="product-editor-template">
         <div class="nested-item" data-type="product">
-            <h5 class="nested-item-header">
-                <span>Продукт</span>
-                <button type="button" class="btn-icon delete-nested-btn" title="Изтрий продукта">×</button>
-            </h5>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Име</label>
-                    <input type="text" data-field="name">
+            <div class="nested-item-header">
+                <span class="product-editor-title">Нов Продукт</span>
+                <button type="button" class="btn-icon delete-nested-btn" data-action="delete-nested-item" title="Изтрий продукта">×</button>
+            </div>
+            
+            <nav class="modal-tab-nav">
+                <button type="button" class="modal-tab-btn active" data-modal-tab=".product-tab-public">Публични данни</button>
+                <button type="button" class="modal-tab-btn" data-modal-tab=".product-tab-system">Системни данни</button>
+                <button type="button" class="modal-tab-btn" data-modal-tab=".product-tab-variants">Варианти</button>
+            </nav>
+
+            <div class="modal-tab-content">
+                <!-- ТАБ 1: ПУБЛИЧНИ ДАННИ -->
+                <div class="modal-tab-pane active product-tab-public">
+                    <div class="form-group">
+                        <label>ID на Продукта (уникално, не се променя)</label>
+                        <input type="text" data-field="product_id" readonly placeholder="prod-example-123">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Име на продукта</label>
+                            <input type="text" data-field="public_data.name">
+                        </div>
+                        <div class="form-group">
+                            <label>Цена (лв)</label>
+                            <input type="number" step="0.01" data-field="public_data.price">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Слоган</label>
+                        <input type="text" data-field="public_data.tagline">
+                    </div>
+                    <div class="form-group">
+                        <label>URL на изображение</label>
+                        <input type="text" data-field="public_data.image_url">
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea data-field="public_data.description" rows="4"></textarea>
+                    </div>
+                    
+                    <fieldset>
+                        <legend>Източник (Research Note)</legend>
+                        <div class="form-row">
+                             <div class="form-group">
+                                <label>Текст на източника</label>
+                                <input type="text" data-field="public_data.research_note.text">
+                            </div>
+                             <div class="form-group">
+                                <label>URL на източника</label>
+                                <input type="text" data-field="public_data.research_note.url">
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Ефекти</legend>
+                        <div class="nested-sublist-container" data-sub-container="effects">
+                            <!-- Ефектите ще се генерират тук от JS -->
+                        </div>
+                        <button type="button" class="btn btn-sm btn-secondary" data-action="add-nested-item" data-template="effect-editor-template" data-container="[data-sub-container='effects']">Добави ефект</button>
+                    </fieldset>
                 </div>
-                 <div class="form-group">
-                    <label>Слоган</label>
-                    <input type="text" data-field="tagline">
+
+                <!-- ТАБ 2: СИСТЕМНИ ДАННИ -->
+                <div class="modal-tab-pane product-tab-system">
+                    <div class="form-group">
+                        <label>Тип приложение</label>
+                        <select data-field="system_data.application_type">
+                            <option value="">-- Избери --</option>
+                            <option value="Injectable">Injectable</option>
+                            <option value="Intranasal">Intranasal</option>
+                            <option value="Topical">Topical</option>
+                            <option value="Oral">Oral</option>
+                            <option value="Injectable / Oral / Topical">Комбиниран</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Цели (разделени със запетая)</label>
+                        <input type="text" data-field="system_data.goals" placeholder="anti-aging, recovery, cognitive">
+                    </div>
+                    <div class="form-group">
+                        <label>Идеален профил на потребителя</label>
+                        <textarea data-field="system_data.target_profile" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Техническа насока за протокол</label>
+                        <textarea data-field="system_data.protocol_hint" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Синергични продукти (ID-та, разделени със запетая)</label>
+                        <input type="text" data-field="system_data.synergy_products" placeholder="prod-semax, prod-selank">
+                    </div>
+                    <div class="form-group">
+                        <label>Предупреждения за безопасност</label>
+                        <textarea data-field="system_data.safety_warnings" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <!-- ТАБ 3: ВАРИАНТИ -->
+                <div class="modal-tab-pane product-tab-variants">
+                    <div class="nested-sublist-container" data-sub-container="variants">
+                         <!-- Вариантите ще се генерират тук от JS -->
+                    </div>
+                    <button type="button" class="btn btn-sm btn-secondary" data-action="add-nested-item" data-template="variant-editor-template" data-container="[data-sub-container='variants']">Добави вариант</button>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Цена (лв)</label>
-                <input type="number" step="0.01" data-field="price">
-            </div>
-            <div class="form-group">
-                <label>Описание</label>
-                <textarea data-field="description" rows="3"></textarea>
-            </div>
-            <h6>Източник (Research Note)</h6>
-            <div class="form-row">
-                 <div class="form-group">
-                    <label>Текст на източника</label>
-                    <input type="text" data-field="research_note.text">
-                </div>
-                 <div class="form-group">
-                    <label>URL на източника</label>
-                    <input type="text" data-field="research_note.url">
-                </div>
-            </div>
-            <h6>Ефекти</h6>
-            <div class="nested-sublist-container" data-sub-container="effects"></div>
-            <button type="button" class="btn btn-sm btn-secondary" data-action="add-nested-item" data-template="effect-editor-template" data-container="[data-sub-container='effects']">Добави ефект</button>
         </div>
     </template>
 
-    <!-- Вложен шаблон за редактор на ефект -->
+    <!-- Вложен шаблон за редактор на ЕФЕКТ -->
     <template id="effect-editor-template">
         <div class="nested-sub-item" data-type="effect">
              <div class="form-group">
@@ -346,12 +423,42 @@
             </div>
              <div class="form-group">
                 <label>Стойност (0-100)</label>
-                <input type="number" data-field="value">
+                <input type="number" data-field="value" min="0" max="100">
             </div>
-            <button type="button" class="btn-icon delete-nested-btn" title="Изтрий ефекта">×</button>
+            <button type="button" class="btn-icon delete-nested-btn" data-action="delete-nested-item" title="Изтрий ефекта">×</button>
+        </div>
+    </template>
+
+    <!-- Вложен шаблон за редактор на ВАРИАНТ -->
+    <template id="variant-editor-template">
+        <div class="nested-sub-item" data-type="variant">
+             <div class="form-group">
+                <label>Заглавие на разфасовка</label>
+                <input type="text" data-field="title" placeholder="напр. 10 mg (прах)">
+            </div>
+            <div class="form-group">
+                <label>Описание</label>
+                <input type="text" data-field="description" placeholder="Кратко описание">
+            </div>
+             <div class="form-group">
+                <label>URL за покупка</label>
+                <input type="text" data-field="url">
+            </div>
+            <button type="button" class="btn-icon delete-nested-btn" data-action="delete-nested-item" title="Изтрий варианта">×</button>
         </div>
     </template>
     
+    <!-- Форма: Настройки на футър -->
+    <template id="form-footer-template">
+        <form class="modal-form">
+            <div class="form-group">
+                <label for="footer_copyright">Copyright текст</label>
+                <input type="text" id="footer_copyright" data-field="copyright_text">
+            </div>
+            <!-- Тук може да се добави редактор за колоните, ако е нужно в бъдеще -->
+        </form>
+    </template>
+
     <!-- Връзка към външния JavaScript файл. type="module" е важен за модерния JS. -->
     <script src="admin.js" type="module"></script>
 
