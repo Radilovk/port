@@ -18,7 +18,10 @@
         const themeToggle = document.getElementById("theme-toggle");
         const sunIcon = document.getElementById("theme-icon-sun");
         const moonIcon = document.getElementById("theme-icon-moon");
-        const htmlEl = document.documentElement;
+          const htmlEl = document.documentElement;
+          const menuToggle = document.querySelector(".menu-toggle");
+          const navLinksContainer = document.querySelector(".nav-links");
+          const navOverlay = document.querySelector(".nav-overlay");
 
         // --- Конфигурация ---
         const BASE_URL = "https://port.radilov-k.workers.dev";
@@ -66,12 +69,34 @@
         }
         const savedTheme = localStorage.getItem("theme") || "dark";
         applyTheme(savedTheme);
-        themeToggle.addEventListener("click", () => {
-          const newTheme =
-            htmlEl.getAttribute("data-theme") === "dark" ? "light" : "dark";
-          localStorage.setItem("theme", newTheme);
-          applyTheme(newTheme);
-        });
+
+          themeToggle.addEventListener("click", () => {
+            const newTheme =
+              htmlEl.getAttribute("data-theme") === "dark" ? "light" : "dark";
+            localStorage.setItem("theme", newTheme);
+            applyTheme(newTheme);
+          });
+
+          const closeMenu = () => {
+            menuToggle.classList.remove("active");
+            navLinksContainer.classList.remove("active");
+            navOverlay.classList.remove("active");
+            document.body.classList.remove("nav-open");
+          };
+          menuToggle && menuToggle.addEventListener("click", () => {
+            menuToggle.classList.toggle("active");
+            navLinksContainer.classList.toggle("active");
+            navOverlay.classList.toggle("active");
+            document.body.classList.toggle("nav-open");
+          });
+          navOverlay && navOverlay.addEventListener("click", closeMenu);
+          navLinksContainer && navLinksContainer.addEventListener("click", (e) => {
+            if (e.target.tagName === "A" || e.target.closest("button")) {
+              if (!e.target.closest("#theme-toggle")) {
+                closeMenu();
+              }
+            }
+          });
 
         // --- Навигация и Валидация на Формата (остава почти непроменена) ---
         function updateForm() {
