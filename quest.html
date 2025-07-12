@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="index.css">
     
     <style>
         :root {
@@ -169,37 +168,9 @@
             color: var(--accent);
             border-color: var(--accent);
         }
-        .btn-primary {
-            background-color: var(--accent);
-            color: var(--bg-primary);
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-block;
-            transition: all 0.3s ease;
-        }
-        [data-theme="dark"] .btn-primary { color: #000; }
-        .btn-primary:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 0 20px var(--accent); }
     </style>
 </head>
 <body>
-    <header class="main-header">
-        <div class="header-container">
-            <a href="index.html" class="logo-container">
-                <img src="" alt="BIOCODE Logo">
-                <div>
-                    <span class="brand-name">BIOCODE</span>
-                </div>
-            </a>
-            <nav class="main-nav">
-                <ul class="nav-links">
-                    <li><a href="index.html">Начало</a></li>
-                    <li><a href="checkout.html">Количка</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
 
     <button id="theme-toggle" aria-label="Toggle theme">
         <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4.5C12.8284 4.5 13.5 5.17157 13.5 6V7.5C13.5 8.32843 12.8284 9 12 9C11.1716 9 10.5 8.32843 10.5 7.5V6C10.5 5.17157 11.1716 4.5 12 4.5ZM12 15C12.8284 15 13.5 15.6716 13.5 16.5V18C13.5 18.8284 12.8284 19.5 12 19.5C11.1716 19.5 10.5 18.8284 10.5 18V16.5C10.5 15.6716 11.1716 15 12 15ZM18.364 5.63604C18.9163 6.18838 18.9163 7.08838 18.364 7.63604L17.2929 8.70711C16.7402 9.25976 15.8402 9.25976 15.2876 8.70711C14.735 8.15446 14.735 7.25446 15.2876 6.7018L16.3586 5.63073C16.9113 5.07808 17.8113 5.07808 18.364 5.63073V5.63604ZM8.70711 15.2929C8.15446 15.8455 7.25446 15.8455 6.7018 15.2929L5.63073 14.2218C5.07808 13.6692 5.07808 12.7692 5.63073 12.2165L5.63604 12.2112C6.18838 11.6589 7.08838 11.6589 7.63604 12.2112L8.70711 13.2823C9.25976 13.8349 9.25976 14.7349 8.70711 15.2876V15.2929ZM22.5 12C22.5 12.8284 21.8284 13.5 21 13.5H19.5C18.6716 13.5 18 12.8284 18 12C18 11.1716 18.6716 10.5 19.5 10.5H21C21.8284 10.5 22.5 11.1716 22.5 12ZM7.5 12C7.5 12.8284 6.82843 13.5 6 13.5H4.5C3.67157 13.5 3 12.8284 3 12C3 11.1716 3.67157 10.5 4.5 10.5H6C6.82843 10.5 7.5 11.1716 7.5 12ZM15.2929 15.2876C14.7402 14.7349 14.7402 13.8349 15.2929 13.2823L16.364 12.2112C16.9163 11.6589 17.8163 11.6589 18.3686 12.2112L18.364 12.2165C18.9166 12.7692 18.9166 13.6692 18.364 14.2218L17.2929 15.2929C16.7402 15.8455 15.8402 15.8455 15.2876 15.2929L15.2929 15.2876ZM8.7018 8.70711C9.25446 8.15446 9.25446 7.25446 8.7018 6.7018L7.63073 5.63073C7.07808 5.07808 6.17808 5.07808 5.62543 5.63073L5.63073 5.63604C5.07808 6.18869 5.07808 7.08869 5.63073 7.64134L6.7018 8.71241C7.25446 9.26506 8.15446 9.26506 8.70711 8.71241V8.70711H8.7018Z M12 14.25C13.2426 14.25 14.25 13.2426 14.25 12C14.25 10.7574 13.2426 9.75 12 9.75C10.7574 9.75 9.75 10.7574 9.75 12C9.75 13.2426 10.7574 14.25 12 14.25Z"/></svg>
@@ -207,7 +178,6 @@
     </button>
     
     <div class="main-container">
-        <a href="index.html" class="btn-primary" style="margin-bottom:1rem;display:inline-block;">&larr; Назад към менюто</a>
         <div class="questionnaire-container">
             <div class="questionnaire-header">
                 <h1>Вашият Път към Оптимизация</h1>
@@ -220,44 +190,7 @@
                  <div class="form-step" data-step="2"> <h2 class="step-title">Стъпка 2: Вашите Цели</h2> <div class="form-group"> <label>Моля, отбележете всички цели, които са важни за Вас:</label> <div class="choice-group"> <label class="choice-item" for="goal1"><input type="checkbox" id="goal1" name="goals" value="anti-aging"><span class="checkmark"></span><span class="choice-label">Анти-ейджинг и виталност</span></label> <label class="choice-item" for="goal2"><input type="checkbox" id="goal2" name="goals" value="skin-health"><span class="checkmark"></span><span class="choice-label">Подобряване на кожата</span></label> <label class="choice-item" for="goal3"><input type="checkbox" id="goal3" name="goals" value="cognitive"><span class="checkmark"></span><span class="choice-label">Фокус, памет и настроение</span></label> <label class="choice-item" for="goal4"><input type="checkbox" id="goal4" name="goals" value="sleep"><span class="checkmark"></span><span class="choice-label">Подобряване на съня</span></label> <label class="choice-item" for="goal5"><input type="checkbox" id="goal5" name="goals" value="muscle-gain"><span class="checkmark"></span><span class="choice-label">Покачване на мускулна маса</span></label> <label class="choice-item" for="goal6"><input type="checkbox" id="goal6" name="goals" value="fat-loss"><span class="checkmark"></span><span class="choice-label">Изгаряне на мазнини</span></label> <label class="choice-item" for="goal7"><input type="checkbox" id="goal7" name="goals" value="recovery"><span class="checkmark"></span><span class="choice-label">Възстановяване (тренировки/травми)</span></label> <label class="choice-item" for="goal8"><input type="checkbox" id="goal8" name="goals" value="libido"><span class="checkmark"></span><span class="choice-label">Повишаване на либидото</span></label> </div> <div class="error-message"></div> </div> <div class="form-group"> <label for="main-goal">Опишете с 1-2 изречения най-важната си цел</label> <textarea id="main-goal" name="main_goal" placeholder="Пример: Искам да повиша енергията си през деня и да подобря възстановяването си след фитнес."></textarea> <div class="error-message"></div> </div> </div>
                  <div class="form-step" data-step="3"> <h2 class="step-title">Стъпка 3: Здраве</h2> <div class="form-group"> <label for="conditions">Имате ли диагностицирани заболявания или състояния?</label> <textarea id="conditions" name="conditions" placeholder="Пример: Високо кръвно, диабет... Ако нямате, напишете 'Нямам'."></textarea> <div class="error-message"></div> </div> <div class="form-group"> <label for="medications">Приемате ли лекарства или други добавки?</label> <textarea id="medications" name="medications" placeholder="Избройте всичко. Ако не, напишете 'Не приемам'."></textarea> <div class="error-message"></div> </div> <div class="form-group"> <label for="allergies">Имате ли известни алергии?</label> <textarea id="allergies" name="allergies" placeholder="Ако нямате, напишете 'Нямам'."></textarea> <div class="error-message"></div> </div> </div>
                  <div class="form-step" data-step="4"> <h2 class="step-title">Стъпка 4: Начин на живот</h2> <div class="form-group"> <label>Физическа активност (тренировки на седмица)</label> <div class="choice-group"> <label class="choice-item" for="activity1"><input type="radio" id="activity1" name="activity" value="0"><span class="checkmark"></span><span class="choice-label">0 (заседнал)</span></label> <label class="choice-item" for="activity2"><input type="radio" id="activity2" name="activity" value="1-2"><span class="checkmark"></span><span class="choice-label">1-2 пъти</span></label> <label class="choice-item" for="activity3"><input type="radio" id="activity3" name="activity" value="3-4"><span class="checkmark"></span><span class="choice-label">3-4 пъти</span></label> <label class="choice-item" for="activity4"><input type="radio" id="activity4" name="activity" value="5+"><span class="checkmark"></span><span class="choice-label">5+ пъти</span></label> </div> <div class="error-message"></div> </div> <div class="form-group"> <label for="sleep">Средно часове сън на нощ?</label> <input type="number" id="sleep" name="sleep" placeholder="8" min="1" max="12"> <div class="error-message"></div> </div> <div class="form-group"> <label for="stress">Ниво на ежедневен стрес (от 1 до 10)</label> <input type="number" id="stress" name="stress" placeholder="7" min="1" max="10"> <div class="error-message"></div> </div> </div>
-<div class="form-step" data-step="5">
-    <h2 class="step-title">Стъпка 5: Контакт и Финализиране</h2>
-    <div class="form-group">
-        <label>За какъв период планирате приема?</label>
-        <div class="choice-group">
-            <label class="choice-item" for="duration1"><input type="radio" id="duration1" name="duration" value="1-2m"><span class="checkmark"></span><span class="choice-label">1-2 месеца</span></label>
-            <label class="choice-item" for="duration2"><input type="radio" id="duration2" name="duration" value="3-4m"><span class="checkmark"></span><span class="choice-label">3-4 месеца</span></label>
-            <label class="choice-item" for="duration3"><input type="radio" id="duration3" name="duration" value="6m+"><span class="checkmark"></span><span class="choice-label">6+ месеца</span></label>
-        </div>
-        <div class="error-message"></div>
-    </div>
-    <div class="form-group">
-        <label for="name">Име</label>
-        <input type="text" id="name" name="name" placeholder="Вашето име">
-        <div class="error-message"></div>
-    </div>
-    <div class="form-group">
-        <label for="email">Имейл</label>
-        <input type="email" id="email" name="email" placeholder="primer@email.com">
-        <div class="error-message"></div>
-    </div>
-    <div class="form-group">
-        <label for="phone">Телефон</label>
-        <input type="tel" id="phone" name="phone" placeholder="0888123456">
-        <div class="error-message"></div>
-    </div>
-    <div class="form-group">
-        <label>Съгласие</label>
-        <div class="choice-group">
-            <label class="choice-item" for="consent">
-                <input type="checkbox" id="consent" name="consent">
-                <span class="checkmark"></span>
-                <span class="choice-label">Потвърждавам, че предоставената информация е точна.</span>
-            </label>
-        </div>
-        <div class="error-message"></div>
-    </div>
-</div>
+                 <div class="form-step" data-step="5"> <h2 class="step-title">Стъпка 5: Контакт и Финализиране</h2> <div class="form-group"> <label for="name">Име</label> <input type="text" id="name" name="name" placeholder="Вашето име"> <div class="error-message"></div> </div> <div class="form-group"> <label for="email">Имейл</label> <input type="email" id="email" name="email" placeholder="primer@email.com"> <div class="error-message"></div> </div> <div class="form-group"> <label for="phone">Телефон</label> <input type="tel" id="phone" name="phone" placeholder="0888123456"> <div class="error-message"></div> </div> <div class="form-group"> <label>За какъв период планирате приема?</label> <div class="choice-group"> <label class="choice-item" for="duration1"><input type="radio" id="duration1" name="duration" value="1-2m"><span class="checkmark"></span><span class="choice-label">1-2 месеца</span></label> <label class="choice-item" for="duration2"><input type="radio" id="duration2" name="duration" value="3-4m"><span class="checkmark"></span><span class="choice-label">3-4 месеца</span></label> <label class="choice-item" for="duration3"><input type="radio" id="duration3" name="duration" value="6m+"><span class="checkmark"></span><span class="choice-label">6+ месеца</span></label> </div> <div class="error-message"></div> </div> <div class="form-group"> <label>Съгласие</label> <div class="choice-group"> <label class="choice-item" for="consent"> <input type="checkbox" id="consent" name="consent"> <span class="checkmark"></span> <span class="choice-label">Потвърждавам, че предоставената информация е точна.</span> </label> </div> <div class="error-message"></div> </div> </div>
                 <div class="navigation-buttons">
                     <button type="button" class="nav-btn" id="back-btn">Назад</button>
                     <button type="button" class="nav-btn" id="next-btn">Напред</button>
@@ -393,7 +326,7 @@
             for (const input of inputs) {
                 const name = input.name;
                 const value = input.value.trim();
-                if (input.hasAttribute('id') && !['gender', 'goals', 'activity', 'duration', 'consent', 'main_goal', 'conditions', 'medications', 'allergies'].includes(name) && value === '') {
+                if (input.hasAttribute('id') && !['gender', 'goals', 'activity', 'duration', 'consent'].includes(name) && value === '') {
                     isValid = false; showError(input, 'Това поле е задължително.'); continue;
                 }
                 switch (input.id) {
@@ -521,7 +454,7 @@
                 const variantsHtml = productDetails.public_data.variants.map(variant => `
                     <li>
                         <a href="${variant.url}" target="_blank" rel="noopener noreferrer">
-                            ${variant.title} <small>- ${variant.description}${variant.price ? ` - ${variant.price} лв.` : ''}</small>
+                            ${variant.title} <small>- ${variant.description}</small>
                         </a>
                     </li>
                 `).join('');
@@ -592,8 +525,5 @@
         initialize();
     });
     </script>
-<footer class="main-footer" style="padding:2rem 0;text-align:center;">
-    <a href="index.html" class="btn-primary">Връщане към начална страница</a>
-</footer>
 </body>
 </html>
