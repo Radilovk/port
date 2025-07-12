@@ -310,12 +310,16 @@
             updateForm();
             window.scrollTo(0, 0);
           } else {
-            if (
-              window.parent &&
-              typeof window.parent.closeQuestModal === "function"
-            ) {
-              window.parent.closeQuestModal();
-            } else {
+            try {
+              if (
+                window.parent &&
+                typeof window.parent.closeQuestModal === "function"
+              ) {
+                window.parent.closeQuestModal();
+              } else {
+                throw new Error("closeQuestModal not available");
+              }
+            } catch (error) {
               window.location.href = "index.html";
             }
           }
