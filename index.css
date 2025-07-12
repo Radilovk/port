@@ -400,10 +400,6 @@ main { padding-top: var(--header-height); }
 #quest-modal-backdrop.show, #quest-modal-container.show { display: flex; opacity: 1; }
 #quest-modal-container.show { transform: translateY(0); }
 #quest-modal-container iframe { border: none; width: 100%; height: 100%; flex-grow: 1; }
-#close-quest-modal-btn {
-    align-self: flex-end; font-size: 2rem; background: none; border: none;
-    cursor: pointer; color: var(--text-secondary); padding: 1rem;
-}
 body.modal-open { overflow: hidden; }
 
 #theme-toggle {
