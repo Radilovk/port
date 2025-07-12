@@ -245,7 +245,8 @@
       }
       .navigation-buttons {
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
+        gap: 1rem;
         margin-top: 2.5rem;
       }
       .nav-btn {
@@ -267,6 +268,17 @@
         background-color: var(--bg-primary);
         border-color: var(--accent);
         color: var(--accent);
+      }
+      .nav-btn#menu-btn {
+        background-color: var(--accent);
+        color: var(--bg-primary);
+      }
+      [data-theme="dark"] .nav-btn#menu-btn {
+        color: #000;
+      }
+      .nav-btn#menu-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px -5px var(--accent);
       }
       .nav-btn#next-btn {
         background-color: var(--accent);
