@@ -47,7 +47,7 @@ let ordersData = [];
 let unsavedChanges = false;
 let activeUndoAction = null;
 let currentModalSaveCallback = null;
-let currentEditingComponentId = null; // ДОБАВЕНО: За да знаем коя категория се редактира
+let currentEditingComponentId = null; // НОВО: За да знаем коя категория се редактира
 
 // =======================================================
 //          2. API КОМУНИКАЦИЯ
@@ -127,9 +127,6 @@ function setUnsavedChanges(isDirty) {
 //          4. РЕНДИРАНЕ НА ИНТЕРФЕЙСА (VIEW)
 // =======================================================
 
-/**
- * Основна функция, която извиква всички останали рендъри
- */
 function renderAll() {
     renderGlobalSettings();
     renderNavigation();
@@ -139,7 +136,7 @@ function renderAll() {
 }
 
 function renderGlobalSettings() {
-    DOM.globalSettingsContainer.innerHTML = ''; // Clear existing
+    DOM.globalSettingsContainer.innerHTML = '';
     const item = createListItem({
         type: 'Настройки на сайта',
         title: appData.settings.site_name,
@@ -147,7 +144,7 @@ function renderGlobalSettings() {
             { label: 'Редактирай', action: 'edit-global-settings', class: 'btn-secondary' }
         ]
     });
-    item.querySelector('.handle').style.display = 'none'; // Няма смисъл от влачене
+    item.querySelector('.handle').style.display = 'none';
     DOM.globalSettingsContainer.appendChild(item);
 }
 
@@ -225,9 +222,6 @@ function renderOrders() {
     });
 }
 
-/**
- * Помощна функция за създаване на елемент от списък от шаблон
- */
 function createListItem({ id, type, title, actions = [] }) {
     const template = DOM.templates.listItem.content.cloneNode(true);
     const itemElement = template.querySelector('.list-item');
@@ -256,7 +250,6 @@ function createListItem({ id, type, title, actions = [] }) {
 function openModal(title, formTemplateId, data, onSave) {
     DOM.modal.title.textContent = title;
     
-    // Клонираме и поставяме формата
     const formTemplate = document.getElementById(formTemplateId);
     if (!formTemplate) {
         console.error(`Шаблон за форма с ID '${formTemplateId}' не е намерен!`);
@@ -265,7 +258,6 @@ function openModal(title, formTemplateId, data, onSave) {
     DOM.modal.body.innerHTML = '';
     DOM.modal.body.appendChild(formTemplate.content.cloneNode(true));
     
-    // Попълваме формата с данни
     if (data) {
         populateForm(DOM.modal.body.querySelector('form'), data);
     }
@@ -280,12 +272,9 @@ function closeModal() {
     DOM.modal.container.classList.remove('show');
     DOM.modal.backdrop.classList.remove('show');
     currentModalSaveCallback = null;
-    currentEditingComponentId = null; // ДОБАВЕНО: Изчистваме ID-то при затваряне
+    currentEditingComponentId = null; // НОВО: Изчистваме ID-то при затваряне
 }
 
-/**
- * Попълва форма с данни от обект, поддържа вложени полета (e.g., "button.text")
- */
 function populateForm(form, data) {
     form.querySelectorAll('[data-field]').forEach(input => {
         const path = input.dataset.field;
@@ -298,9 +287,6 @@ function populateForm(form, data) {
     });
 }
 
-/**
- * Сериализира данните от форма в обект
- */
 function serializeForm(form) {
     const data = {};
     form.querySelectorAll('[data-field]').forEach(input => {
@@ -317,7 +303,6 @@ function serializeForm(form) {
 // =======================================================
 
 function setupEventListeners() {
-    // Делегация на събития за всички [data-action] бутони
     document.body.addEventListener('click', e => {
         const target = e.target.closest('[data-action]');
         if (!target) return;
@@ -328,7 +313,6 @@ function setupEventListeners() {
         handleAction(action, id);
     });
 
-    // Модални бутони
     DOM.modal.saveBtn.addEventListener('click', () => {
         if (currentModalSaveCallback) {
             const form = DOM.modal.body.querySelector('form');
@@ -346,7 +330,6 @@ function setupEventListeners() {
     DOM.modal.closeBtn.addEventListener('click', closeModal);
     DOM.modal.backdrop.addEventListener('click', closeModal);
     
-    // Табове
     DOM.tabNav.addEventListener('click', e => {
         const target = e.target.closest('.tab-btn');
         if (!target) return;
@@ -358,10 +341,8 @@ function setupEventListeners() {
         document.getElementById(target.dataset.tab).classList.add('active');
     });
 
-    // Бутон за глобален запис
     DOM.saveBtn.addEventListener('click', saveData);
 
-    // Промяна на статус на поръчка
     DOM.ordersTableBody.addEventListener('change', async e => {
         if (!e.target.classList.contains('order-status')) return;
         const row = e.target.closest('tr');
@@ -381,8 +362,8 @@ function setupEventListeners() {
         }
     });
 
-    // ДОБАВЕНО: Слушател за импортиране на продукт. Делегираме от `document`,
-    // тъй като input-ът се създава динамично в модалния прозорец.
+    // НОВО: Слушател за промяна на скритото поле за качване на файл.
+    // Използваме делегиране от `document`, защото полето се създава динамично.
     document.addEventListener('change', e => {
         if (e.target.id === 'product-import-input') {
             handleProductImport(e);
@@ -390,11 +371,7 @@ function setupEventListeners() {
     });
 }
 
-/**
- * Централен разпределител на действия (action handler)
- */
 function handleAction(action, id) {
-    // Тук можете да добавите логика за всяко действие
     switch(action) {
         case 'edit-global-settings':
             openModal(
@@ -418,12 +395,12 @@ function handleAction(action, id) {
                 }
             );
             break;
-        // ПРОМЕНЕНО: Добавена е логика за запазване на ID и по-комплексен запис
+        // ПРОМЕНЕНО: Добавяме запазване на ID-то на компонента, който се редактира
         case 'edit-component':
             const component = appData.page_content.find(c => c.component_id === id);
             if (!component) return;
-            
-            currentEditingComponentId = id; // ПРОМЕНЕНО: Запазваме ID-то на компонента
+
+            currentEditingComponentId = id; // Запазваме ID-то за бъдещо ползване (от импорта)
 
             const formTemplateId = `form-${component.type}-template`;
             openModal(
@@ -431,13 +408,14 @@ function handleAction(action, id) {
                 formTemplateId,
                 component,
                 (form) => {
-                    // TODO: Тази логика трябва да се направи по-сложна, за да запазва и вложените продукти
+                    // Тази логика трябва да се направи по-сложна, за да запазва и вложените елементи.
+                    // Засега запазва само основните полета.
                     Object.assign(component, serializeForm(form));
                     return true;
                 }
             );
             break;
-        // ДОБАВЕНО: ново действие за задействане на импорта
+        // НОВО: Действие, което задейства клик върху скритото поле за качване
         case 'import-product':
             const importInput = document.getElementById('product-import-input');
             if (importInput) {
@@ -447,10 +425,7 @@ function handleAction(action, id) {
     }
 }
 
-/**
- * ДОБАВЕНА НОВА ФУНКЦИЯ
- * Обработва импортирането на продукт от JSON файл.
- */
+// НОВО: ЦЯЛАТА ФУНКЦИЯ ЗА ОБРАБОТКА НА ИМПОРТА
 function handleProductImport(event) {
     const file = event.target.files[0];
     if (!file || !currentEditingComponentId) {
@@ -463,26 +438,22 @@ function handleProductImport(event) {
         try {
             const importedData = JSON.parse(e.target.result);
 
-            // Валидация на структурата на файла
             if (!importedData.product_id || !importedData.public_data || !importedData.system_data) {
                  throw new Error("Файлът не съдържа необходимите ключове: product_id, public_data, system_data.");
             }
             
-            // Намиране на целевата категория
             const targetCategory = appData.page_content.find(c => c.component_id === currentEditingComponentId);
             if (!targetCategory || targetCategory.type !== 'product_category') {
                 showNotification('Грешка: Не е избрана валидна продуктова категория.', 'error');
                 return;
             }
 
-            // Създаване на новия обект за продукта
             const newProduct = {
                 ...importedData.public_data,
-                price: 0, // Цената е 0 по подразбиране
-                system_data: importedData.system_data // Добавяме цялата системна информация
+                price: 0, 
+                system_data: importedData.system_data
             };
 
-            // Добавяне на продукта към данните
             if (!targetCategory.products) {
                 targetCategory.products = [];
             }
@@ -491,17 +462,15 @@ function handleProductImport(event) {
             setUnsavedChanges(true);
             showNotification(`Продукт "${newProduct.name}" е добавен успешно.`, 'success');
 
-            // Презареждане на модалния прозорец, за да се види новият продукт
             closeModal();
             setTimeout(() => {
                 handleAction('edit-component', currentEditingComponentId);
-            }, 100); // Малко забавяне, за да се обработи затварянето
+            }, 100);
 
         } catch (error) {
             console.error("Грешка при импортиране:", error);
             showNotification(`Грешка при импорт: ${error.message}`, 'error');
         } finally {
-            // Изчистване на input-а, за да може да се качи същия файл отново
             event.target.value = '';
         }
     };
@@ -522,12 +491,10 @@ function initSortable(element, dataArray, idKey = null) {
             const { oldIndex, newIndex } = evt;
             if (oldIndex === newIndex) return;
             
-            // Преместване на елемента в масива с данни
             const [movedItem] = dataArray.splice(oldIndex, 1);
             dataArray.splice(newIndex, 0, movedItem);
             
             setUnsavedChanges(true);
-            // DOM-ът се пренарежда от SortableJS, няма нужда от renderAll()
         }
     });
 }
@@ -544,7 +511,6 @@ function showNotification(message, type = 'success') {
     }, 4000);
 }
 
-// Помощни функции за работа с вложени обекти
 function getProperty(obj, path) {
     return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }
@@ -574,5 +540,4 @@ async function init() {
     }
 }
 
-// Старт на приложението
 init();
