@@ -1,258 +1,1084 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="bg" data-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Персонализиран Въпросник - BIOCODE</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="index.css" />
+
     <style>
-        :root {
-            --bg-primary-light: #F8F9FA; --bg-secondary-light: #FFFFFF; --text-primary-light: #121212; --text-secondary-light: #555555; --accent-light: #006A6A; --border-color-light: #E0E0E0; --error-color-light: #D32F2F;
-            --bg-primary-dark: #0D0F12; --bg-secondary-dark: #12151A; --text-primary-dark: #E9ECEF; --text-secondary-dark: #A0AEC0; --accent-dark: #00E0E0; --border-color-dark: rgba(255, 255, 255, 0.1); --error-color-dark: #E57373;
+      :root {
+        --bg-primary-light: #f8f9fa;
+        --bg-secondary-light: #ffffff;
+        --text-primary-light: #121212;
+        --text-secondary-light: #555555;
+        --accent-light: #006a6a;
+        --border-color-light: #e0e0e0;
+        --error-color-light: #d32f2f;
+        --bg-primary-dark: #0d0f12;
+        --bg-secondary-dark: #12151a;
+        --text-primary-dark: #e9ecef;
+        --text-secondary-dark: #a0aec0;
+        --accent-dark: #00e0e0;
+        --border-color-dark: rgba(255, 255, 255, 0.1);
+        --error-color-dark: #e57373;
+      }
+      [data-theme="light"] {
+        --bg-primary: var(--bg-primary-light);
+        --bg-secondary: var(--bg-secondary-light);
+        --text-primary: var(--text-primary-light);
+        --text-secondary: var(--text-secondary-light);
+        --accent: var(--accent-light);
+        --border-color: var(--border-color-light);
+        --error-color: var(--error-color-light);
+      }
+      [data-theme="dark"] {
+        --bg-primary: var(--bg-primary-dark);
+        --bg-secondary: var(--bg-secondary-dark);
+        --text-primary: var(--text-primary-dark);
+        --text-secondary: var(--text-secondary-dark);
+        --accent: var(--accent-dark);
+        --border-color: var(--border-color-dark);
+        --error-color: var(--error-color-dark);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        transition:
+          background-color 0.4s ease,
+          color 0.4s ease;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        padding: 2rem 1rem;
+      }
+      .main-container {
+        width: 100%;
+        max-width: 700px;
+      }
+      .questionnaire-container,
+      .loading-container,
+      .results-container {
+        width: 100%;
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        padding: 2rem;
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s ease;
+      }
+      @media (max-width: 768px) {
+        .questionnaire-container,
+        .loading-container,
+        .results-container {
+          padding: 1.5rem;
         }
-        [data-theme="light"] { --bg-primary: var(--bg-primary-light); --bg-secondary: var(--bg-secondary-light); --text-primary: var(--text-primary-light); --text-secondary: var(--text-secondary-light); --accent: var(--accent-light); --border-color: var(--border-color-light); --error-color: var(--error-color-light); }
-        [data-theme="dark"] { --bg-primary: var(--bg-primary-dark); --bg-secondary: var(--bg-secondary-dark); --text-primary: var(--text-primary-dark); --text-secondary: var(--text-secondary-dark); --accent: var(--accent-dark); --border-color: var(--border-color-dark); --error-color: var(--error-color-dark); }
-        * { margin: 0; padding: 0; box-sizing: border-box; } html { scroll-behavior: smooth; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-primary); color: var(--text-primary); line-height: 1.6; transition: background-color 0.4s ease, color 0.4s ease; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 2rem 1rem; }
-        .main-container { width: 100%; max-width: 700px; }
-        .questionnaire-container, .loading-container, .results-container { width: 100%; background: var(--bg-secondary); border-radius: 16px; border: 1px solid var(--border-color); padding: 2rem; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.1); transition: all 0.4s ease; }
-        @media (max-width: 768px) { .questionnaire-container, .loading-container, .results-container { padding: 1.5rem; } }
-        .questionnaire-header h1 { font-family: 'Playfair Display', serif; text-align: center; font-size: clamp(1.8rem, 5vw, 2.5rem); margin-bottom: 0.5rem; }
-        .questionnaire-header p { text-align: center; color: var(--text-secondary); margin-bottom: 2rem; font-size: 1rem; }
-        .progress-bar-container { width: 100%; height: 8px; background-color: var(--bg-primary); border-radius: 4px; margin-bottom: 2rem; overflow: hidden; }
-        .progress-bar-fill { height: 100%; width: 0%; background-color: var(--accent); border-radius: 4px; transition: width 0.5s ease; }
-        .form-step { display: none; animation: fadeIn 0.5s ease-in-out; } .form-step.active { display: block; } @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .step-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 1.4rem; margin-bottom: 1.5rem; color: var(--text-primary); border-left: 3px solid var(--accent); padding-left: 1rem; }
-        .form-group { margin-bottom: 1.5rem; } .form-group > label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-secondary); font-size: 0.9rem; }
-        .form-group input[type="text"], .form-group input[type="number"], .form-group input[type="email"], .form-group input[type="tel"], .form-group textarea { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); background-color: var(--bg-primary); border-radius: 8px; color: var(--text-primary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; transition: border-color 0.3s ease; }
-        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); } .form-group textarea { min-height: 120px; resize: vertical; }
-        .form-group .input-error { border-color: var(--error-color); } .form-group .error-message { display: none; color: var(--error-color); font-size: 0.8rem; font-weight: 500; margin-top: 0.35rem; }
-        .choice-group { display: flex; flex-direction: column; gap: 0.75rem; }
-        .choice-item { display: flex; align-items: center; background-color: var(--bg-primary); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.3s ease; }
-        .choice-item:hover { border-color: var(--accent); } .choice-item input { display: none; }
-        .choice-item .checkmark { width: 20px; height: 20px; border: 2px solid var(--text-secondary); border-radius: 50%; margin-right: 1rem; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; flex-shrink: 0; }
-        .choice-item input[type="checkbox"] + .checkmark { border-radius: 4px; } .choice-item .checkmark::after { content: ''; display: block; width: 10px; height: 10px; background-color: var(--accent); border-radius: 50%; transform: scale(0); transition: transform 0.3s ease; }
-        .choice-item input[type="checkbox"] + .checkmark::after { width: 5px; height: 10px; border-radius: 0; background-color: transparent; border: solid var(--accent); border-width: 0 3px 3px 0; transform: rotate(45deg) scale(0); }
-        .choice-item input:checked + .checkmark { border-color: var(--accent); } .choice-item input:checked + .checkmark::after { transform: scale(1); } .choice-item input[type="checkbox"]:checked + .checkmark::after { transform: rotate(45deg) scale(1); }
-        .choice-item .choice-label { margin: 0; font-weight: 500; color: var(--text-primary); }
-        .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2.5rem; }
-        .nav-btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-        .nav-btn#back-btn { background-color: transparent; color: var(--text-secondary); border: 1px solid var(--border-color); } .nav-btn#back-btn:hover { background-color: var(--bg-primary); border-color: var(--accent); color: var(--accent); }
-        .nav-btn#next-btn { background-color: var(--accent); color: var(--bg-primary); } [data-theme="dark"] .nav-btn#next-btn { color: #000; } .nav-btn#next-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px -5px var(--accent); }
-        .nav-btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: var(--text-secondary); }
-        .hidden { display: none !important; } .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; }
-        .loading-animation { width: 80px; height: 80px; position: relative; margin-bottom: 2rem; } .loading-animation::before, .loading-animation::after { content: ''; position: absolute; border: 4px solid var(--accent); border-radius: 50%; width: 100%; height: 100%; animation: pulse 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
-        .loading-animation::after { animation-delay: -0.75s; } @keyframes pulse { 0% { transform: scale(0.1); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
-        .loading-container h2 { font-family: 'Playfair Display', serif; margin-bottom: 0.5rem; } .loading-container p { color: var(--text-secondary); }
-        .results-container { animation: fadeIn 0.8s ease-out; } .results-header { text-align: center; margin-bottom: 2.5rem; } .results-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 6vw, 2.8rem); }
-        .results-header p { font-size: 1.1rem; color: var(--text-secondary); margin-top: 0.5rem; }
-        .result-card { background: var(--bg-primary); border: 1px solid var(--border-color); border-left: 4px solid var(--accent); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; opacity: 0; transform: translateY(20px); animation: slideUpFadeIn 0.6s ease-out forwards; }
-        @keyframes slideUpFadeIn { to { opacity: 1; transform: translateY(0); } }
-        .result-card h3 { font-size: 1rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
-        .result-card p, .result-card ul { font-size: 1rem; color: var(--text-secondary); } .result-card strong { color: var(--text-primary); font-weight: 600; } .result-card ul { list-style: none; padding-left: 0; }
-        .result-card ul li { padding-left: 1.5rem; position: relative; margin-bottom: 0.5rem; } .result-card ul li::before { content: '✓'; color: var(--accent); font-weight: 700; position: absolute; left: 0; top: 1px; }
-        #protocol-details { white-space: pre-wrap; }
-        .disclaimer { font-size: 0.8rem; text-align: center; color: var(--text-secondary); margin-top: 2rem; padding: 1rem; background: var(--bg-primary); border-radius: 8px; }
-        #reset-btn { display: block; margin: 2rem auto 0 auto; width: 100%; max-width: 250px; }
-        #theme-toggle { position: fixed; top: 20px; right: 20px; z-index: 1000; width: 44px; height: 44px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; }
-        #theme-toggle:hover { border-color: var(--accent); transform: scale(1.1); } #theme-toggle svg { width: 20px; height: 20px; fill: var(--text-secondary); }
-        #form-error-container { border-left-color: var(--error-color); margin-top: 2rem; }
-        #form-error-container h3 { color: var(--error-color); }
-        
-        /* --- НОВИ СТИЛОВЕ ЗА КАРТАТА С РЕЗУЛТАТИ --- */
-        #products-list .product-result-card {
-            background-color: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: slideUpFadeIn 0.6s ease-out forwards;
+      }
+      .questionnaire-header h1 {
+        font-family: "Playfair Display", serif;
+        text-align: center;
+        font-size: clamp(1.8rem, 5vw, 2.5rem);
+        margin-bottom: 0.5rem;
+      }
+      .questionnaire-header p {
+        text-align: center;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        font-size: 1rem;
+      }
+      .progress-bar-container {
+        width: 100%;
+        height: 8px;
+        background-color: var(--bg-primary);
+        border-radius: 4px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+      }
+      .progress-bar-fill {
+        height: 100%;
+        width: 0%;
+        background-color: var(--accent);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+      }
+      .form-step {
+        display: none;
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      .form-step.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
         }
-        .product-header {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        .product-header img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: white; /* за PNG с прозрачност */
+      }
+      .step-title {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-weight: 700;
+        font-size: 1.4rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+        border-left: 3px solid var(--accent);
+        padding-left: 1rem;
+      }
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      .form-group > label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+      .form-group input[type="text"],
+      .form-group input[type="number"],
+      .form-group input[type="email"],
+      .form-group input[type="tel"],
+      .form-group textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-primary);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+      }
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+      .form-group .input-error {
+        border-color: var(--error-color);
+      }
+      .form-group .error-message {
+        display: none;
+        color: var(--error-color);
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-top: 0.35rem;
+      }
+      .choice-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .choice-item {
+        display: flex;
+        align-items: center;
+        background-color: var(--bg-primary);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .choice-item:hover {
+        border-color: var(--accent);
+      }
+      .choice-item input {
+        display: none;
+      }
+      .choice-item .checkmark {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--text-secondary);
+        border-radius: 50%;
+        margin-right: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+      }
+      .choice-item input[type="checkbox"] + .checkmark {
+        border-radius: 4px;
+      }
+      .choice-item .checkmark::after {
+        content: "";
+        display: block;
+        width: 10px;
+        height: 10px;
+        background-color: var(--accent);
+        border-radius: 50%;
+        transform: scale(0);
+        transition: transform 0.3s ease;
+      }
+      .choice-item input[type="checkbox"] + .checkmark::after {
+        width: 5px;
+        height: 10px;
+        border-radius: 0;
+        background-color: transparent;
+        border: solid var(--accent);
+        border-width: 0 3px 3px 0;
+        transform: rotate(45deg) scale(0);
+      }
+      .choice-item input:checked + .checkmark {
+        border-color: var(--accent);
+      }
+      .choice-item input:checked + .checkmark::after {
+        transform: scale(1);
+      }
+      .choice-item input[type="checkbox"]:checked + .checkmark::after {
+        transform: rotate(45deg) scale(1);
+      }
+      .choice-item .choice-label {
+        margin: 0;
+        font-weight: 500;
+        color: var(--text-primary);
+      }
+      .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2.5rem;
+      }
+      .nav-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .nav-btn#back-btn {
+        background-color: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+      }
+      .nav-btn#back-btn:hover {
+        background-color: var(--bg-primary);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .nav-btn#next-btn {
+        background-color: var(--accent);
+        color: var(--bg-primary);
+      }
+      [data-theme="dark"] .nav-btn#next-btn {
+        color: #000;
+      }
+      .nav-btn#next-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px -5px var(--accent);
+      }
+      .nav-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: var(--text-secondary);
+      }
+      .hidden {
+        display: none !important;
+      }
+      .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+        text-align: center;
+      }
+      .loading-animation {
+        width: 80px;
+        height: 80px;
+        position: relative;
+        margin-bottom: 2rem;
+      }
+      .loading-animation::before,
+      .loading-animation::after {
+        content: "";
+        position: absolute;
+        border: 4px solid var(--accent);
+        border-radius: 50%;
+        width: 100%;
+        height: 100%;
+        animation: pulse 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+      }
+      .loading-animation::after {
+        animation-delay: -0.75s;
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(0.1);
+          opacity: 1;
         }
-        .product-header .product-title h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.5rem;
-            margin: 0;
-            color: var(--text-primary);
+        100% {
+          transform: scale(1);
+          opacity: 0;
         }
-        .product-header .product-title .tagline {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            font-style: italic;
-            margin: 0.25rem 0 0 0;
+      }
+      .loading-container h2 {
+        font-family: "Playfair Display", serif;
+        margin-bottom: 0.5rem;
+      }
+      .loading-container p {
+        color: var(--text-secondary);
+      }
+      .results-container {
+        animation: fadeIn 0.8s ease-out;
+      }
+      .results-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .results-header h1 {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2rem, 6vw, 2.8rem);
+      }
+      .results-header p {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
+      }
+      .result-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--accent);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: slideUpFadeIn 0.6s ease-out forwards;
+      }
+      @keyframes slideUpFadeIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        .ai-reason {
-            border-left: 3px solid var(--accent);
-            padding-left: 1rem;
-        }
-        .ai-reason h3, .effects-section h3, .variants-section h3 {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--accent);
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-        }
-        .ai-reason p {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            margin: 0;
-        }
-        .effect-bar-container { margin-bottom: 0.5rem; }
-        .effect-bar-container .effect-label {
-            display: block;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
-        }
-        .effect-bar-background {
-            height: 8px;
-            width: 100%;
-            background-color: var(--border-color);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .effect-bar-fill {
-            height: 100%;
-            background-color: var(--accent);
-            border-radius: 4px;
-            transition: width 0.8s ease-out;
-        }
-        .variants-section ul { list-style: none; padding: 0; }
-        .variants-section ul li a {
-            display: block;
-            padding: 0.75rem 1rem;
-            background-color: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            text-decoration: none;
-            color: var(--text-primary);
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            transition: all 0.2s ease-in-out;
-        }
-        .variants-section ul li a:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            transform: translateX(4px);
-        }
-        .research-link-container { text-align: right; margin-top: -1rem; }
-        .research-link-container a {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            border-bottom: 1px dashed var(--text-secondary);
-            transition: color 0.2s, border-color 0.2s;
-        }
-        .research-link-container a:hover {
-            color: var(--accent);
-            border-color: var(--accent);
-        }
+      }
+      .result-card h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 1rem;
+      }
+      .result-card p,
+      .result-card ul {
+        font-size: 1rem;
+        color: var(--text-secondary);
+      }
+      .result-card strong {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+      .result-card ul {
+        list-style: none;
+        padding-left: 0;
+      }
+      .result-card ul li {
+        padding-left: 1.5rem;
+        position: relative;
+        margin-bottom: 0.5rem;
+      }
+      .result-card ul li::before {
+        content: "✓";
+        color: var(--accent);
+        font-weight: 700;
+        position: absolute;
+        left: 0;
+        top: 1px;
+      }
+      #protocol-details {
+        white-space: pre-wrap;
+      }
+      .disclaimer {
+        font-size: 0.8rem;
+        text-align: center;
+        color: var(--text-secondary);
+        margin-top: 2rem;
+        padding: 1rem;
+        background: var(--bg-primary);
+        border-radius: 8px;
+      }
+      #reset-btn {
+        display: block;
+        margin: 2rem auto 0 auto;
+        width: 100%;
+        max-width: 250px;
+      }
+      #theme-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        width: 44px;
+        height: 44px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.3s ease;
+      }
+      #theme-toggle:hover {
+        border-color: var(--accent);
+        transform: scale(1.1);
+      }
+      #theme-toggle svg {
+        width: 20px;
+        height: 20px;
+        fill: var(--text-secondary);
+      }
+      #form-error-container {
+        border-left-color: var(--error-color);
+        margin-top: 2rem;
+      }
+      #form-error-container h3 {
+        color: var(--error-color);
+      }
+
+      /* --- НОВИ СТИЛОВЕ ЗА КАРТАТА С РЕЗУЛТАТИ --- */
+      #products-list .product-result-card {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: slideUpFadeIn 0.6s ease-out forwards;
+      }
+      .product-header {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+      }
+      .product-header img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background-color: white; /* за PNG с прозрачност */
+      }
+      .product-header .product-title h2 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.5rem;
+        margin: 0;
+        color: var(--text-primary);
+      }
+      .product-header .product-title .tagline {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        font-style: italic;
+        margin: 0.25rem 0 0 0;
+      }
+      .ai-reason {
+        border-left: 3px solid var(--accent);
+        padding-left: 1rem;
+      }
+      .ai-reason h3,
+      .effects-section h3,
+      .variants-section h3 {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--accent);
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+      }
+      .ai-reason p {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        margin: 0;
+      }
+      .effect-bar-container {
+        margin-bottom: 0.5rem;
+      }
+      .effect-bar-container .effect-label {
+        display: block;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+      }
+      .effect-bar-background {
+        height: 8px;
+        width: 100%;
+        background-color: var(--border-color);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .effect-bar-fill {
+        height: 100%;
+        background-color: var(--accent);
+        border-radius: 4px;
+        transition: width 0.8s ease-out;
+      }
+      .variants-section ul {
+        list-style: none;
+        padding: 0;
+      }
+      .variants-section ul li a {
+        display: block;
+        padding: 0.75rem 1rem;
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-primary);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        transition: all 0.2s ease-in-out;
+      }
+      .variants-section ul li a:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: translateX(4px);
+      }
+      .research-link-container {
+        text-align: right;
+        margin-top: -1rem;
+      }
+      .research-link-container a {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-bottom: 1px dashed var(--text-secondary);
+        transition:
+          color 0.2s,
+          border-color 0.2s;
+      }
+      .research-link-container a:hover {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+        box-shadow: 0 0 20px var(--accent);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="header-container">
+        <a href="index.html" class="logo-container">
+          <img src="" alt="BIOCODE Logo" />
+          <div>
+            <span class="brand-name">BIOCODE</span>
+          </div>
+        </a>
+        <nav class="main-nav">
+          <ul class="nav-links">
+            <li><a href="index.html">Начало</a></li>
+            <li><a href="checkout.html">Количка</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
 
     <button id="theme-toggle" aria-label="Toggle theme">
-        <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4.5C12.8284 4.5 13.5 5.17157 13.5 6V7.5C13.5 8.32843 12.8284 9 12 9C11.1716 9 10.5 8.32843 10.5 7.5V6C10.5 5.17157 11.1716 4.5 12 4.5ZM12 15C12.8284 15 13.5 15.6716 13.5 16.5V18C13.5 18.8284 12.8284 19.5 12 19.5C11.1716 19.5 10.5 18.8284 10.5 18V16.5C10.5 15.6716 11.1716 15 12 15ZM18.364 5.63604C18.9163 6.18838 18.9163 7.08838 18.364 7.63604L17.2929 8.70711C16.7402 9.25976 15.8402 9.25976 15.2876 8.70711C14.735 8.15446 14.735 7.25446 15.2876 6.7018L16.3586 5.63073C16.9113 5.07808 17.8113 5.07808 18.364 5.63073V5.63604ZM8.70711 15.2929C8.15446 15.8455 7.25446 15.8455 6.7018 15.2929L5.63073 14.2218C5.07808 13.6692 5.07808 12.7692 5.63073 12.2165L5.63604 12.2112C6.18838 11.6589 7.08838 11.6589 7.63604 12.2112L8.70711 13.2823C9.25976 13.8349 9.25976 14.7349 8.70711 15.2876V15.2929ZM22.5 12C22.5 12.8284 21.8284 13.5 21 13.5H19.5C18.6716 13.5 18 12.8284 18 12C18 11.1716 18.6716 10.5 19.5 10.5H21C21.8284 10.5 22.5 11.1716 22.5 12ZM7.5 12C7.5 12.8284 6.82843 13.5 6 13.5H4.5C3.67157 13.5 3 12.8284 3 12C3 11.1716 3.67157 10.5 4.5 10.5H6C6.82843 10.5 7.5 11.1716 7.5 12ZM15.2929 15.2876C14.7402 14.7349 14.7402 13.8349 15.2929 13.2823L16.364 12.2112C16.9163 11.6589 17.8163 11.6589 18.3686 12.2112L18.364 12.2165C18.9166 12.7692 18.9166 13.6692 18.364 14.2218L17.2929 15.2929C16.7402 15.8455 15.8402 15.8455 15.2876 15.2929L15.2929 15.2876ZM8.7018 8.70711C9.25446 8.15446 9.25446 7.25446 8.7018 6.7018L7.63073 5.63073C7.07808 5.07808 6.17808 5.07808 5.62543 5.63073L5.63073 5.63604C5.07808 6.18869 5.07808 7.08869 5.63073 7.64134L6.7018 8.71241C7.25446 9.26506 8.15446 9.26506 8.70711 8.71241V8.70711H8.7018Z M12 14.25C13.2426 14.25 14.25 13.2426 14.25 12C14.25 10.7574 13.2426 9.75 12 9.75C10.7574 9.75 9.75 10.7574 9.75 12C9.75 13.2426 10.7574 14.25 12 14.25Z"/></svg>
-        <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.758a.75.75 0 00-1.06-1.06l-1.59 1.591a.75.75 0 101.06 1.06l1.59-1.591z"/></svg>
+      <svg
+        id="theme-icon-sun"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 4.5C12.8284 4.5 13.5 5.17157 13.5 6V7.5C13.5 8.32843 12.8284 9 12 9C11.1716 9 10.5 8.32843 10.5 7.5V6C10.5 5.17157 11.1716 4.5 12 4.5ZM12 15C12.8284 15 13.5 15.6716 13.5 16.5V18C13.5 18.8284 12.8284 19.5 12 19.5C11.1716 19.5 10.5 18.8284 10.5 18V16.5C10.5 15.6716 11.1716 15 12 15ZM18.364 5.63604C18.9163 6.18838 18.9163 7.08838 18.364 7.63604L17.2929 8.70711C16.7402 9.25976 15.8402 9.25976 15.2876 8.70711C14.735 8.15446 14.735 7.25446 15.2876 6.7018L16.3586 5.63073C16.9113 5.07808 17.8113 5.07808 18.364 5.63073V5.63604ZM8.70711 15.2929C8.15446 15.8455 7.25446 15.8455 6.7018 15.2929L5.63073 14.2218C5.07808 13.6692 5.07808 12.7692 5.63073 12.2165L5.63604 12.2112C6.18838 11.6589 7.08838 11.6589 7.63604 12.2112L8.70711 13.2823C9.25976 13.8349 9.25976 14.7349 8.70711 15.2876V15.2929ZM22.5 12C22.5 12.8284 21.8284 13.5 21 13.5H19.5C18.6716 13.5 18 12.8284 18 12C18 11.1716 18.6716 10.5 19.5 10.5H21C21.8284 10.5 22.5 11.1716 22.5 12ZM7.5 12C7.5 12.8284 6.82843 13.5 6 13.5H4.5C3.67157 13.5 3 12.8284 3 12C3 11.1716 3.67157 10.5 4.5 10.5H6C6.82843 10.5 7.5 11.1716 7.5 12ZM15.2929 15.2876C14.7402 14.7349 14.7402 13.8349 15.2929 13.2823L16.364 12.2112C16.9163 11.6589 17.8163 11.6589 18.3686 12.2112L18.364 12.2165C18.9166 12.7692 18.9166 13.6692 18.364 14.2218L17.2929 15.2929C16.7402 15.8455 15.8402 15.8455 15.2876 15.2929L15.2929 15.2876ZM8.7018 8.70711C9.25446 8.15446 9.25446 7.25446 8.7018 6.7018L7.63073 5.63073C7.07808 5.07808 6.17808 5.07808 5.62543 5.63073L5.63073 5.63604C5.07808 6.18869 5.07808 7.08869 5.63073 7.64134L6.7018 8.71241C7.25446 9.26506 8.15446 9.26506 8.70711 8.71241V8.70711H8.7018Z M12 14.25C13.2426 14.25 14.25 13.2426 14.25 12C14.25 10.7574 13.2426 9.75 12 9.75C10.7574 9.75 9.75 10.7574 9.75 12C9.75 13.2426 10.7574 14.25 12 14.25Z"
+        />
+      </svg>
+      <svg
+        id="theme-icon-moon"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        style="display: none"
+      >
+        <path
+          d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.758a.75.75 0 00-1.06-1.06l-1.59 1.591a.75.75 0 101.06 1.06l1.59-1.591z"
+        />
+      </svg>
     </button>
-    
+
     <div class="main-container">
-        <div class="questionnaire-container">
-            <div class="questionnaire-header">
-                <h1>Вашият Път към Оптимизация</h1>
-                <p>Отговорете на въпросите, за да изготвим Вашата персонална програма.</p>
-            </div>
-            <div class="progress-bar-container"><div class="progress-bar-fill" id="progress-bar"></div></div>
-            <form id="questionnaire-form" novalidate>
-                 <!-- СЪДЪРЖАНИЕТО НА ФОРМАТА Е НЕПРОМЕНЕНО -->
-                 <div class="form-step active" data-step="1"> <h2 class="step-title">Стъпка 1: За Вас</h2> <div class="form-group"> <label>Пол</label> <div class="choice-group"> <label class="choice-item" for="male"><input type="radio" id="male" name="gender" value="male"><span class="checkmark"></span><span class="choice-label">Мъж</span></label> <label class="choice-item" for="female"><input type="radio" id="female" name="gender" value="female"><span class="checkmark"></span><span class="choice-label">Жена</span></label> </div> <div class="error-message"></div> </div> <div class="form-group"> <label for="age">Възраст</label> <input type="number" id="age" name="age" placeholder="Години" min="18" max="100"> <div class="error-message"></div> </div> <div class="form-group"> <label for="height">Ръст (в см)</label> <input type="number" id="height" name="height" placeholder="180" min="100" max="250"> <div class="error-message"></div> </div> <div class="form-group"> <label for="weight">Тегло (в кг)</label> <input type="number" id="weight" name="weight" placeholder="80" min="30" max="300"> <div class="error-message"></div> </div> </div>
-                 <div class="form-step" data-step="2"> <h2 class="step-title">Стъпка 2: Вашите Цели</h2> <div class="form-group"> <label>Моля, отбележете всички цели, които са важни за Вас:</label> <div class="choice-group"> <label class="choice-item" for="goal1"><input type="checkbox" id="goal1" name="goals" value="anti-aging"><span class="checkmark"></span><span class="choice-label">Анти-ейджинг и виталност</span></label> <label class="choice-item" for="goal2"><input type="checkbox" id="goal2" name="goals" value="skin-health"><span class="checkmark"></span><span class="choice-label">Подобряване на кожата</span></label> <label class="choice-item" for="goal3"><input type="checkbox" id="goal3" name="goals" value="cognitive"><span class="checkmark"></span><span class="choice-label">Фокус, памет и настроение</span></label> <label class="choice-item" for="goal4"><input type="checkbox" id="goal4" name="goals" value="sleep"><span class="checkmark"></span><span class="choice-label">Подобряване на съня</span></label> <label class="choice-item" for="goal5"><input type="checkbox" id="goal5" name="goals" value="muscle-gain"><span class="checkmark"></span><span class="choice-label">Покачване на мускулна маса</span></label> <label class="choice-item" for="goal6"><input type="checkbox" id="goal6" name="goals" value="fat-loss"><span class="checkmark"></span><span class="choice-label">Изгаряне на мазнини</span></label> <label class="choice-item" for="goal7"><input type="checkbox" id="goal7" name="goals" value="recovery"><span class="checkmark"></span><span class="choice-label">Възстановяване (тренировки/травми)</span></label> <label class="choice-item" for="goal8"><input type="checkbox" id="goal8" name="goals" value="libido"><span class="checkmark"></span><span class="choice-label">Повишаване на либидото</span></label> </div> <div class="error-message"></div> </div> <div class="form-group"> <label for="main-goal">Опишете с 1-2 изречения най-важната си цел</label> <textarea id="main-goal" name="main_goal" placeholder="Пример: Искам да повиша енергията си през деня и да подобря възстановяването си след фитнес."></textarea> <div class="error-message"></div> </div> </div>
-                 <div class="form-step" data-step="3"> <h2 class="step-title">Стъпка 3: Здраве</h2> <div class="form-group"> <label for="conditions">Имате ли диагностицирани заболявания или състояния?</label> <textarea id="conditions" name="conditions" placeholder="Пример: Високо кръвно, диабет... Ако нямате, напишете 'Нямам'."></textarea> <div class="error-message"></div> </div> <div class="form-group"> <label for="medications">Приемате ли лекарства или други добавки?</label> <textarea id="medications" name="medications" placeholder="Избройте всичко. Ако не, напишете 'Не приемам'."></textarea> <div class="error-message"></div> </div> <div class="form-group"> <label for="allergies">Имате ли известни алергии?</label> <textarea id="allergies" name="allergies" placeholder="Ако нямате, напишете 'Нямам'."></textarea> <div class="error-message"></div> </div> </div>
-                 <div class="form-step" data-step="4"> <h2 class="step-title">Стъпка 4: Начин на живот</h2> <div class="form-group"> <label>Физическа активност (тренировки на седмица)</label> <div class="choice-group"> <label class="choice-item" for="activity1"><input type="radio" id="activity1" name="activity" value="0"><span class="checkmark"></span><span class="choice-label">0 (заседнал)</span></label> <label class="choice-item" for="activity2"><input type="radio" id="activity2" name="activity" value="1-2"><span class="checkmark"></span><span class="choice-label">1-2 пъти</span></label> <label class="choice-item" for="activity3"><input type="radio" id="activity3" name="activity" value="3-4"><span class="checkmark"></span><span class="choice-label">3-4 пъти</span></label> <label class="choice-item" for="activity4"><input type="radio" id="activity4" name="activity" value="5+"><span class="checkmark"></span><span class="choice-label">5+ пъти</span></label> </div> <div class="error-message"></div> </div> <div class="form-group"> <label for="sleep">Средно часове сън на нощ?</label> <input type="number" id="sleep" name="sleep" placeholder="8" min="1" max="12"> <div class="error-message"></div> </div> <div class="form-group"> <label for="stress">Ниво на ежедневен стрес (от 1 до 10)</label> <input type="number" id="stress" name="stress" placeholder="7" min="1" max="10"> <div class="error-message"></div> </div> </div>
-                 <div class="form-step" data-step="5"> <h2 class="step-title">Стъпка 5: Контакт и Финализиране</h2> <div class="form-group"> <label for="name">Име</label> <input type="text" id="name" name="name" placeholder="Вашето име"> <div class="error-message"></div> </div> <div class="form-group"> <label for="email">Имейл</label> <input type="email" id="email" name="email" placeholder="primer@email.com"> <div class="error-message"></div> </div> <div class="form-group"> <label for="phone">Телефон</label> <input type="tel" id="phone" name="phone" placeholder="0888123456"> <div class="error-message"></div> </div> <div class="form-group"> <label>За какъв период планирате приема?</label> <div class="choice-group"> <label class="choice-item" for="duration1"><input type="radio" id="duration1" name="duration" value="1-2m"><span class="checkmark"></span><span class="choice-label">1-2 месеца</span></label> <label class="choice-item" for="duration2"><input type="radio" id="duration2" name="duration" value="3-4m"><span class="checkmark"></span><span class="choice-label">3-4 месеца</span></label> <label class="choice-item" for="duration3"><input type="radio" id="duration3" name="duration" value="6m+"><span class="checkmark"></span><span class="choice-label">6+ месеца</span></label> </div> <div class="error-message"></div> </div> <div class="form-group"> <label>Съгласие</label> <div class="choice-group"> <label class="choice-item" for="consent"> <input type="checkbox" id="consent" name="consent"> <span class="checkmark"></span> <span class="choice-label">Потвърждавам, че предоставената информация е точна.</span> </label> </div> <div class="error-message"></div> </div> </div>
-                <div class="navigation-buttons">
-                    <button type="button" class="nav-btn" id="back-btn">Назад</button>
-                    <button type="button" class="nav-btn" id="next-btn">Напред</button>
-                </div>
-            </form>
-
-            <div id="form-error-container" class="result-card hidden" aria-live="polite">
-                <h3>Възникна грешка</h3>
-                <p id="form-error-text"></p>
-            </div>
+      <a
+        href="index.html"
+        class="btn-primary"
+        style="margin-bottom: 1rem; display: inline-block"
+        >&larr; Назад към менюто</a
+      >
+      <div class="questionnaire-container">
+        <div class="questionnaire-header">
+          <h1>Вашият Път към Оптимизация</h1>
+          <p>
+            Отговорете на въпросите, за да изготвим Вашата персонална програма.
+          </p>
         </div>
-
-        <div class="loading-container hidden" id="loading-container">
-            <div class="loading-animation"></div>
-            <h2>Анализираме Вашите данни...</h2>
-            <p>Генерираме Вашия персонализиран BIOCODE протокол.</p>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progress-bar"></div>
         </div>
-
-        <div class="results-container hidden" id="results-container">
-            <div class="results-header"><h1>Здравейте, <span id="results-name"></span>!</h1><p>Ето Вашия персонален BIOCODE план:</p></div>
-            <div id="results-content">
-                <div class="result-card" id="analysis-card"><h3>Анализ на Вашата ситуация</h3><p id="analysis-text"></p></div>
-                <!-- НОВА СЕКЦИЯ ЗА ПРОДУКТИ -->
-                <div class="result-card" id="products-card">
-                    <h3>Препоръчителни Продукти</h3>
-                    <div id="products-list">
-                        <!-- Тук ще се генерират динамично новите, по-богати карти -->
-                    </div>
-                </div>
-                <!-- КРАЙ НА НОВА СЕКЦИЯ -->
-                <div class="result-card" id="protocol-card"><h3>Протокол за Прием</h3><p id="protocol-details"></p></div>
-                <div class="result-card" id="tips-card"><h3>Съвети за Начина на Живот</h3><ul id="tips-list"></ul></div>
+        <form id="questionnaire-form" novalidate>
+          <!-- СЪДЪРЖАНИЕТО НА ФОРМАТА Е НЕПРОМЕНЕНО -->
+          <div class="form-step active" data-step="1">
+            <h2 class="step-title">Стъпка 1: За Вас</h2>
+            <div class="form-group">
+              <label>Пол</label>
+              <div class="choice-group">
+                <label class="choice-item" for="male"
+                  ><input
+                    type="radio"
+                    id="male"
+                    name="gender"
+                    value="male"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label">Мъж</span></label
+                >
+                <label class="choice-item" for="female"
+                  ><input
+                    type="radio"
+                    id="female"
+                    name="gender"
+                    value="female"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label">Жена</span></label
+                >
+              </div>
+              <div class="error-message"></div>
             </div>
-            <p class="disclaimer" id="results-disclaimer"></p>
-            <button type="button" class="nav-btn" id="reset-btn">Започни отначало</button>
+            <div class="form-group">
+              <label for="age">Възраст</label>
+              <input
+                type="number"
+                id="age"
+                name="age"
+                placeholder="Години"
+                min="18"
+                max="100"
+              />
+              <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+              <label for="height">Ръст (в см)</label>
+              <input
+                type="number"
+                id="height"
+                name="height"
+                placeholder="180"
+                min="100"
+                max="250"
+              />
+              <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+              <label for="weight">Тегло (в кг)</label>
+              <input
+                type="number"
+                id="weight"
+                name="weight"
+                placeholder="80"
+                min="30"
+                max="300"
+              />
+              <div class="error-message"></div>
+            </div>
+          </div>
+          <div class="form-step" data-step="2">
+            <h2 class="step-title">Стъпка 2: Вашите Цели</h2>
+            <div class="form-group">
+              <label
+                >Моля, отбележете всички цели, които са важни за Вас:</label
+              >
+              <div class="choice-group">
+                <label class="choice-item" for="goal1"
+                  ><input
+                    type="checkbox"
+                    id="goal1"
+                    name="goals"
+                    value="anti-aging"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label"
+                    >Анти-ейджинг и виталност</span
+                  ></label
+                >
+                <label class="choice-item" for="goal2"
+                  ><input
+                    type="checkbox"
+                    id="goal2"
+                    name="goals"
+                    value="skin-health"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label"
+                    >Подобряване на кожата</span
+                  ></label
+                >
+                <label class="choice-item" for="goal3"
+                  ><input
+                    type="checkbox"
+                    id="goal3"
+                    name="goals"
+                    value="cognitive"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label"
+                    >Фокус, памет и настроение</span
+                  ></label
+                >
+                <label class="choice-item" for="goal4"
+                  ><input
+                    type="checkbox"
+                    id="goal4"
+                    name="goals"
+                    value="sleep"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label">Подобряване на съня</span></label
+                >
+                <label class="choice-item" for="goal5"
+                  ><input
+                    type="checkbox"
+                    id="goal5"
+                    name="goals"
+                    value="muscle-gain"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label"
+                    >Покачване на мускулна маса</span
+                  ></label
+                >
+                <label class="choice-item" for="goal6"
+                  ><input
+                    type="checkbox"
+                    id="goal6"
+                    name="goals"
+                    value="fat-loss"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label">Изгаряне на мазнини</span></label
+                >
+                <label class="choice-item" for="goal7"
+                  ><input
+                    type="checkbox"
+                    id="goal7"
+                    name="goals"
+                    value="recovery"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label"
+                    >Възстановяване (тренировки/травми)</span
+                  ></label
+                >
+                <label class="choice-item" for="goal8"
+                  ><input
+                    type="checkbox"
+                    id="goal8"
+                    name="goals"
+                    value="libido"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label"
+                    >Повишаване на либидото</span
+                  ></label
+                >
+              </div>
+              <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+              <label for="main-goal"
+                >Опишете с 1-2 изречения най-важната си цел</label
+              >
+              <textarea
+                id="main-goal"
+                name="main_goal"
+                placeholder="Пример: Искам да повиша енергията си през деня и да подобря възстановяването си след фитнес."
+              ></textarea>
+              <div class="error-message"></div>
+            </div>
+          </div>
+          <div class="form-step" data-step="3">
+            <h2 class="step-title">Стъпка 3: Здраве</h2>
+            <div class="form-group">
+              <label for="conditions"
+                >Имате ли диагностицирани заболявания или състояния?</label
+              >
+              <textarea
+                id="conditions"
+                name="conditions"
+                placeholder="Пример: Високо кръвно, диабет... Ако нямате, напишете 'Нямам'."
+              ></textarea>
+              <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+              <label for="medications"
+                >Приемате ли лекарства или други добавки?</label
+              >
+              <textarea
+                id="medications"
+                name="medications"
+                placeholder="Избройте всичко. Ако не, напишете 'Не приемам'."
+              ></textarea>
+              <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+              <label for="allergies">Имате ли известни алергии?</label>
+              <textarea
+                id="allergies"
+                name="allergies"
+                placeholder="Ако нямате, напишете 'Нямам'."
+              ></textarea>
+              <div class="error-message"></div>
+            </div>
+          </div>
+          <div class="form-step" data-step="4">
+            <h2 class="step-title">Стъпка 4: Начин на живот</h2>
+            <div class="form-group">
+              <label>Физическа активност (тренировки на седмица)</label>
+              <div class="choice-group">
+                <label class="choice-item" for="activity1"
+                  ><input
+                    type="radio"
+                    id="activity1"
+                    name="activity"
+                    value="0"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label">0 (заседнал)</span></label
+                >
+                <label class="choice-item" for="activity2"
+                  ><input
+                    type="radio"
+                    id="activity2"
+                    name="activity"
+                    value="1-2"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label">1-2 пъти</span></label
+                >
+                <label class="choice-item" for="activity3"
+                  ><input
+                    type="radio"
+                    id="activity3"
+                    name="activity"
+                    value="3-4"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label">3-4 пъти</span></label
+                >
+                <label class="choice-item" for="activity4"
+                  ><input
+                    type="radio"
+                    id="activity4"
+                    name="activity"
+                    value="5+"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label">5+ пъти</span></label
+                >
+              </div>
+              <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+              <label for="sleep">Средно часове сън на нощ?</label>
+              <input
+                type="number"
+                id="sleep"
+                name="sleep"
+                placeholder="8"
+                min="1"
+                max="12"
+              />
+              <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+              <label for="stress">Ниво на ежедневен стрес (от 1 до 10)</label>
+              <input
+                type="number"
+                id="stress"
+                name="stress"
+                placeholder="7"
+                min="1"
+                max="10"
+              />
+              <div class="error-message"></div>
+            </div>
+          </div>
+          <div class="form-step" data-step="5">
+            <h2 class="step-title">Стъпка 5: Контакт и Финализиране</h2>
+            <div class="form-group">
+              <label>За какъв период планирате приема?</label>
+              <div class="choice-group">
+                <label class="choice-item" for="duration1"
+                  ><input
+                    type="radio"
+                    id="duration1"
+                    name="duration"
+                    value="1-2m"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label">1-2 месеца</span></label
+                >
+                <label class="choice-item" for="duration2"
+                  ><input
+                    type="radio"
+                    id="duration2"
+                    name="duration"
+                    value="3-4m"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label">3-4 месеца</span></label
+                >
+                <label class="choice-item" for="duration3"
+                  ><input
+                    type="radio"
+                    id="duration3"
+                    name="duration"
+                    value="6m+"
+                  /><span class="checkmark"></span
+                  ><span class="choice-label">6+ месеца</span></label
+                >
+              </div>
+              <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+              <label for="name">Име</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Вашето име"
+              />
+              <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+              <label for="email">Имейл</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="primer@email.com"
+              />
+              <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+              <label for="phone">Телефон</label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                placeholder="0888123456"
+              />
+              <div class="error-message"></div>
+            </div>
+            <div class="form-group">
+              <label>Съгласие</label>
+              <div class="choice-group">
+                <label class="choice-item" for="consent">
+                  <input type="checkbox" id="consent" name="consent" />
+                  <span class="checkmark"></span>
+                  <span class="choice-label"
+                    >Потвърждавам, че предоставената информация е точна.</span
+                  >
+                </label>
+              </div>
+              <div class="error-message"></div>
+            </div>
+          </div>
+          <div class="navigation-buttons">
+            <button type="button" class="nav-btn" id="back-btn">Назад</button>
+            <button type="button" class="nav-btn" id="next-btn">Напред</button>
+          </div>
+        </form>
+
+        <div
+          id="form-error-container"
+          class="result-card hidden"
+          aria-live="polite"
+        >
+          <h3>Възникна грешка</h3>
+          <p id="form-error-text"></p>
         </div>
+      </div>
+
+      <div class="loading-container hidden" id="loading-container">
+        <div class="loading-animation"></div>
+        <h2>Анализираме Вашите данни...</h2>
+        <p>Генерираме Вашия персонализиран BIOCODE протокол.</p>
+      </div>
+
+      <div class="results-container hidden" id="results-container">
+        <div class="results-header">
+          <h1>Здравейте, <span id="results-name"></span>!</h1>
+          <p>Ето Вашия персонален BIOCODE план:</p>
+        </div>
+        <div id="results-content">
+          <div class="result-card" id="analysis-card">
+            <h3>Анализ на Вашата ситуация</h3>
+            <p id="analysis-text"></p>
+          </div>
+          <!-- НОВА СЕКЦИЯ ЗА ПРОДУКТИ -->
+          <div class="result-card" id="products-card">
+            <h3>Препоръчителни Продукти</h3>
+            <div id="products-list">
+              <!-- Тук ще се генерират динамично новите, по-богати карти -->
+            </div>
+          </div>
+          <!-- КРАЙ НА НОВА СЕКЦИЯ -->
+          <div class="result-card" id="protocol-card">
+            <h3>Протокол за Прием</h3>
+            <p id="protocol-details"></p>
+          </div>
+          <div class="result-card" id="tips-card">
+            <h3>Съвети за Начина на Живот</h3>
+            <ul id="tips-list"></ul>
+          </div>
+        </div>
+        <p class="disclaimer" id="results-disclaimer"></p>
+        <button type="button" class="nav-btn" id="reset-btn">
+          Започни отначало
+        </button>
+      </div>
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', async function () {
+      document.addEventListener("DOMContentLoaded", async function () {
         // --- Елементи от DOM ---
-        const questionnaireContainer = document.querySelector('.questionnaire-container');
-        const loadingContainer = document.getElementById('loading-container');
-        const resultsContainer = document.getElementById('results-container');
-        const form = document.getElementById('questionnaire-form');
-        const steps = Array.from(form.querySelectorAll('.form-step'));
-        const nextBtn = document.getElementById('next-btn');
-        const backBtn = document.getElementById('back-btn');
-        const progressBar = document.getElementById('progress-bar');
-        const resetBtn = document.getElementById('reset-btn');
-        const formErrorContainer = document.getElementById('form-error-container');
-        const formErrorText = document.getElementById('form-error-text');
-        const themeToggle = document.getElementById('theme-toggle');
-        const sunIcon = document.getElementById('theme-icon-sun');
-        const moonIcon = document.getElementById('theme-icon-moon');
+        const questionnaireContainer = document.querySelector(
+          ".questionnaire-container",
+        );
+        const loadingContainer = document.getElementById("loading-container");
+        const resultsContainer = document.getElementById("results-container");
+        const form = document.getElementById("questionnaire-form");
+        const steps = Array.from(form.querySelectorAll(".form-step"));
+        const nextBtn = document.getElementById("next-btn");
+        const backBtn = document.getElementById("back-btn");
+        const progressBar = document.getElementById("progress-bar");
+        const resetBtn = document.getElementById("reset-btn");
+        const formErrorContainer = document.getElementById(
+          "form-error-container",
+        );
+        const formErrorText = document.getElementById("form-error-text");
+        const themeToggle = document.getElementById("theme-toggle");
+        const sunIcon = document.getElementById("theme-icon-sun");
+        const moonIcon = document.getElementById("theme-icon-moon");
         const htmlEl = document.documentElement;
 
         // --- Конфигурация ---
-        const BASE_URL = 'https://port.radilov-k.workers.dev';
+        const BASE_URL = "https://port.radilov-k.workers.dev";
         const WORKER_SUBMIT_URL = `${BASE_URL}/quest-submit`;
         const PAGE_CONTENT_URL = `${BASE_URL}/page_content.json`;
-        
+
         // --- Глобално състояние ---
         let currentStepIndex = 0;
         const totalSteps = steps.length;
@@ -260,207 +1086,362 @@
 
         // --- НОВА ЛОГИКА: Извличане на данните за продуктите при зареждане ---
         async function fetchAndProcessProductData() {
-            try {
-                const response = await fetch(PAGE_CONTENT_URL);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const pageContent = await response.json();
+          try {
+            const response = await fetch(PAGE_CONTENT_URL);
+            if (!response.ok)
+              throw new Error(`HTTP error! status: ${response.status}`);
+            const pageContent = await response.json();
 
-                // Извличаме и "сплескваме" продуктите от всички категории в един масив
-                allProductsData = pageContent.page_content
-                    .filter(component => component.type === 'product_category' && component.products)
-                    .flatMap(category => category.products);
-                
-                console.log("Product data loaded successfully:", allProductsData);
-                nextBtn.disabled = false; // Активираме бутона след успешно зареждане
-            } catch (error) {
-                console.error("Failed to load product data:", error);
-                formErrorText.textContent = "Неуспешно зареждане на продуктовата информация. Моля, презаредете страницата.";
-                formErrorContainer.classList.remove('hidden');
-                nextBtn.disabled = true; // Деактивираме бутоните, ако данните не са заредени
-                backBtn.disabled = true;
-            }
+            // Извличаме и "сплескваме" продуктите от всички категории в един масив
+            allProductsData = pageContent.page_content
+              .filter(
+                (component) =>
+                  component.type === "product_category" && component.products,
+              )
+              .flatMap((category) => category.products);
+
+            console.log("Product data loaded successfully:", allProductsData);
+            nextBtn.disabled = false; // Активираме бутона след успешно зареждане
+          } catch (error) {
+            console.error("Failed to load product data:", error);
+            formErrorText.textContent =
+              "Неуспешно зареждане на продуктовата информация. Моля, презаредете страницата.";
+            formErrorContainer.classList.remove("hidden");
+            nextBtn.disabled = true; // Деактивираме бутоните, ако данните не са заредени
+            backBtn.disabled = true;
+          }
         }
-        
+
         // --- Управление на Темата ---
         function applyTheme(theme) {
-            htmlEl.setAttribute('data-theme', theme);
-            sunIcon.style.display = theme === 'dark' ? 'block' : 'none';
-            moonIcon.style.display = theme === 'light' ? 'block' : 'none';
+          htmlEl.setAttribute("data-theme", theme);
+          sunIcon.style.display = theme === "dark" ? "block" : "none";
+          moonIcon.style.display = theme === "light" ? "block" : "none";
         }
-        const savedTheme = localStorage.getItem('theme') || 'dark';
+        const savedTheme = localStorage.getItem("theme") || "dark";
         applyTheme(savedTheme);
-        themeToggle.addEventListener('click', () => {
-            const newTheme = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            localStorage.setItem('theme', newTheme);
-            applyTheme(newTheme);
+        themeToggle.addEventListener("click", () => {
+          const newTheme =
+            htmlEl.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          localStorage.setItem("theme", newTheme);
+          applyTheme(newTheme);
         });
 
         // --- Навигация и Валидация на Формата (остава почти непроменена) ---
         function updateForm() {
-            steps.forEach((step, index) => step.classList.toggle('active', index === currentStepIndex));
-            progressBar.style.width = `${(currentStepIndex / (totalSteps - 1)) * 100}%`;
-            backBtn.style.display = currentStepIndex === 0 ? 'none' : 'block';
-            nextBtn.textContent = currentStepIndex === totalSteps - 1 ? 'Генерирай Протокол' : 'Напред';
+          steps.forEach((step, index) =>
+            step.classList.toggle("active", index === currentStepIndex),
+          );
+          progressBar.style.width = `${(currentStepIndex / (totalSteps - 1)) * 100}%`;
+          backBtn.style.display = currentStepIndex === 0 ? "none" : "block";
+          nextBtn.textContent =
+            currentStepIndex === totalSteps - 1
+              ? "Генерирай Протокол"
+              : "Напред";
         }
 
         function showError(inputElement, message) {
-            inputElement.classList.add('input-error');
-            const errorContainer = inputElement.parentElement.querySelector('.error-message');
-            if (errorContainer) { errorContainer.textContent = message; errorContainer.style.display = 'block';}
+          inputElement.classList.add("input-error");
+          const errorContainer =
+            inputElement.parentElement.querySelector(".error-message");
+          if (errorContainer) {
+            errorContainer.textContent = message;
+            errorContainer.style.display = "block";
+          }
         }
 
         function clearError(inputElement) {
-            inputElement.classList.remove('input-error');
-            const errorContainer = inputElement.parentElement.querySelector('.error-message');
-            if (errorContainer) { errorContainer.textContent = ''; errorContainer.style.display = 'none';}
+          inputElement.classList.remove("input-error");
+          const errorContainer =
+            inputElement.parentElement.querySelector(".error-message");
+          if (errorContainer) {
+            errorContainer.textContent = "";
+            errorContainer.style.display = "none";
+          }
         }
-        
+
         function validateCurrentStep() {
-            const currentStep = steps[currentStepIndex];
-            currentStep.querySelectorAll('.input-error').forEach(el => clearError(el));
-            currentStep.querySelectorAll('.error-message').forEach(el => {
-                el.textContent = ''; el.style.display = 'none';
-            });
-            let isValid = true;
-            const inputs = currentStep.querySelectorAll('input, textarea');
-            for (const input of inputs) {
-                const name = input.name;
-                const value = input.value.trim();
-                if (input.hasAttribute('id') && !['gender', 'goals', 'activity', 'duration', 'consent'].includes(name) && value === '') {
-                    isValid = false; showError(input, 'Това поле е задължително.'); continue;
-                }
-                switch (input.id) {
-                    case 'age': if (isNaN(value) || +value < 18 || +value > 100) { isValid = false; showError(input, 'Моля, въведете валидна възраст (18-100).'); } break;
-                    case 'height': if (isNaN(value) || +value < 100 || +value > 250) { isValid = false; showError(input, 'Моля, въведете валиден ръст в см (100-250).'); } break;
-                    case 'weight': if (isNaN(value) || +value < 30 || +value > 300) { isValid = false; showError(input, 'Моля, въведете валидно тегло в кг (30-300).'); } break;
-                    case 'main-goal': if (value.length > 0 && value.length < 10) { isValid = false; showError(input, 'Моля, опишете целта си с поне 10 символа.'); } break;
-                    case 'conditions': case 'medications': case 'allergies':
-                        if (value.length > 0 && value.length < 3) {isValid = false; showError(input, 'Моля, опишете по-подробно или въведете \'Нямам\'/\'Не\'.');} break;
-                    case 'sleep': if (isNaN(value) || +value < 1 || +value > 16) { isValid = false; showError(input, 'Моля, въведете валиден брой часове (1-16).'); } break;
-                    case 'stress': if (isNaN(value) || +value < 1 || +value > 10) { isValid = false; showError(input, 'Моля, въведете число от 1 до 10.'); } break;
-                    case 'email': const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (!emailRegex.test(value)) { isValid = false; showError(input, 'Моля, въведете валиден имейл адрес.'); } break;
-                    case 'phone': const phoneRegex = /^[0-9\s+()-]{9,}$/; if (!phoneRegex.test(value)) { isValid = false; showError(input, 'Моля, въведете валиден телефонен номер.'); } break;
-                }
+          const currentStep = steps[currentStepIndex];
+          currentStep
+            .querySelectorAll(".input-error")
+            .forEach((el) => clearError(el));
+          currentStep.querySelectorAll(".error-message").forEach((el) => {
+            el.textContent = "";
+            el.style.display = "none";
+          });
+          let isValid = true;
+          const inputs = currentStep.querySelectorAll("input, textarea");
+          for (const input of inputs) {
+            const name = input.name;
+            const value = input.value.trim();
+            if (
+              input.hasAttribute("id") &&
+              ![
+                "gender",
+                "goals",
+                "activity",
+                "duration",
+                "consent",
+                "main_goal",
+                "conditions",
+                "medications",
+                "allergies",
+              ].includes(name) &&
+              value === ""
+            ) {
+              isValid = false;
+              showError(input, "Това поле е задължително.");
+              continue;
             }
-            const checkGroups = (name, message) => {
-                const group = currentStep.querySelector(`input[name="${name}"]`);
-                if (group && !form.querySelector(`input[name="${name}"]:checked`)) {
-                    isValid = false;
-                    const errorContainer = group.closest('.form-group').querySelector('.error-message');
-                    if (errorContainer) { errorContainer.textContent = message; errorContainer.style.display = 'block'; }
+            switch (input.id) {
+              case "age":
+                if (isNaN(value) || +value < 18 || +value > 100) {
+                  isValid = false;
+                  showError(input, "Моля, въведете валидна възраст (18-100).");
                 }
-            };
-            if(currentStepIndex === 0) checkGroups('gender', 'Моля, изберете пол.');
-            if(currentStepIndex === 1) checkGroups('goals', 'Моля, изберете поне една цел.');
-            if(currentStepIndex === 3) checkGroups('activity', 'Моля, изберете ниво на активност.');
-            if(currentStepIndex === 4) {
-                checkGroups('duration', 'Моля, изберете период на прием.');
-                checkGroups('consent', 'Трябва да се съгласите с условието.');
+                break;
+              case "height":
+                if (isNaN(value) || +value < 100 || +value > 250) {
+                  isValid = false;
+                  showError(
+                    input,
+                    "Моля, въведете валиден ръст в см (100-250).",
+                  );
+                }
+                break;
+              case "weight":
+                if (isNaN(value) || +value < 30 || +value > 300) {
+                  isValid = false;
+                  showError(
+                    input,
+                    "Моля, въведете валидно тегло в кг (30-300).",
+                  );
+                }
+                break;
+              case "main-goal":
+                if (value.length > 0 && value.length < 10) {
+                  isValid = false;
+                  showError(input, "Моля, опишете целта си с поне 10 символа.");
+                }
+                break;
+              case "conditions":
+              case "medications":
+              case "allergies":
+                if (value.length > 0 && value.length < 3) {
+                  isValid = false;
+                  showError(
+                    input,
+                    "Моля, опишете по-подробно или въведете 'Нямам'/'Не'.",
+                  );
+                }
+                break;
+              case "sleep":
+                if (isNaN(value) || +value < 1 || +value > 16) {
+                  isValid = false;
+                  showError(
+                    input,
+                    "Моля, въведете валиден брой часове (1-16).",
+                  );
+                }
+                break;
+              case "stress":
+                if (isNaN(value) || +value < 1 || +value > 10) {
+                  isValid = false;
+                  showError(input, "Моля, въведете число от 1 до 10.");
+                }
+                break;
+              case "email":
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) {
+                  isValid = false;
+                  showError(input, "Моля, въведете валиден имейл адрес.");
+                }
+                break;
+              case "phone":
+                const phoneRegex = /^[0-9\s+()-]{9,}$/;
+                if (!phoneRegex.test(value)) {
+                  isValid = false;
+                  showError(input, "Моля, въведете валиден телефонен номер.");
+                }
+                break;
             }
-            return isValid;
+          }
+          const checkGroups = (name, message) => {
+            const group = currentStep.querySelector(`input[name="${name}"]`);
+            if (group && !form.querySelector(`input[name="${name}"]:checked`)) {
+              isValid = false;
+              const errorContainer = group
+                .closest(".form-group")
+                .querySelector(".error-message");
+              if (errorContainer) {
+                errorContainer.textContent = message;
+                errorContainer.style.display = "block";
+              }
+            }
+          };
+          if (currentStepIndex === 0)
+            checkGroups("gender", "Моля, изберете пол.");
+          if (currentStepIndex === 1)
+            checkGroups("goals", "Моля, изберете поне една цел.");
+          if (currentStepIndex === 3)
+            checkGroups("activity", "Моля, изберете ниво на активност.");
+          if (currentStepIndex === 4) {
+            checkGroups("duration", "Моля, изберете период на прием.");
+            checkGroups("consent", "Трябва да се съгласите с условието.");
+          }
+          return isValid;
         }
 
-        form.querySelectorAll('input, textarea').forEach(input => input.addEventListener('input', () => clearError(input)));
-        form.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
-            input.addEventListener('change', () => {
-                const groupContainer = input.closest('.form-group').querySelector('.error-message');
-                if(groupContainer) { groupContainer.textContent = ''; groupContainer.style.display = 'none'; }
+        form
+          .querySelectorAll("input, textarea")
+          .forEach((input) =>
+            input.addEventListener("input", () => clearError(input)),
+          );
+        form
+          .querySelectorAll('input[type="radio"], input[type="checkbox"]')
+          .forEach((input) => {
+            input.addEventListener("change", () => {
+              const groupContainer = input
+                .closest(".form-group")
+                .querySelector(".error-message");
+              if (groupContainer) {
+                groupContainer.textContent = "";
+                groupContainer.style.display = "none";
+              }
             });
+          });
+
+        nextBtn.addEventListener("click", () => {
+          if (!validateCurrentStep()) return;
+          if (currentStepIndex < totalSteps - 1) {
+            currentStepIndex++;
+            updateForm();
+            window.scrollTo(0, 0);
+          } else {
+            submitForm();
+          }
         });
 
-        nextBtn.addEventListener('click', () => {
-            if (!validateCurrentStep()) return;
-            if (currentStepIndex < totalSteps - 1) {
-                currentStepIndex++; updateForm(); window.scrollTo(0, 0);
-            } else { submitForm(); }
-        });
-
-        backBtn.addEventListener('click', () => {
-            if (currentStepIndex > 0) { currentStepIndex--; updateForm(); window.scrollTo(0, 0); }
+        backBtn.addEventListener("click", () => {
+          if (currentStepIndex > 0) {
+            currentStepIndex--;
+            updateForm();
+            window.scrollTo(0, 0);
+          }
         });
 
         // --- Изпращане на данните (остава почти непроменено) ---
         async function submitForm() {
-            nextBtn.disabled = true; backBtn.disabled = true;
-            nextBtn.textContent = 'Анализираме...';
-            formErrorContainer.classList.add('hidden');
+          nextBtn.disabled = true;
+          backBtn.disabled = true;
+          nextBtn.textContent = "Анализираме...";
+          formErrorContainer.classList.add("hidden");
 
-            const formData = new FormData(form);
-            const data = {};
-            for (const [key, value] of formData.entries()) {
-                if (key === 'goals') continue; data[key] = value;
+          const formData = new FormData(form);
+          const data = {};
+          for (const [key, value] of formData.entries()) {
+            if (key === "goals") continue;
+            data[key] = value;
+          }
+          data.goals = formData.getAll("goals");
+          const fieldsToSanitize = [
+            "name",
+            "main_goal",
+            "conditions",
+            "medications",
+            "allergies",
+          ];
+          fieldsToSanitize.forEach((fieldName) => {
+            if (data[fieldName]) {
+              data[fieldName] = data[fieldName]
+                .replace(/"/g, "'")
+                .replace(/\\/g, "");
             }
-            data.goals = formData.getAll('goals');
-            const fieldsToSanitize = ['name', 'main_goal', 'conditions', 'medications', 'allergies'];
-            fieldsToSanitize.forEach(fieldName => {
-                if (data[fieldName]) { data[fieldName] = data[fieldName].replace(/"/g, "'").replace(/\\/g, ''); }
+          });
+
+          questionnaireContainer.classList.add("hidden");
+          loadingContainer.classList.remove("hidden");
+          window.scrollTo(0, 0);
+
+          try {
+            const response = await fetch(WORKER_SUBMIT_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
             });
-            
-            questionnaireContainer.classList.add('hidden');
-            loadingContainer.classList.remove('hidden');
-            window.scrollTo(0, 0);
-
-            try {
-                const response = await fetch(WORKER_SUBMIT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const results = await response.json();
-                if (!response.ok || results.error) {
-                    throw new Error(results.error || 'Възникна неочаквана грешка от сървъра.');
-                }
-                displayResults(results, data.name);
-            } catch (error) {
-                console.error('Submission failed:', error);
-                formErrorText.textContent = `Грешка при генериране на резултатите: ${error.message}. Моля, проверете връзката си и опитайте отново.`;
-                formErrorContainer.classList.remove('hidden');
-                loadingContainer.classList.add('hidden');
-                questionnaireContainer.classList.remove('hidden');
-                nextBtn.disabled = false; backBtn.disabled = false;
-                updateForm();
+            const results = await response.json();
+            if (!response.ok || results.error) {
+              throw new Error(
+                results.error || "Възникна неочаквана грешка от сървъра.",
+              );
             }
+            displayResults(results, data.name);
+          } catch (error) {
+            console.error("Submission failed:", error);
+            formErrorText.textContent = `Грешка при генериране на резултатите: ${error.message}. Моля, проверете връзката си и опитайте отново.`;
+            formErrorContainer.classList.remove("hidden");
+            loadingContainer.classList.add("hidden");
+            questionnaireContainer.classList.remove("hidden");
+            nextBtn.disabled = false;
+            backBtn.disabled = false;
+            updateForm();
+          }
         }
 
         // --- НОВА ЛОГИКА: Показване на по-богати резултати ---
         function displayResults(results, name) {
-            document.getElementById('results-name').textContent = name;
-            document.getElementById('analysis-text').textContent = results.analysis;
-            document.getElementById('protocol-details').textContent = results.protocol_details;
-            document.getElementById('results-disclaimer').textContent = results.disclaimer;
+          document.getElementById("results-name").textContent = name;
+          document.getElementById("analysis-text").textContent =
+            results.analysis;
+          document.getElementById("protocol-details").textContent =
+            results.protocol_details;
+          document.getElementById("results-disclaimer").textContent =
+            results.disclaimer;
 
-            const productsList = document.getElementById('products-list');
-            productsList.innerHTML = ''; // Изчистваме старите резултати
+          const productsList = document.getElementById("products-list");
+          productsList.innerHTML = ""; // Изчистваме старите резултати
 
-            results.recommended_products.forEach(rec => {
-                // Намираме пълната информация за продукта по ID
-                const productDetails = allProductsData.find(p => p.product_id === rec.product_id);
-                if (!productDetails) {
-                    console.warn(`Product with ID ${rec.product_id} not found in local data.`);
-                    return; // Пропускаме, ако продуктът не е намерен
-                }
+          results.recommended_products.forEach((rec) => {
+            // Намираме пълната информация за продукта по ID
+            const productDetails = allProductsData.find(
+              (p) => p.product_id === rec.product_id,
+            );
+            if (!productDetails) {
+              console.warn(
+                `Product with ID ${rec.product_id} not found in local data.`,
+              );
+              return; // Пропускаме, ако продуктът не е намерен
+            }
 
-                // Генерираме HTML за ефектите
-                const effectsHtml = productDetails.public_data.effects.map(effect => `
+            // Генерираме HTML за ефектите
+            const effectsHtml = productDetails.public_data.effects
+              .map(
+                (effect) => `
                     <div class="effect-bar-container">
                         <span class="effect-label">${effect.label}</span>
                         <div class="effect-bar-background">
                             <div class="effect-bar-fill" style="width: ${effect.value}%;"></div>
                         </div>
                     </div>
-                `).join('');
+                `,
+              )
+              .join("");
 
-                // Генерираме HTML за вариантите
-                const variantsHtml = productDetails.public_data.variants.map(variant => `
+            // Генерираме HTML за вариантите
+            const variantsHtml = productDetails.public_data.variants
+              .map(
+                (variant) => `
                     <li>
                         <a href="${variant.url}" target="_blank" rel="noopener noreferrer">
-                            ${variant.title} <small>- ${variant.description}</small>
+                            ${variant.title} <small>- ${variant.description}${variant.price ? ` - ${variant.price} лв.` : ""}</small>
                         </a>
                     </li>
-                `).join('');
-                
-                // Сглобяваме цялата карта на продукта
-                const productCardHtml = `
+                `,
+              )
+              .join("");
+
+            // Сглобяваме цялата карта на продукта
+            const productCardHtml = `
                     <div class="product-result-card">
                         <div class="product-header">
                             <img src="${productDetails.public_data.image_url}" alt="${productDetails.public_data.name}" onerror="this.style.display='none'">
@@ -492,38 +1473,45 @@
                         </div>
                     </div>
                 `;
-                productsList.innerHTML += productCardHtml;
-            });
+            productsList.innerHTML += productCardHtml;
+          });
 
-            const tipsList = document.getElementById('tips-list');
-            tipsList.innerHTML = '';
-            results.lifestyle_tips.forEach(tip => {
-                const tipLi = document.createElement('li');
-                tipLi.textContent = tip;
-                tipsList.appendChild(tipLi);
-            });
+          const tipsList = document.getElementById("tips-list");
+          tipsList.innerHTML = "";
+          results.lifestyle_tips.forEach((tip) => {
+            const tipLi = document.createElement("li");
+            tipLi.textContent = tip;
+            tipsList.appendChild(tipLi);
+          });
 
-            loadingContainer.classList.add('hidden');
-            resultsContainer.classList.remove('hidden');
+          loadingContainer.classList.add("hidden");
+          resultsContainer.classList.remove("hidden");
 
-            const resultCards = resultsContainer.querySelectorAll('.result-card, .product-result-card');
-            resultCards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
-            });
+          const resultCards = resultsContainer.querySelectorAll(
+            ".result-card, .product-result-card",
+          );
+          resultCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+          });
         }
-        
-        resetBtn.addEventListener('click', () => { location.reload(); });
-        
+
+        resetBtn.addEventListener("click", () => {
+          location.reload();
+        });
+
         // --- Инициализация ---
         async function initialize() {
-            nextBtn.disabled = true; // Деактивираме бутона, докато данните се зареждат
-            nextBtn.textContent = 'Зареждане...';
-            await fetchAndProcessProductData();
-            updateForm();
+          nextBtn.disabled = true; // Деактивираме бутона, докато данните се зареждат
+          nextBtn.textContent = "Зареждане...";
+          await fetchAndProcessProductData();
+          updateForm();
         }
 
         initialize();
-    });
+      });
     </script>
-</body>
+    <footer class="main-footer" style="padding: 2rem 0; text-align: center">
+      <a href="index.html" class="btn-primary">Връщане към начална страница</a>
+    </footer>
+  </body>
 </html>
