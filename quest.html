@@ -17,24 +17,22 @@
   <body>
     <header class="main-header">
       <div class="header-container">
-        <a href="index.html" class="logo-container">
-          <img src="img/logo.svg" alt="BIOCODE Logo" />
+        <a href="index.html" class="logo-container" id="header-logo-link">
+          <img src="" alt="BIOCODE Logo" id="header-logo-img" />
           <div>
-            <span class="brand-name">BIOCODE</span>
+            <span class="brand-name" id="header-brand-name">BIOCODE</span>
+            <span class="brand-slogan" id="header-brand-slogan"></span>
           </div>
         </a>
         <nav class="main-nav">
-          <ul class="nav-links">
-            <li><a href="index.html">Начало</a></li>
-            <li><a href="checkout.html">Количка</a></li>
+          <ul class="nav-links" id="main-nav-links">
             <li>
-              <button id="theme-toggle" aria-label="Toggle theme">
-                <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path d="M12 4.5C12.8284 4.5 13.5 5.17157 13.5 6V7.5C13.5 8.32843 12.8284 9 12 9C11.1716 9 10.5 8.32843 10.5 7.5V6C10.5 5.17157 11.1716 4.5 12 4.5Z" />
-                </svg>
-                <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none">
-                  <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.758a.75.75 0 00-1.06-1.06l-1.59 1.591a.75.75 0 101.06 1.06l1.59-1.591z" />
-                </svg>
+              <a href="checkout.html" class="cart-link">Количка (<span id="cart-count">0</span>)</a>
+            </li>
+            <li>
+              <button id="theme-toggle" aria-label="Смяна на светла/тъмна тема">
+                <span id="theme-icon-sun" class="theme-icon">🌞</span>
+                <span id="theme-icon-moon" class="theme-icon">🌙</span>
                 <span class="theme-toggle-text">Тема</span>
               </button>
             </li>
@@ -471,8 +469,19 @@
       </div>
 </main>
 
-    <script src="questionnaire.js"></script>
-    <footer class="main-footer" style="padding: 2rem 0; text-align: center">
+    <footer class="main-footer">
+      <div class="container">
+        <div class="footer-grid" id="footer-grid-container">
+          <!-- Футър колоните ще бъдат генерирани от JS -->
+        </div>
+        <div class="footer-bottom" id="footer-copyright-container">
+          <!-- Copyright текстът ще бъде генериран от JS -->
+        </div>
+      </div>
     </footer>
+
+    <a href="#" id="back-to-top" aria-label="Back to top">↑</a>
+
+    <script src="questionnaire.js"></script>
   </body>
 </html>
