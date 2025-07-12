@@ -73,6 +73,30 @@
           applyTheme(newTheme);
         });
 
+        // --- Мобилно меню ---
+        const menuToggle = document.querySelector(".menu-toggle");
+        const navLinksContainer = document.querySelector(".nav-links");
+        const navOverlay = document.querySelector(".nav-overlay");
+        function closeMenu() {
+          menuToggle.classList.remove("active");
+          navLinksContainer.classList.remove("active");
+          navOverlay.classList.remove("active");
+          document.body.classList.remove("nav-open");
+        }
+        menuToggle.addEventListener("click", () => {
+          menuToggle.classList.toggle("active");
+          navLinksContainer.classList.toggle("active");
+          navOverlay.classList.toggle("active");
+          document.body.classList.toggle("nav-open");
+        });
+        navOverlay.addEventListener("click", closeMenu);
+        navLinksContainer.addEventListener("click", (e) => {
+          if (e.target.tagName === "A" || e.target.closest("button")) {
+            if (!e.target.closest("#theme-toggle")) {
+              closeMenu();
+            }
+          }
+        });
         // --- Навигация и Валидация на Формата (остава почти непроменена) ---
         function updateForm() {
           steps.forEach((step, index) =>
