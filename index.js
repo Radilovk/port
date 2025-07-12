@@ -22,13 +22,7 @@ const DOM = {
     menuToggle: document.querySelector('.menu-toggle'),
     navLinksContainer: document.querySelector('.nav-links'),
     navOverlay: document.querySelector('.nav-overlay'),
-    body: document.body,
-    questModal: {
-        backdrop: document.getElementById('quest-modal-backdrop'),
-        container: document.getElementById('quest-modal-container'),
-        closeBtn: document.getElementById('quest-close-btn'),
-        iframe: document.getElementById('quest-iframe')
-    }
+    body: document.body
 };
 
 function debounce(func, wait) {
@@ -41,19 +35,6 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
     };
-}
-
-function openQuestModal() {
-    if (DOM.questModal.iframe && !DOM.questModal.iframe.src) {
-        DOM.questModal.iframe.src = 'quest.html';
-    }
-    DOM.questModal.container.classList.add('show');
-    DOM.questModal.backdrop.classList.add('show');
-}
-
-function closeQuestModal() {
-    DOM.questModal.container.classList.remove('show');
-    DOM.questModal.backdrop.classList.remove('show');
 }
 
 
@@ -373,13 +354,6 @@ function initializeGlobalScripts() {
         }
     });
 
-    if (DOM.questModal.closeBtn) {
-        DOM.questModal.closeBtn.addEventListener('click', closeQuestModal);
-    }
-    if (DOM.questModal.backdrop) {
-        DOM.questModal.backdrop.addEventListener('click', closeQuestModal);
-    }
-
     updateCartCount();
 }
 
@@ -407,15 +381,6 @@ function initializeScrollSpy() {
     }, { rootMargin: '-40% 0px -60% 0px' });
 
     sections.forEach(section => observer.observe(section));
-}
-
-function initializeQuestModal() {
-    document.querySelectorAll('a[href="quest.html"], .quest-link').forEach(link => {
-        link.addEventListener('click', e => {
-            e.preventDefault();
-            openQuestModal();
-        });
-    });
 }
 
 
@@ -518,7 +483,6 @@ async function main() {
 
         initializePageInteractions();
         initializeScrollSpy();
-        initializeQuestModal();
 
     } catch (error) {
         console.error("Fatal Error: Could not load or render page content.", error);
