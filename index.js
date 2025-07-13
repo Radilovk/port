@@ -71,6 +71,7 @@ const generateProductCard = (product) => {
     }
 
     const publicData = product.public_data;
+    const inventory = product.system_data?.inventory ?? 0;
     const productId = product.product_id; // Използваме надеждния уникален ID
     const cardDetailsId = `card-details-${productId}`;
 
@@ -79,6 +80,7 @@ const generateProductCard = (product) => {
         <div class="card-header" role="button" aria-expanded="false" aria-controls="${cardDetailsId}" tabindex="0">
             <div class="product-title"><h3>${publicData.name}</h3><p>${publicData.tagline}</p></div>
             <div class="product-price">${Number(publicData.price).toFixed(2)} лв.</div>
+            <div class="product-stock ${inventory > 0 ? '' : 'out-of-stock'}">${inventory > 0 ? `Налично: ${inventory}` : 'Изчерпано'}</div>
             <div class="effects-container">
                 ${(publicData.effects || []).map(generateEffectBar).join('')}
             </div>
@@ -91,7 +93,7 @@ const generateProductCard = (product) => {
             <ul class="product-variants">
                 ${(publicData.variants || []).map(generateVariantItem).join('')}
             </ul>
-            <button class="add-to-cart-btn" data-id="${productId}" data-name="${publicData.name}" data-price="${publicData.price}">Добави в количката</button>
+            <button class="add-to-cart-btn" data-id="${productId}" data-name="${publicData.name}" data-price="${publicData.price}" data-inventory="${inventory}" ${inventory > 0 ? '' : 'disabled'}>Добави в количката</button>
         </div>
     </article>`;
 }
@@ -175,13 +177,22 @@ const showAddToCartFeedback = (productId) => {
     }, 2000);
 }
 
-const addToCart = (id, name, price) => {
+const addToCart = (id, name, price, inventory) => {
+    const maxQty = Number(inventory) || 0;
     const cart = getCart();
     const idx = cart.findIndex(i => i.id === id);
     if (idx > -1) {
+        if (maxQty && cart[idx].quantity >= maxQty) {
+            alert('Няма достатъчна наличност.');
+            return;
+        }
         cart[idx].quantity++;
     } else {
-        cart.push({ id, name, price: Number(price), quantity: 1 });
+        if (maxQty === 0) {
+            alert('Продуктът е изчерпан.');
+            return;
+        }
+        cart.push({ id, name, price: Number(price), quantity: 1, inventory: maxQty });
     }
     saveCart(cart);
     updateCartCount();
@@ -279,7 +290,12 @@ function initializePageInteractions() {
         const addToCartBtn = e.target.closest('.add-to-cart-btn');
         if (addToCartBtn) {
             e.stopPropagation();
-            addToCart(addToCartBtn.dataset.id, addToCartBtn.dataset.name, addToCartBtn.dataset.price);
+            addToCart(
+                addToCartBtn.dataset.id,
+                addToCartBtn.dataset.name,
+                addToCartBtn.dataset.price,
+                addToCartBtn.dataset.inventory
+            );
             return;
         }
     });

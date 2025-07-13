@@ -227,7 +227,7 @@
             </ul>
             <div class="promo-code-form">
                 <input type="text" id="promo-code" placeholder="Промо код">
-                <button>Приложи</button>
+                <button id="apply-promo">Приложи</button>
             </div>
             <div class="summary-details">
                 <div class="summary-row">
@@ -237,6 +237,10 @@
                 <div class="summary-row">
                     <span>Доставка</span>
                     <span id="summary-shipping">10.00 лв.</span>
+                </div>
+                <div class="summary-row" id="discount-row" style="display:none;">
+                    <span>Отстъпка</span>
+                    <span id="summary-discount"></span>
                 </div>
                 <div class="summary-row total">
                     <span>ОБЩО</span>
@@ -251,6 +255,8 @@
 
         // --- 1. Зареждане на количката от localStorage ---
         const cartData = JSON.parse(localStorage.getItem('cart') || '[]');
+        const PROMO_CODES = { 'SAVE10': 0.10, 'WELCOME5': 0.05 };
+        let activeDiscount = 0;
 
         // --- 2. ЕЛЕМЕНТИ ОТ DOM ---
         const productListEl = document.getElementById('product-list');
@@ -258,6 +264,10 @@
         const shippingEl = document.getElementById('summary-shipping');
         const totalEl = document.getElementById('summary-total');
         const form = document.getElementById('checkout-form');
+        const promoInput = document.getElementById('promo-code');
+        const applyPromoBtn = document.getElementById('apply-promo');
+        const discountRow = document.getElementById('discount-row');
+        const discountEl = document.getElementById('summary-discount');
         const themeToggle = document.getElementById('theme-toggle');
         const menuToggle = document.querySelector('.menu-toggle');
         const navLinks = document.querySelector('.nav-links');
@@ -311,10 +321,18 @@
         function updateSummary() {
             const subtotal = cartData.reduce((acc, p) => acc + (p.price * p.quantity), 0);
             const shipping = subtotal > 0 ? 10.00 : 0.00;
-            const total = subtotal + shipping;
+            const discountAmount = subtotal * activeDiscount;
+            const total = subtotal - discountAmount + shipping;
 
             subtotalEl.textContent = `${subtotal.toFixed(2)} лв.`;
             shippingEl.textContent = `${shipping.toFixed(2)} лв.`;
+            if (activeDiscount > 0) {
+                discountRow.style.display = 'flex';
+                discountEl.textContent = `- ${discountAmount.toFixed(2)} лв.`;
+            } else {
+                discountRow.style.display = 'none';
+                discountEl.textContent = '';
+            }
             totalEl.textContent = `${total.toFixed(2)} лв.`;
         }
 
@@ -330,7 +348,12 @@
             if (target.matches('.quantity-btn')) {
                 const action = target.dataset.action;
                 if (action === 'increase') {
-                    cartData[productIndex].quantity++;
+                    const max = cartData[productIndex].inventory || Infinity;
+                    if (cartData[productIndex].quantity < max) {
+                        cartData[productIndex].quantity++;
+                    } else {
+                        alert('Няма повече наличности.');
+                    }
                 } else if (action === 'decrease' && cartData[productIndex].quantity > 1) {
                     cartData[productIndex].quantity--;
                 }
@@ -346,6 +369,17 @@
                     saveCart();
                     updateCartCount();
                 }
+            }
+        });
+
+        applyPromoBtn.addEventListener('click', () => {
+            const code = promoInput.value.trim().toUpperCase();
+            if (PROMO_CODES[code]) {
+                activeDiscount = PROMO_CODES[code];
+                updateSummary();
+                alert('Промо кодът е приложен.');
+            } else {
+                alert('Невалиден промо код.');
             }
         });
 
