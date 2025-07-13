@@ -1,0 +1,18 @@
+[
+  {
+    "clientId": "client-1752202874707",
+    "timestamp": "2025-07-11T03:01:32.441Z",
+    "recommendation": {
+      "result": {
+        "response": "Here is the analysis and recommendation in JSON format:\n\n{\n  \"analysis\": \"Based on your goals for improving sleep quality, we can develop a personalized program to address your specific needs. As a 76-year-old male, it's essential to prioritize sleep quality to support overall health and well-being. We will recommend products that can help regulate your sleep-wake cycle and improve the quality of your sleep.\",\n  \"recommended_products\": [\n    {\n      \"name\": \"Epitalon\",\n      \"reason\": \"Epitalon is a revolutionary peptide that can help regulate your sleep-wake cycle and improve the quality of your sleep. It's an excellent choice for individuals with sleep disorders or those who struggle with insomnia.\"\n    },\n    {\n      \"name\": \"DSIP\",\n      \"reason\": \"DSIP is a natural peptide that can induce deep sleep and improve the quality of your sleep. It's an excellent choice for individuals who struggle with sleep quality and want to improve their overall health and well-being.\"\n    }\n  ],\n  \"protocol_details\": \"Recommended cycle: 3 months. \\n- **Epitalon:** Inject 10 mcg in the morning, 5 days a week. \\n- **DSIP:** Take 50 mcg before",
+        "usage": {
+          "prompt_tokens": 2335,
+          "completion_tokens": 256,
+          "total_tokens": 2591
+        }
+      },
+      "success": true,
+      "errors": [],
+      "messages": []
+    }
+ 

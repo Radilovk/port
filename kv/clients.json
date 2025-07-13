@@ -1,0 +1,27 @@
+[
+  {
+    "goals": [
+      "anti-aging",
+      "skin-health",
+      "libido"
+    ],
+    "gender": "male",
+    "age": "45",
+    "height": "187",
+    "weight": "98",
+    "main_goal": "искам да съм млад и здрав",
+    "conditions": "не",
+    "medications": "да, приемам анавар",
+    "allergies": "от котки",
+    "activity": "3-4",
+    "sleep": "5",
+    "stress": "5",
+    "name": "Камен Радилов",
+    "email": "radilov.k@gmail.com",
+    "phone": "0886920828",
+    "duration": "3-4m",
+    "consent": "on",
+    "id": "client-1752200337522",
+    "timestamp": "2025-07-11T02:18:57.522Z"
+  },
+ 
