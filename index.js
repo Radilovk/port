@@ -195,7 +195,7 @@ const addToCart = (id, name, price) => {
 
 function renderHeader(settings, navigation) {
     document.title = settings.site_name;
-    DOM.header.logoImg.src = settings.logo_url;
+    DOM.header.logoImg.src = encodeURI(settings.logo_url);
     DOM.header.logoImg.alt = `${settings.site_name} Logo`;
     DOM.header.brandName.textContent = settings.site_name;
     DOM.header.brandSlogan.textContent = settings.site_slogan;
