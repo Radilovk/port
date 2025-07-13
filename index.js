@@ -416,18 +416,25 @@ function initializeScrollSpy() {
 //          6. CANVAS АНИМАЦИЯ (CANVAS LOGIC)
 // =======================================================
 let animationFrameId;
-let canvas, ctx, particles = [];
+let canvas, ctx,
+    particles = [],
+    lastWidth = 0,
+    lastHeight = 0;
 
 function initializeCanvasAnimation(forceReinit = false) {
     canvas = document.getElementById('neuron-canvas');
     if (!canvas) return;
-    
+
     ctx = canvas.getContext('2d');
 
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
     }
     
+    // Respect user preference for reduced motion
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return;
+
     // --- Helper Functions ---
     class Particle {
         constructor(x, y, dirX, dirY, size, color) { this.x = x; this.y = y; this.directionX = dirX; this.directionY = dirY; this.size = size; this.color = color; }
@@ -437,7 +444,8 @@ function initializeCanvasAnimation(forceReinit = false) {
 
     function initParticles() {
         particles = [];
-        const particleCount = Math.floor((canvas.width * canvas.height) / 12000);
+        const baseCount = Math.floor((canvas.width * canvas.height) / 12000);
+        const particleCount = Math.max(10, Math.floor(baseCount * (window.innerWidth < 768 ? 0.6 : 1)));
         const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
         for (let i = 0; i < particleCount; i++) {
             particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height, (Math.random() * 0.4) - 0.2, (Math.random() * 0.4) - 0.2, Math.random() * 2 + 1, accentColor));
@@ -446,10 +454,20 @@ function initializeCanvasAnimation(forceReinit = false) {
 
     function resizeCanvas() {
         const parent = canvas.parentElement;
-        if (parent) {
-            canvas.width = parent.offsetWidth;
-            canvas.height = parent.offsetHeight;
-        }
+        if (!parent) return;
+        const width = parent.offsetWidth;
+        const height = parent.offsetHeight;
+        if (width === lastWidth && height === lastHeight) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        lastWidth = width;
+        lastHeight = height;
     }
 
     function connect() {
