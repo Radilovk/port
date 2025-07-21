@@ -23,16 +23,22 @@ const env = {
   },
   PAGE_CONTENT: {
     async get(key) {
+      const file = key === 'products' ? './products.json'
+                 : key === 'site_content' ? './site_content.json'
+                 : './page_content.json';
       try {
-        return await fs.readFile('./page_content.json', 'utf8');
+        return await fs.readFile(file, 'utf8');
       } catch {
-        const init = '{}';
-        await fs.writeFile('./page_content.json', init);
+        const init = key === 'products' ? '{"product_categories":[]}' : '{}';
+        await fs.writeFile(file, init);
         return init;
       }
     },
     async put(key, value) {
-      await fs.writeFile('./page_content.json', value);
+      const file = key === 'products' ? './products.json'
+                 : key === 'site_content' ? './site_content.json'
+                 : './page_content.json';
+      await fs.writeFile(file, value);
     }
   }
 };
