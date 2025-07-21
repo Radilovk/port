@@ -38,12 +38,24 @@ export default {
           response = await handleQuestSubmit(request, env, ctx);
           break;
         
-        case '/page_content.json':
-          // Този ендпойнт вече ще обработва GET и POST
+        case '/page_content.json': // стара съвместимост
+        case '/site_content.json':
+          // Този ендпойнт обработва GET и POST за маркетингово съдържание
           if (request.method === 'GET') {
               response = await handleGetPageContent(request, env);
           } else if (request.method === 'POST') {
               response = await handleSavePageContent(request, env, ctx);
+          } else {
+              throw new UserFacingError('Method Not Allowed.', 405);
+          }
+          break;
+
+        case '/products.json':
+          // Нов ендпойнт за каталога с продукти
+          if (request.method === 'GET') {
+              response = await handleGetProducts(request, env);
+          } else if (request.method === 'POST') {
+              response = await handleSaveProducts(request, env, ctx);
           } else {
               throw new UserFacingError('Method Not Allowed.', 405);
           }
@@ -112,6 +124,37 @@ async function handleSavePageContent(request, env, ctx) {
         // Проверяваме дали е валиден JSON, преди да запишем
         JSON.parse(contentToSave);
         ctx.waitUntil(env.PAGE_CONTENT.put('page_content', contentToSave));
+        return new Response(JSON.stringify({ success: true, message: 'Content saved.' }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    } catch (e) {
+        throw new UserFacingError("Invalid JSON provided in the request body.", 400);
+    }
+}
+
+/**
+ * Handles GET /products.json
+ */
+async function handleGetProducts(request, env) {
+    const products = await env.PAGE_CONTENT.get('products');
+    if (products === null) {
+        throw new UserFacingError("Content not found.", 404);
+    }
+    return new Response(products, {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+    });
+}
+
+/**
+ * Handles POST /products.json
+ */
+async function handleSaveProducts(request, env, ctx) {
+    const contentToSave = await request.text();
+    try {
+        JSON.parse(contentToSave);
+        ctx.waitUntil(env.PAGE_CONTENT.put('products', contentToSave));
         return new Response(JSON.stringify({ success: true, message: 'Content saved.' }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }

@@ -532,15 +532,26 @@ async function main() {
     initializeGlobalScripts();
     
     try {
-        const response = await fetch(`${API_URL}/page_content.json?v=${Date.now()}`);
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const data = await response.json();
+        const [siteRes, productsRes] = await Promise.all([
+            fetch(`${API_URL}/site_content.json?v=${Date.now()}`),
+            fetch(`${API_URL}/products.json?v=${Date.now()}`)
+        ]);
+        if (!siteRes.ok || !productsRes.ok) {
+            throw new Error('HTTP error while loading content');
+        }
+        const siteData = await siteRes.json();
+        const productsData = await productsRes.json();
 
-        DOM.mainContainer.innerHTML = ''; 
-        
-        renderHeader(data.settings, data.navigation);
-        renderMainContent(data.page_content);
-        renderFooter(data.settings, data.footer);
+        const mergedContent = [
+            ...(siteData.page_content || []),
+            ...(productsData.product_categories || [])
+        ];
+
+        DOM.mainContainer.innerHTML = '';
+
+        renderHeader(siteData.settings, siteData.navigation);
+        renderMainContent(mergedContent);
+        renderFooter(siteData.settings, siteData.footer);
         
         DOM.mainContainer.classList.add('is-loaded');
 

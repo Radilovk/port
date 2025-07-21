@@ -60,9 +60,20 @@ let currentModalSaveCallback = null;
 
 async function fetchData() {
     try {
-        const response = await fetch(`${API_URL}/page_content.json?v=${Date.now()}`);
-        if (!response.ok) throw new Error(`HTTP грешка! Статус: ${response.status}`);
-        return await response.json();
+        const [siteRes, prodRes] = await Promise.all([
+            fetch(`${API_URL}/site_content.json?v=${Date.now()}`),
+            fetch(`${API_URL}/products.json?v=${Date.now()}`)
+        ]);
+        if (!siteRes.ok || !prodRes.ok) throw new Error('HTTP грешка при зареждане');
+        const siteData = await siteRes.json();
+        const productsData = await prodRes.json();
+        return {
+            ...siteData,
+            page_content: [
+                ...(siteData.page_content || []),
+                ...(productsData.product_categories || [])
+            ]
+        };
     } catch (error) {
         showNotification('Критична грешка при зареждане на данните.', 'error');
         console.error("Грешка при зареждане на page_content:", error);
@@ -93,17 +104,34 @@ async function saveData() {
     DOM.saveStatus.className = 'save-status is-saving';
 
     try {
-        const response = await fetch(`${API_URL}/page_content.json`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(appData, null, 2)
-        });
+        const sitePayload = {
+            settings: appData.settings,
+            navigation: appData.navigation,
+            page_content: appData.page_content.filter(c => c.type !== 'product_category'),
+            footer: appData.footer
+        };
+        const productsPayload = {
+            product_categories: appData.page_content.filter(c => c.type === 'product_category')
+        };
 
-        if (response.ok) {
+        const [siteRes, prodRes] = await Promise.all([
+            fetch(`${API_URL}/site_content.json`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sitePayload, null, 2)
+            }),
+            fetch(`${API_URL}/products.json`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(productsPayload, null, 2)
+            })
+        ]);
+
+        if (siteRes.ok && prodRes.ok) {
             setUnsavedChanges(false);
             showNotification('Промените са записани успешно.', 'success');
         } else {
-            throw new Error(`Грешка от сървъра: ${response.statusText}`);
+            throw new Error('Грешка от сървъра');
         }
     } catch (err) {
         showNotification('Грешка при записване на данните.', 'error');
