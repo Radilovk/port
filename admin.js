@@ -3,7 +3,7 @@
 // =======================================================
 
 // API Endpoint
-import { API_URL } from './config.js';
+import { fetchPageContent, fetchOrders, savePageContent, updateOrderStatus } from "./js/api.js";
 
 // Централизирани DOM елементи
 const DOM = {
@@ -60,26 +60,22 @@ let currentModalSaveCallback = null;
 
 async function fetchData() {
     try {
-        const response = await fetch(`${API_URL}/page_content.json?v=${Date.now()}`);
-        if (!response.ok) throw new Error(`HTTP грешка! Статус: ${response.status}`);
-        return await response.json();
+        return await fetchPageContent();
     } catch (error) {
         showNotification('Критична грешка при зареждане на данните.', 'error');
-        console.error("Грешка при зареждане на page_content:", error);
+        console.error('Грешка при зареждане на page_content:', error);
         return null;
     }
 }
 
-async function fetchOrders() {
+async function fetchOrdersData() {
     try {
-        const response = await fetch(`${API_URL}/orders?v=${Date.now()}`);
-        if (!response.ok) throw new Error(`HTTP грешка! Статус: ${response.status}`);
-        const rawOrders = await response.json();
+        const rawOrders = await fetchOrders();
         ordersData = rawOrders.map((order, index) => ({ ...order, id: order.id || `order_${index}_${Date.now()}` }));
         filteredOrdersData = [...ordersData];
     } catch (error) {
         showNotification('Грешка при зареждане на поръчките.', 'error');
-        console.error("Грешка при зареждане на поръчки:", error);
+        console.error('Грешка при зареждане на поръчки:', error);
         ordersData = [];
         filteredOrdersData = [];
     }
@@ -93,18 +89,9 @@ async function saveData() {
     DOM.saveStatus.className = 'save-status is-saving';
 
     try {
-        const response = await fetch(`${API_URL}/page_content.json`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(appData, null, 2)
-        });
-
-        if (response.ok) {
-            setUnsavedChanges(false);
-            showNotification('Промените са записани успешно.', 'success');
-        } else {
-            throw new Error(`Грешка от сървъра: ${response.statusText}`);
-        }
+        await savePageContent(appData);
+        setUnsavedChanges(false);
+        showNotification('Промените са записани успешно.', 'success');
     } catch (err) {
         showNotification('Грешка при записване на данните.', 'error');
         console.error('Грешка при записване:', err);
@@ -477,11 +464,7 @@ function setupEventListeners() {
         const newStatus = e.target.value;
         ordersData[index].status = newStatus;
         try {
-            await fetch(`${API_URL}/orders`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: ordersData[index].id, status: newStatus })
-            });
+            await updateOrderStatus(ordersData[index].id, newStatus);
             showNotification('Статусът е обновен.', 'success');
         } catch (err) {
             showNotification('Грешка при запис на статуса.', 'error');
@@ -492,7 +475,7 @@ function setupEventListeners() {
     DOM.orderSearchInput.addEventListener('input', () => filterOrders());
     DOM.refreshOrdersBtn.addEventListener('click', async () => {
         showNotification('Опресняване на поръчките...', 'info');
-        await fetchOrders();
+        await fetchOrdersData();
         filterOrders();
     });
 
@@ -773,7 +756,7 @@ async function init() {
     setupEventListeners();
     populateAddComponentMenu();
     appData = await fetchData();
-    await fetchOrders();
+    await fetchOrdersData();
     if (appData) {
         renderAll();
     } else {
