@@ -1,6 +1,7 @@
 import { fetchProducts } from './api.js';
 import { addToCart, updateCartCount } from './cart.js';
 import { generateProductCard } from './components/productCard.js';
+import { trackPageView, trackAddToCart } from "./analytics.js";
 
 const DOM = {
     productContainer: document.getElementById('product-container'),
@@ -44,6 +45,7 @@ async function main() {
         }
         renderProduct(product);
         renderRelated(all.filter(p => p.product_id !== id));
+        trackPageView();
     } catch (err) {
         console.error(err);
         DOM.productContainer.textContent = 'Грешка при зареждане на продукта.';
@@ -54,6 +56,7 @@ document.body.addEventListener('click', e => {
     const btn = e.target.closest('.add-to-cart-btn');
     if (btn) {
         addToCart(btn.dataset.id, btn.dataset.name, btn.dataset.price, btn.dataset.inventory);
+        trackAddToCart({ id: btn.dataset.id, name: btn.dataset.name, price: Number(btn.dataset.price) });
     }
 });
 
