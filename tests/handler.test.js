@@ -71,34 +71,19 @@ describe('orders endpoint', () => {
   });
 });
 
-function createContentEnv(initial = '{}') {
-  let stored = initial;
-  return {
-    PAGE_CONTENT: {
-      async get() { return stored; },
-      async put(_key, value) { stored = value; }
-    },
-    ORDERS: {
-      async get() { return '[]'; },
-      async put() {}
-    },
-    getStored() { return stored; }
-  };
-}
-
-describe('page_content endpoint', () => {
-  test('GET /page_content.json returns data', async () => {
-    const env = createContentEnv('{"title":"Demo"}');
-    const req = new Request('http://localhost/page_content.json', { method: 'GET' });
+describe('products endpoint', () => {
+  test('GET /products.json returns data', async () => {
+    const env = createContentEnv('{"product_categories":[]}');
+    const req = new Request('http://localhost/products.json', { method: 'GET' });
     const res = await handleRequest(req, env);
     expect(res.status).toBe(200);
-    expect(await res.text()).toBe('{"title":"Demo"}');
+    expect(await res.text()).toBe('{"product_categories":[]}');
   });
 
-  test('POST /page_content.json updates data', async () => {
+  test('POST /products.json updates data', async () => {
     const env = createContentEnv();
-    const payload = { title: 'New' };
-    const req = new Request('http://localhost/page_content.json', {
+    const payload = { product_categories: [{ id: 1 }] };
+    const req = new Request('http://localhost/products.json', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -110,9 +95,61 @@ describe('page_content endpoint', () => {
     expect(env.getStored()).toBe(JSON.stringify(payload));
   });
 
-  test('POST /page_content.json with invalid JSON returns error', async () => {
+  test('POST /products.json with invalid JSON returns error', async () => {
     const env = createContentEnv();
-    const req = new Request('http://localhost/page_content.json', {
+    const req = new Request('http://localhost/products.json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{invalid}'
+    });
+    const res = await handleRequest(req, env);
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json).toEqual({ error: 'Invalid JSON' });
+  });
+});
+function createContentEnv(initial = '{}') {
+  let stored = initial;
+  return {
+    PAGE_CONTENT: {
+      async get(key) { return stored; },
+      async put(_key, value) { stored = value; }
+    },
+    ORDERS: {
+      async get() { return '[]'; },
+      async put() {}
+    },
+    getStored() { return stored; }
+  };
+}
+
+describe('site_content endpoint', () => {
+  test('GET /site_content.json returns data', async () => {
+    const env = createContentEnv('{"title":"Demo"}');
+    const req = new Request('http://localhost/site_content.json', { method: 'GET' });
+    const res = await handleRequest(req, env);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('{"title":"Demo"}');
+  });
+
+  test('POST /site_content.json updates data', async () => {
+    const env = createContentEnv();
+    const payload = { title: 'New' };
+    const req = new Request('http://localhost/site_content.json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const res = await handleRequest(req, env);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.status).toBe('ok');
+    expect(env.getStored()).toBe(JSON.stringify(payload));
+  });
+
+  test('POST /site_content.json with invalid JSON returns error', async () => {
+    const env = createContentEnv();
+    const req = new Request('http://localhost/site_content.json', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: '{invalid}'

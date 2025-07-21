@@ -1,13 +1,29 @@
 import { API_URL } from '../config.js';
 
-export async function fetchPageContent() {
-    const response = await fetch(`${API_URL}/page_content.json?v=${Date.now()}`);
+export async function fetchSiteContent() {
+    const response = await fetch(`${API_URL}/site_content.json?v=${Date.now()}`);
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
     return response.json();
 }
 
-export async function savePageContent(data) {
-    const response = await fetch(`${API_URL}/page_content.json`, {
+export async function saveSiteContent(data) {
+    const response = await fetch(`${API_URL}/site_content.json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data, null, 2)
+    });
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    return response.json();
+}
+
+export async function fetchProducts() {
+    const response = await fetch(`${API_URL}/products.json?v=${Date.now()}`);
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    return response.json();
+}
+
+export async function saveProducts(data) {
+    const response = await fetch(`${API_URL}/products.json`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data, null, 2)

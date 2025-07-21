@@ -69,13 +69,13 @@ export async function handleRequest(request, env) {
           headers: corsHeaders
         });
     }
-  } else if (url.pathname === '/page_content.json') {
+  } else if (url.pathname === '/site_content.json' || url.pathname === '/page_content.json') {
     switch (method) {
       case 'GET': {
-        let data = await env.PAGE_CONTENT.get('page_content');
+        let data = await env.PAGE_CONTENT.get('site_content');
         if (data === null) {
           data = '{}';
-          await env.PAGE_CONTENT.put('page_content', data);
+          await env.PAGE_CONTENT.put('site_content', data);
         }
         return new Response(data, {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -91,7 +91,7 @@ export async function handleRequest(request, env) {
           });
         }
         const text = await request.text();
-        await env.PAGE_CONTENT.put('page_content', text);
+        await env.PAGE_CONTENT.put('site_content', text);
         return new Response(JSON.stringify({ status: 'ok' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
@@ -101,6 +101,32 @@ export async function handleRequest(request, env) {
           status: 405,
           headers: corsHeaders
         });
+    }
+  } else if (url.pathname === '/products.json') {
+    switch (method) {
+      case 'GET': {
+        let data = await env.PAGE_CONTENT.get('products');
+        if (data === null) {
+          data = '{"product_categories":[]}'
+          await env.PAGE_CONTENT.put('products', data);
+        }
+        return new Response(data, { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      case 'POST': {
+        try {
+          await request.clone().json();
+        } catch (e) {
+          return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        const text = await request.text();
+        await env.PAGE_CONTENT.put('products', text);
+        return new Response(JSON.stringify({ status: 'ok' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      default:
+        return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
     }
   }
 

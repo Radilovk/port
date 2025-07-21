@@ -532,15 +532,22 @@ async function main() {
     initializeGlobalScripts();
     
     try {
-        const response = await fetch(`${API_URL}/page_content.json?v=${Date.now()}`);
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const data = await response.json();
+        const [siteRes, prodRes] = await Promise.all([
+            fetch(`${API_URL}/site_content.json?v=${Date.now()}`),
+            fetch(`${API_URL}/products.json?v=${Date.now()}`)
+        ]);
+        if (!siteRes.ok || !prodRes.ok) {
+            throw new Error(`HTTP error!`);
+        }
+        const siteData = await siteRes.json();
+        const prodData = await prodRes.json();
+        const combinedContent = [...(siteData.page_content || []), ...(prodData.product_categories || [])];
 
-        DOM.mainContainer.innerHTML = ''; 
-        
-        renderHeader(data.settings, data.navigation);
-        renderMainContent(data.page_content);
-        renderFooter(data.settings, data.footer);
+        DOM.mainContainer.innerHTML = '';
+
+        renderHeader(siteData.settings, siteData.navigation);
+        renderMainContent(combinedContent);
+        renderFooter(siteData.settings, siteData.footer);
         
         DOM.mainContainer.classList.add('is-loaded');
 
