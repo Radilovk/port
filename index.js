@@ -27,7 +27,8 @@ const DOM = {
         backdrop: document.getElementById('quest-modal-backdrop'),
         container: document.getElementById('quest-modal-container'),
         iframe: document.getElementById('quest-modal-iframe')
-    }
+    },
+    toastContainer: document.getElementById('toast-container')
 };
 
 function debounce(func, wait) {
@@ -162,6 +163,18 @@ const updateCartCount = () => {
     DOM.header.cartCount.textContent = count;
 };
 
+const showToast = (message, type = 'info', duration = 3000) => {
+    if (!DOM.toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    DOM.toastContainer.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        toast.addEventListener('transitionend', () => toast.remove());
+    }, duration);
+};
+
 const showAddToCartFeedback = (productId) => {
     const card = document.querySelector(`.product-card[data-product-id="${productId}"]`);
     if (!card) return;
@@ -183,13 +196,13 @@ const addToCart = (id, name, price, inventory) => {
     const idx = cart.findIndex(i => i.id === id);
     if (idx > -1) {
         if (maxQty && cart[idx].quantity >= maxQty) {
-            alert('Няма достатъчна наличност.');
+            showToast('Няма достатъчна наличност.', 'error');
             return;
         }
         cart[idx].quantity++;
     } else {
         if (maxQty === 0) {
-            alert('Продуктът е изчерпан.');
+            showToast('Продуктът е изчерпан.', 'error');
             return;
         }
         cart.push({ id, name, price: Number(price), quantity: 1, inventory: maxQty });
