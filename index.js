@@ -17,7 +17,6 @@ const DOM = {
         gridContainer: document.getElementById('footer-grid-container'),
         copyrightContainer: document.getElementById('footer-copyright-container')
     },
-    themeToggle: document.getElementById('theme-toggle'),
     backToTopBtn: document.getElementById('back-to-top'),
     menuToggle: document.querySelector('.menu-toggle'),
     navLinksContainer: document.querySelector('.nav-links'),
@@ -354,15 +353,6 @@ function initializePageInteractions() {
 }
 
 function initializeGlobalScripts() {
-    DOM.themeToggle.addEventListener('click', () => {
-        const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        // Re-initialize canvas particles on theme change to adopt new colors
-        if (document.getElementById('neuron-canvas')) {
-            initializeCanvasAnimation(true); // Pass true to force re-initialization
-        }
-    });
 
     window.addEventListener('scroll', () => {
         DOM.backToTopBtn.classList.toggle('visible', window.scrollY > 300);
@@ -383,9 +373,7 @@ function initializeGlobalScripts() {
     DOM.navOverlay.addEventListener('click', closeMenu);
     DOM.navLinksContainer.addEventListener('click', e => {
         if (e.target.tagName === 'A' || e.target.closest('button')) {
-            if (!e.target.closest('#theme-toggle')) {
-                closeMenu();
-            }
+            closeMenu();
         }
     });
 
