@@ -13,6 +13,8 @@ async function fetchWithFallback(endpoint) {
     if (primary) return primary;
     const secondary = await tryFetch(endpoint.startsWith('/') ? endpoint : `/${endpoint}`);
     if (secondary) return secondary;
+    const tertiary = await tryFetch(endpoint.startsWith('/') ? endpoint.slice(1) : endpoint);
+    if (tertiary) return tertiary;
     throw new Error('Failed to fetch ' + endpoint);
 }
 
