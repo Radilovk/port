@@ -2,7 +2,7 @@
 //          1. ИНИЦИАЛИЗАЦИЯ И ГЛОБАЛНИ ЕЛЕМЕНТИ
 // =======================================================
 
-const API_URL = 'https://port.radilov-k.workers.dev';
+import { API_URL } from './config.js';
 
 const DOM = {
     mainContainer: document.getElementById('main-content-container'),

@@ -3,7 +3,7 @@
 // =======================================================
 
 // API Endpoint
-const API_URL = 'https://port.radilov-k.workers.dev';
+import { API_URL } from './config.js';
 
 // Централизирани DOM елементи
 const DOM = {
