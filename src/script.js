@@ -1,17 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const toggle = document.getElementById('theme-toggle');
-
-    if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark');
-        toggle.textContent = '🌚';
-    }
-
-    toggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        const dark = document.body.classList.contains('dark');
-        toggle.textContent = dark ? '🌚' : '🌞';
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
-    });
 
     const priceSpan = document.getElementById('product-price');
     if (priceSpan) {
