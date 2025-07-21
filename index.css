@@ -416,6 +416,24 @@ body.modal-open { overflow: hidden; }
 [data-theme="dark"] #theme-icon-sun { display: none; }
 [data-theme="light"] #theme-icon-moon { display: none; }
 
+/* --- Toast Notifications --- */
+#toast-container {
+    position: fixed; top: 10px; left: 10px; right: 10px;
+    z-index: 2000; display: flex; flex-direction: column; gap: 0.5rem;
+    pointer-events: none;
+}
+.toast {
+    padding: 0.75rem 1rem; border-radius: 6px; color: #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15); pointer-events: auto;
+    animation: toast-slide-in 0.4s ease-out;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.toast.success { background-color: var(--success-color); }
+.toast.error { background-color: #dc3545; }
+.toast.info { background-color: var(--accent); }
+.toast.fade-out { opacity: 0; transform: translateY(-20px); }
+@keyframes toast-slide-in { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
 /* --- UTILITY & ANIMATIONS --- */
 .fade-in-up {
     opacity: 0; transform: translateY(30px);
