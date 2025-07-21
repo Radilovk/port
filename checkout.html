@@ -245,8 +245,10 @@
         </aside>
     </div>
 
-    <script>
+    <script type="module">
+import { trackPageView, trackPurchase } from "./js/analytics.js";
     document.addEventListener('DOMContentLoaded', () => {
+        trackPageView();
 
         // --- 1. Зареждане на количката от localStorage ---
         const cartData = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -414,6 +416,7 @@
                 })
                 .then(() => {
                     localStorage.removeItem('cart');
+                    trackPurchase(fullOrder);
                     alert('Поръчката е приета успешно!');
                 })
                 .catch(err => {

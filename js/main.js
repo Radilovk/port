@@ -3,6 +3,7 @@ import { addToCart, updateCartCount } from './cart.js';
 import { generateHeroHTML } from './components/hero.js';
 import { generateProductCategoryHTML } from './components/productCategory.js';
 import { generateInfoCardHTML } from './components/infoCard.js';
+import { trackPageView, trackAddToCart } from "./analytics.js";
 
 const DOM = {
     mainContainer: document.getElementById('main-content-container'),
@@ -128,6 +129,7 @@ function initializePageInteractions() {
                 addToCartBtn.dataset.price,
                 addToCartBtn.dataset.inventory
             );
+            trackAddToCart({ id: addToCartBtn.dataset.id, name: addToCartBtn.dataset.name, price: Number(addToCartBtn.dataset.price) });
             return;
         }
     });
@@ -355,6 +357,7 @@ async function main() {
 
         initializePageInteractions();
         initializeScrollSpy();
+        trackPageView();
 
     } catch (error) {
         console.error('Fatal Error: Could not load or render page content.', error);
