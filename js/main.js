@@ -1,4 +1,4 @@
-import { fetchPageContent } from './api.js';
+import { fetchSiteContent, fetchProducts } from './api.js';
 import { addToCart, updateCartCount } from './cart.js';
 import { generateHeroHTML } from './components/hero.js';
 import { generateProductCategoryHTML } from './components/productCategory.js';
@@ -343,13 +343,20 @@ async function main() {
     initializeGlobalScripts();
 
     try {
-        const data = await fetchPageContent();
+        const [siteData, prodData] = await Promise.all([
+            fetchSiteContent(),
+            fetchProducts()
+        ]);
 
         DOM.mainContainer.innerHTML = '';
 
-        renderHeader(data.settings, data.navigation);
-        renderMainContent(data.page_content);
-        renderFooter(data.settings, data.footer);
+        renderHeader(siteData.settings, siteData.navigation);
+        const combined = [
+            ...(siteData.page_content || []),
+            ...(prodData.product_categories || [])
+        ];
+        renderMainContent(combined);
+        renderFooter(siteData.settings, siteData.footer);
 
         DOM.mainContainer.classList.add('is-loaded');
 
