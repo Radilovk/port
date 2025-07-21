@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="bg" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Продукт - BIOCODE</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-container">
+            <a href="index.html" class="logo-container" id="header-logo-link">
+                <img src="img/logo.svg" alt="BIOCODE Logo" id="header-logo-img">
+                <div><span class="brand-name">BIOCODE</span></div>
+            </a>
+            <nav class="main-nav">
+                <ul class="nav-links" id="main-nav-links">
+                    <li><a href="index.html">Начало</a></li>
+                    <li><a href="checkout.html" class="cart-link">Количка (<span id="cart-count">0</span>)</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="product-main" class="container" style="padding-top:var(--header-height);">
+        <div id="product-container"></div>
+        <section id="related-products-section">
+            <h2>Свързани продукти</h2>
+            <div class="product-grid" id="related-products-grid"></div>
+        </section>
+    </main>
+
+    <footer class="main-footer" style="padding:2rem 0;text-align:center;">
+        <a href="index.html" class="btn-primary">Назад към каталога</a>
+    </footer>
+
+    <script src="js/product.js" type="module"></script>
+</body>
+</html>
