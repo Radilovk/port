@@ -53,10 +53,6 @@ export const API_URL = window.API_URL || 'https://example.com';
 <script src="js/main.js" type="module"></script>
 ```
 
-Ако сайтът се хоства в GitHub Pages или в поддиректория, този блок е необходим,
-за да укажете абсолютния адрес на API-то. Така заявките към `page_content.json`
-и `orders` ще сочат правилното място.
-
 Така може лесно да сменяте адреса при различни среди без да модифицирате файла.
 
 ## Страници
