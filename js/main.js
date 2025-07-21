@@ -113,9 +113,9 @@ function initializePageInteractions() {
             return;
         }
 
-        const card = e.target.closest('.product-card');
-        if (card && !e.target.closest('.add-to-cart-btn')) {
-            window.location.href = `product.html?id=${card.dataset.productId}`;
+        const cardHeader = e.target.closest('.product-card .card-header');
+        if (cardHeader && !e.target.closest('.add-to-cart-btn')) {
+            toggleAccordion(cardHeader);
             return;
         }
 
