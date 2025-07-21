@@ -37,23 +37,13 @@ export default {
         case '/quest-submit':
           response = await handleQuestSubmit(request, env, ctx);
           break;
-
-        case '/site_content.json':
-        case '/page_content.json': // съвместимост
+        
+        case '/page_content.json':
+          // Този ендпойнт вече ще обработва GET и POST
           if (request.method === 'GET') {
-              response = await handleGetSiteContent(request, env);
+              response = await handleGetPageContent(request, env);
           } else if (request.method === 'POST') {
-              response = await handleSaveSiteContent(request, env, ctx);
-          } else {
-              throw new UserFacingError('Method Not Allowed.', 405);
-          }
-          break;
-
-        case '/products.json':
-          if (request.method === 'GET') {
-              response = await handleGetProducts(request, env);
-          } else if (request.method === 'POST') {
-              response = await handleSaveProducts(request, env, ctx);
+              response = await handleSavePageContent(request, env, ctx);
           } else {
               throw new UserFacingError('Method Not Allowed.', 405);
           }
@@ -100,58 +90,28 @@ export default {
 // --- СПЕЦИФИЧНИ ОБРАБОТЧИЦИ НА ЕНДПОЙНТИ ---
 
 /**
- * Handles GET /site_content.json
+ * Handles GET /page_content.json
  */
-async function handleGetSiteContent(request, env) {
-    const siteContent = await env.PAGE_CONTENT.get('site_content');
-    if (siteContent === null) {
+async function handleGetPageContent(request, env) {
+    const pageContent = await env.PAGE_CONTENT.get('page_content');
+    if (pageContent === null) {
         throw new UserFacingError("Content not found.", 404);
     }
-    return new Response(siteContent, {
+    return new Response(pageContent, {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
     });
 }
 
 /**
- * Handles POST /site_content.json
+ * Handles POST /page_content.json
  */
-async function handleSaveSiteContent(request, env, ctx) {
+async function handleSavePageContent(request, env, ctx) {
     const contentToSave = await request.text();
     try {
+        // Проверяваме дали е валиден JSON, преди да запишем
         JSON.parse(contentToSave);
-        ctx.waitUntil(env.PAGE_CONTENT.put('site_content', contentToSave));
-        return new Response(JSON.stringify({ success: true, message: 'Content saved.' }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-        });
-    } catch (e) {
-        throw new UserFacingError("Invalid JSON provided in the request body.", 400);
-    }
-}
-
-/**
- * Handles GET /products.json
- */
-async function handleGetProducts(request, env) {
-    const products = await env.PAGE_CONTENT.get('products');
-    if (products === null) {
-        throw new UserFacingError("Content not found.", 404);
-    }
-    return new Response(products, {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-    });
-}
-
-/**
- * Handles POST /products.json
- */
-async function handleSaveProducts(request, env, ctx) {
-    const contentToSave = await request.text();
-    try {
-        JSON.parse(contentToSave);
-        ctx.waitUntil(env.PAGE_CONTENT.put('products', contentToSave));
+        ctx.waitUntil(env.PAGE_CONTENT.put('page_content', contentToSave));
         return new Response(JSON.stringify({ success: true, message: 'Content saved.' }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
@@ -230,11 +190,11 @@ async function handleQuestSubmit(request, env, ctx) {
   
   ctx.waitUntil(saveClientData(env, formData)); // Запазваме данните от въпросника
 
-  const pageContentJSON = await env.PAGE_CONTENT.get('products');
+  const pageContentJSON = await env.PAGE_CONTENT.get('page_content');
   const mainPromptTemplate = await env.PAGE_CONTENT.get('bot_prompt');
-
+  
   if (!pageContentJSON || !mainPromptTemplate) {
-      throw new Error("Critical KV data missing: 'products' or 'bot_prompt' not found.");
+      throw new Error("Critical KV data missing: 'page_content' or 'bot_prompt' not found.");
   }
   
   const productsForAI = transformProductsForAI(JSON.parse(pageContentJSON));
@@ -261,19 +221,14 @@ async function handleQuestSubmit(request, env, ctx) {
 
 // --- AI И ЛОГИКА ЗА ДАННИ ---
 
-function transformProductsForAI(data) {
-  let categories = [];
-  if (data && Array.isArray(data.product_categories)) {
-    categories = data.product_categories;
-  } else if (data && Array.isArray(data.page_content)) {
-    categories = data.page_content.filter(c => c.type === 'product_category');
-  } else {
-    console.error("Invalid product data structure for transformation.");
+function transformProductsForAI(pageContent) {
+  if (!pageContent || !Array.isArray(pageContent.page_content)) {
+    console.error("Invalid pageContent structure for transformation.");
     return [];
   }
-  const allProducts = categories
-    .filter(cat => Array.isArray(cat.products))
-    .flatMap(cat => cat.products);
+  const allProducts = pageContent.page_content
+    .filter(component => component.type === 'product_category' && Array.isArray(component.products))
+    .flatMap(category => category.products);
   return allProducts.map(product => ({
     product_id: product.product_id,
     name: product.public_data.name,

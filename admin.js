@@ -3,7 +3,7 @@
 // =======================================================
 
 // API Endpoint
-import { fetchSiteContent, fetchProducts, fetchOrders, saveSiteContent, saveProducts, updateOrderStatus } from "./js/api.js";
+import { fetchPageContent, fetchOrders, savePageContent, updateOrderStatus } from "./js/api.js";
 
 // Централизирани DOM елементи
 const DOM = {
@@ -60,14 +60,10 @@ let currentModalSaveCallback = null;
 
 async function fetchData() {
     try {
-        const [site, products] = await Promise.all([
-            fetchSiteContent(),
-            fetchProducts()
-        ]);
-        return { ...site, page_content: [...(site.page_content || []), ...(products.product_categories || [])] };
+        return await fetchPageContent();
     } catch (error) {
         showNotification('Критична грешка при зареждане на данните.', 'error');
-        console.error('Грешка при зареждане на съдържание:', error);
+        console.error('Грешка при зареждане на page_content:', error);
         return null;
     }
 }
@@ -93,16 +89,7 @@ async function saveData() {
     DOM.saveStatus.className = 'save-status is-saving';
 
     try {
-        const { marketing, catalog } = separateContent(appData.page_content);
-        await Promise.all([
-            saveSiteContent({
-                settings: appData.settings,
-                navigation: appData.navigation,
-                page_content: marketing,
-                footer: appData.footer
-            }),
-            saveProducts({ product_categories: catalog })
-        ]);
+        await savePageContent(appData);
         setUnsavedChanges(false);
         showNotification('Промените са записани успешно.', 'success');
     } catch (err) {
@@ -759,16 +746,6 @@ function setProperty(obj, path, value) {
     const last = parts.pop();
     const target = parts.reduce((acc, part) => acc[part] = acc[part] || {}, obj);
     target[last] = value;
-}
-
-function separateContent(components) {
-    const marketing = [];
-    const catalog = [];
-    (components || []).forEach(c => {
-        if (c.type === 'product_category') catalog.push(c);
-        else marketing.push(c);
-    });
-    return { marketing, catalog };
 }
 
 // =======================================================
