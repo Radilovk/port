@@ -1,11 +1,42 @@
       :root {
+        --bg-primary-light: #f3faf7;
+        --bg-secondary-light: #ffffff;
+        --text-primary-light: #0f2e33;
+        --text-secondary-light: #4b6f76;
+        --accent-light: #1ec8a5;
+        --accent-rgb-light: 30, 200, 165;
+        --border-color-light: rgba(15, 46, 51, 0.12);
+        --error-color-light: #f26d6d;
+        --text-on-accent-light: #043d32;
         --bg-primary-dark: #0d0f12;
         --bg-secondary-dark: #12151a;
         --text-primary-dark: #e9ecef;
         --text-secondary-dark: #a0aec0;
         --accent-dark: #00e0e0;
+        --accent-rgb-dark: 0, 224, 224;
         --border-color-dark: rgba(255, 255, 255, 0.1);
         --error-color-dark: #e57373;
+        --text-on-accent-dark: #001f1f;
+        --bg-primary: var(--bg-primary-light);
+        --bg-secondary: var(--bg-secondary-light);
+        --text-primary: var(--text-primary-light);
+        --text-secondary: var(--text-secondary-light);
+        --accent: var(--accent-light);
+        --accent-rgb: var(--accent-rgb-light);
+        --border-color: var(--border-color-light);
+        --error-color: var(--error-color-light);
+        --text-on-accent: var(--text-on-accent-light);
+      }
+      [data-theme="light"] {
+        --bg-primary: var(--bg-primary-light);
+        --bg-secondary: var(--bg-secondary-light);
+        --text-primary: var(--text-primary-light);
+        --text-secondary: var(--text-secondary-light);
+        --accent: var(--accent-light);
+        --accent-rgb: var(--accent-rgb-light);
+        --border-color: var(--border-color-light);
+        --error-color: var(--error-color-light);
+        --text-on-accent: var(--text-on-accent-light);
       }
       [data-theme="dark"] {
         --bg-primary: var(--bg-primary-dark);
@@ -13,8 +44,10 @@
         --text-primary: var(--text-primary-dark);
         --text-secondary: var(--text-secondary-dark);
         --accent: var(--accent-dark);
+        --accent-rgb: var(--accent-rgb-dark);
         --border-color: var(--border-color-dark);
         --error-color: var(--error-color-dark);
+        --text-on-accent: var(--text-on-accent-dark);
       }
       * {
         margin: 0;
@@ -255,10 +288,7 @@
       }
       .nav-btn#next-btn {
         background-color: var(--accent);
-        color: var(--bg-primary);
-      }
-      [data-theme="dark"] .nav-btn#next-btn {
-        color: #000;
+        color: var(--text-on-accent);
       }
       .nav-btn#next-btn:hover {
         transform: translateY(-2px);
