@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bg" data-theme="dark">
+<html lang="bg" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,10 +16,24 @@
     <link rel="stylesheet" href="index.css">
     <style>
         :root {
-            --bg-primary-dark: #0D0F12; --bg-secondary-dark: #12151A; --text-primary-dark: #E9ECEF; --text-secondary-dark: #A0AEC0; --accent-dark: #00E0E0; --border-color-dark: rgba(255, 255, 255, 0.1); --error-color-dark: #ff5c5c;
+            --bg-primary-light: #f3faf7; --bg-secondary-light: #ffffff; --text-primary-light: #0f2e33; --text-secondary-light: #4b6f76;
+            --accent-light: #1ec8a5; --accent-rgb-light: 30, 200, 165; --border-color-light: rgba(15, 46, 51, 0.12);
+            --success-color-light: #2ecf87; --error-color-light: #f26d6d; --text-on-accent-light: #043d32;
+            --bg-primary-dark: #0D0F12; --bg-secondary-dark: #12151A; --text-primary-dark: #E9ECEF; --text-secondary-dark: #A0AEC0;
+            --accent-dark: #00E0E0; --accent-rgb-dark: 0, 224, 224; --border-color-dark: rgba(255, 255, 255, 0.1); --error-color-dark: #ff5c5c; --text-on-accent-dark: #001f1f;
+            --bg-primary: var(--bg-primary-light); --bg-secondary: var(--bg-secondary-light); --text-primary: var(--text-primary-light);
+            --text-secondary: var(--text-secondary-light); --accent: var(--accent-light); --accent-rgb: var(--accent-rgb-light);
+            --border-color: var(--border-color-light); --error-color: var(--error-color-light); --text-on-accent: var(--text-on-accent-light);
+        }
+        [data-theme="light"] {
+            --bg-primary: var(--bg-primary-light); --bg-secondary: var(--bg-secondary-light); --text-primary: var(--text-primary-light);
+            --text-secondary: var(--text-secondary-light); --accent: var(--accent-light); --accent-rgb: var(--accent-rgb-light);
+            --border-color: var(--border-color-light); --error-color: var(--error-color-light); --text-on-accent: var(--text-on-accent-light);
         }
         [data-theme="dark"] {
-            --bg-primary: var(--bg-primary-dark); --bg-secondary: var(--bg-secondary-dark); --text-primary: var(--text-primary-dark); --text-secondary: var(--text-secondary-dark); --accent: var(--accent-dark); --border-color: var(--border-color-dark); --error-color: var(--error-color-dark);
+            --bg-primary: var(--bg-primary-dark); --bg-secondary: var(--bg-secondary-dark); --text-primary: var(--text-primary-dark);
+            --text-secondary: var(--text-secondary-dark); --accent: var(--accent-dark); --accent-rgb: var(--accent-rgb-dark);
+            --border-color: var(--border-color-dark); --error-color: var(--error-color-dark); --text-on-accent: var(--text-on-accent-dark);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
@@ -34,7 +48,7 @@
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem; }
         .form-group input { width: 100%; padding: 0.8rem; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem; transition: border-color 0.3s, box-shadow 0.3s; }
-        .form-group input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 224, 224, 0.2); }
+        .form-group input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.2); }
         .form-group input.is-invalid { border-color: var(--error-color); }
         .error-message { color: var(--error-color); font-size: 0.85rem; margin-top: 0.25rem; display: none; }
         input.is-invalid + .error-message { display: block; }
@@ -64,10 +78,9 @@
         .summary-row.total { font-size: 1.2rem; font-weight: bold; border-top: 1px solid var(--border-color); margin-top: 1rem; padding-top: 1rem; }
         .promo-code-form { display: flex; gap: 0.5rem; margin-top: 1rem; }
         .promo-code-form input { flex-grow: 1; }
-        .promo-code-form button { padding: 0.8rem; background-color: var(--accent); color: var(--bg-primary); border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
-        [data-theme="dark"] .promo-code-form button { color: #000; }
+        .promo-code-form button { padding: 0.8rem; background-color: var(--accent); color: var(--text-on-accent); border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
         /* Finalization */
-        .btn-submit { width: 100%; padding: 1rem; font-size: 1.1rem; font-weight: 700; color: #000; background-color: var(--accent); border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .btn-submit { width: 100%; padding: 1rem; font-size: 1.1rem; font-weight: 700; color: var(--text-on-accent); background-color: var(--accent); border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .btn-submit:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--accent); }
         .trust-seals { text-align: center; margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.8rem; }
         @media (max-width: 992px) {
