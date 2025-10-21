@@ -19,7 +19,7 @@
         // --- Конфигурация ---
         const BASE_URL = "https://port.radilov-k.workers.dev";
         const WORKER_SUBMIT_URL = `${BASE_URL}/quest-submit`;
-        const PAGE_CONTENT_URL = `${BASE_URL}/page_content.json`;
+        const PAGE_CONTENT_URL = `${BASE_URL}/products.json`;
 
         // --- Глобално състояние ---
         let currentStepIndex = 0;
