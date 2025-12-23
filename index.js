@@ -456,14 +456,13 @@ function initializeCanvasAnimation(animationType = 'particles', forceReinit = fa
     if (currentAnimationType !== animationType || forceReinit) {
         particles = [];
         waveTime = 0;
-        currentAnimationType = animationType;
     }
+    
+    currentAnimationType = animationType;
     
     // Respect user preference for reduced motion
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reducedMotion) return;
-
-    currentAnimationType = animationType;
 
     // --- Common Helper Functions ---
     function resizeCanvas() {
