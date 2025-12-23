@@ -280,7 +280,7 @@ function renderFooter(settings, footer) {
 //          5. ИНИЦИАЛИЗАЦИЯ НА СЪБИТИЯ (INITIALIZERS)
 // =======================================================
 
-function initializePageInteractions() {
+function initializePageInteractions(animationType = 'particles') {
     document.body.addEventListener('click', e => {
         const toggleAccordion = (header) => {
             const isExpanded = header.getAttribute('aria-expanded') === 'true';
@@ -348,8 +348,8 @@ function initializePageInteractions() {
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-in-up').forEach(el => scrollObserver.observe(el));
 
-    // Initialize Canvas
-    initializeCanvasAnimation();
+    // Initialize Canvas with selected animation type
+    initializeCanvasAnimation(animationType);
 }
 
 function initializeGlobalScripts() {
@@ -436,39 +436,35 @@ let animationFrameId;
 let canvas, ctx,
     particles = [],
     lastWidth = 0,
-    lastHeight = 0;
+    lastHeight = 0,
+    currentAnimationType = 'particles',
+    waveTime = 0; // Move waveTime to module scope
 
-function initializeCanvasAnimation(forceReinit = false) {
+function initializeCanvasAnimation(animationType = 'particles', forceReinit = false) {
     canvas = document.getElementById('neuron-canvas');
     if (!canvas) return;
 
     ctx = canvas.getContext('2d');
 
+    // Always cancel any existing animation before starting a new one
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
     }
+    
+    // Reset animation-specific state when switching types
+    if (currentAnimationType !== animationType || forceReinit) {
+        particles = [];
+        waveTime = 0;
+    }
+    
+    currentAnimationType = animationType;
     
     // Respect user preference for reduced motion
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reducedMotion) return;
 
-    // --- Helper Functions ---
-    class Particle {
-        constructor(x, y, dirX, dirY, size, color) { this.x = x; this.y = y; this.directionX = dirX; this.directionY = dirY; this.size = size; this.color = color; }
-        draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); }
-        update() { if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX; if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY; this.x += this.directionX; this.y += this.directionY; this.draw(); }
-    }
-
-    function initParticles() {
-        particles = [];
-        const baseCount = Math.floor((canvas.width * canvas.height) / 12000);
-        const particleCount = Math.max(10, Math.floor(baseCount * (window.innerWidth < 768 ? 0.6 : 1)));
-        const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height, (Math.random() * 0.4) - 0.2, (Math.random() * 0.4) - 0.2, Math.random() * 2 + 1, accentColor));
-        }
-    }
-
+    // --- Common Helper Functions ---
     function resizeCanvas() {
         const parent = canvas.parentElement;
         if (!parent) return;
@@ -487,7 +483,271 @@ function initializeCanvasAnimation(forceReinit = false) {
         lastHeight = height;
     }
 
-    function connect() {
+    // --- Animation Type 1: Floating Particles (Trust, Gentle) ---
+    class FloatingParticle {
+        constructor(x, y, dirX, dirY, size, color) {
+            this.x = x;
+            this.y = y;
+            this.directionX = dirX;
+            this.directionY = dirY;
+            this.size = size;
+            this.color = color;
+            this.opacity = Math.random() * 0.5 + 0.5;
+        }
+        draw() {
+            ctx.globalAlpha = this.opacity;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+        update() {
+            if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+            if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+            this.x += this.directionX;
+            this.y += this.directionY;
+            this.draw();
+        }
+    }
+
+    function initParticlesAnimation() {
+        particles = [];
+        const baseCount = Math.floor((canvas.width * canvas.height) / 12000);
+        const particleCount = Math.max(10, Math.floor(baseCount * (window.innerWidth < 768 ? 0.6 : 1)));
+        const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new FloatingParticle(
+                Math.random() * canvas.width,
+                Math.random() * canvas.height,
+                (Math.random() * 0.3) - 0.15,
+                (Math.random() * 0.3) - 0.15,
+                Math.random() * 3 + 1,
+                accentColor
+            ));
+        }
+    }
+
+    function animateParticles() {
+        animationFrameId = requestAnimationFrame(animateParticles);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw particles
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+        }
+        
+        // Connect nearby particles
+        const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();
+        const connectDistance = Math.min(canvas.width, canvas.height) / 6;
+        const connectArea = connectDistance * connectDistance;
+
+        for (let a = 0; a < particles.length; a++) {
+            for (let b = a + 1; b < particles.length; b++) {
+                let distance = ((particles[a].x - particles[b].x) ** 2) + ((particles[a].y - particles[b].y) ** 2);
+                if (distance < connectArea) {
+                    let opacityValue = (1 - (distance / connectArea)) * 0.3;
+                    ctx.strokeStyle = `rgba(${accentRgb}, ${opacityValue})`;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[a].x, particles[a].y);
+                    ctx.lineTo(particles[b].x, particles[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    // --- Animation Type 2: Gradient Waves (Calming, Flowing) ---
+    function animateWaves() {
+        animationFrameId = requestAnimationFrame(animateWaves);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();
+        waveTime += 0.01;
+        
+        // Draw multiple wave layers
+        for (let layer = 0; layer < 3; layer++) {
+            ctx.beginPath();
+            const amplitude = 40 + layer * 20;
+            const frequency = 0.01 - layer * 0.002;
+            const yOffset = canvas.height * 0.3 + layer * 50;
+            const opacity = 0.15 - layer * 0.04;
+            
+            for (let x = 0; x < canvas.width; x++) {
+                const y = yOffset + Math.sin(x * frequency + waveTime + layer) * amplitude;
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.closePath();
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, `rgba(${accentRgb}, ${opacity})`);
+            gradient.addColorStop(1, `rgba(${accentRgb}, 0)`);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
+    }
+
+    // --- Animation Type 3: Pulse Rings (Energy, Transformation) ---
+    class PulseRing {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.radius = 0;
+            this.maxRadius = Math.random() * 150 + 100;
+            this.speed = Math.random() * 0.5 + 0.3;
+            this.opacity = 1;
+        }
+        update() {
+            this.radius += this.speed;
+            this.opacity = 1 - (this.radius / this.maxRadius);
+            
+            if (this.radius >= this.maxRadius) {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.radius = 0;
+                this.opacity = 1;
+            }
+        }
+        draw() {
+            const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(${accentRgb}, ${this.opacity * 0.4})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+    }
+
+    function initPulseRings() {
+        particles = [];
+        const ringCount = Math.max(3, Math.floor((canvas.width * canvas.height) / 150000));
+        for (let i = 0; i < ringCount; i++) {
+            particles.push(new PulseRing());
+        }
+    }
+
+    function animatePulseRings() {
+        animationFrameId = requestAnimationFrame(animatePulseRings);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].draw();
+        }
+    }
+
+    // --- Animation Type 4: Rising Bubbles (Lightness, Ascension) ---
+    class Bubble {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = canvas.height + Math.random() * 200;
+            this.radius = Math.random() * 20 + 10;
+            this.speed = Math.random() * 0.5 + 0.3;
+            this.opacity = Math.random() * 0.3 + 0.2;
+            this.wobble = Math.random() * 0.02 + 0.01;
+            this.wobbleOffset = Math.random() * Math.PI * 2;
+        }
+        update() {
+            this.y -= this.speed;
+            this.wobbleOffset += this.wobble;
+            
+            if (this.y + this.radius < 0) {
+                this.y = canvas.height + this.radius;
+                this.x = Math.random() * canvas.width;
+            }
+        }
+        draw() {
+            const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();
+            const wobbleX = Math.sin(this.wobbleOffset) * 20;
+            
+            ctx.globalAlpha = this.opacity;
+            ctx.beginPath();
+            ctx.arc(this.x + wobbleX, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${accentRgb}, 0.3)`;
+            ctx.fill();
+            ctx.strokeStyle = `rgba(${accentRgb}, 0.6)`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    function initBubbles() {
+        particles = [];
+        const bubbleCount = Math.max(10, Math.floor((canvas.width * canvas.height) / 20000));
+        for (let i = 0; i < bubbleCount; i++) {
+            particles.push(new Bubble());
+        }
+    }
+
+    function animateBubbles() {
+        animationFrameId = requestAnimationFrame(animateBubbles);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].draw();
+        }
+    }
+
+    // --- Animation Type 5: Neuron Network (Classic) ---
+    class Neuron {
+        constructor(x, y, dirX, dirY, size, color) {
+            this.x = x;
+            this.y = y;
+            this.directionX = dirX;
+            this.directionY = dirY;
+            this.size = size;
+            this.color = color;
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
+        update() {
+            if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+            if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+            this.x += this.directionX;
+            this.y += this.directionY;
+            this.draw();
+        }
+    }
+
+    function initNeurons() {
+        particles = [];
+        const baseCount = Math.floor((canvas.width * canvas.height) / 12000);
+        const particleCount = Math.max(10, Math.floor(baseCount * (window.innerWidth < 768 ? 0.6 : 1)));
+        const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Neuron(
+                Math.random() * canvas.width,
+                Math.random() * canvas.height,
+                (Math.random() * 0.4) - 0.2,
+                (Math.random() * 0.4) - 0.2,
+                Math.random() * 2 + 1,
+                accentColor
+            ));
+        }
+    }
+
+    function animateNeurons() {
+        animationFrameId = requestAnimationFrame(animateNeurons);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+        }
+        
         const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim();
         const connectDistance = Math.min(canvas.width, canvas.height) / 5;
         const connectArea = connectDistance * connectDistance;
@@ -499,28 +759,75 @@ function initializeCanvasAnimation(forceReinit = false) {
                     let opacityValue = 1 - (distance / (connectArea * 1.1));
                     ctx.strokeStyle = `rgba(${accentRgb}, ${opacityValue})`;
                     ctx.lineWidth = 1;
-                    ctx.beginPath(); ctx.moveTo(particles[a].x, particles[a].y); ctx.lineTo(particles[b].x, particles[b].y); ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(particles[a].x, particles[a].y);
+                    ctx.lineTo(particles[b].x, particles[b].y);
+                    ctx.stroke();
                 }
             }
         }
     }
 
-    function animate() {
-        animationFrameId = requestAnimationFrame(animate);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let i = 0; i < particles.length; i++) particles[i].update();
-        connect();
-    }
-    
     // --- Execution Logic ---
-    if (particles.length === 0 || forceReinit) {
-        resizeCanvas();
-        initParticles();
-    }
+    resizeCanvas();
     
-    animate();
+    switch (animationType) {
+        case 'particles':
+            if (particles.length === 0 || forceReinit) {
+                initParticlesAnimation();
+            }
+            animateParticles();
+            break;
+        case 'waves':
+            animateWaves();
+            break;
+        case 'pulseRings':
+            if (particles.length === 0 || forceReinit) {
+                initPulseRings();
+            }
+            animatePulseRings();
+            break;
+        case 'bubbles':
+            if (particles.length === 0 || forceReinit) {
+                initBubbles();
+            }
+            animateBubbles();
+            break;
+        case 'neuron':
+        default:
+            if (particles.length === 0 || forceReinit) {
+                initNeurons();
+            }
+            animateNeurons();
+            break;
+    }
 
-    const debouncedResize = debounce(resizeCanvas, 100);
+    const debouncedResize = debounce(() => {
+        const prevWidth = lastWidth;
+        const prevHeight = lastHeight;
+        resizeCanvas();
+        
+        // Only reinitialize particles if canvas size actually changed
+        if ((prevWidth !== lastWidth || prevHeight !== lastHeight) && 
+            ['particles', 'pulseRings', 'bubbles', 'neuron'].includes(currentAnimationType)) {
+            particles = [];
+            // Reinitialize particles based on animation type
+            switch(currentAnimationType) {
+                case 'particles':
+                    initParticlesAnimation();
+                    break;
+                case 'pulseRings':
+                    initPulseRings();
+                    break;
+                case 'bubbles':
+                    initBubbles();
+                    break;
+                case 'neuron':
+                    initNeurons();
+                    break;
+            }
+        }
+    }, 100);
     window.addEventListener('resize', debouncedResize);
 }
 
@@ -544,7 +851,9 @@ async function main() {
         
         DOM.mainContainer.classList.add('is-loaded');
 
-        initializePageInteractions();
+        // Get animation type from settings, default to 'particles'
+        const animationType = data.settings.background_animation || 'particles';
+        initializePageInteractions(animationType);
         initializeScrollSpy();
 
     } catch (error) {

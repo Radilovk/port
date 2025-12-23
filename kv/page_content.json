@@ -1,25 +1,22 @@
 {
   "settings": {
-    "site_name": "BIOCODE",
-    "site_slogan": "the science of life",
-    "logo_url": "https://radilovk.github.io/face/assets/logo.png"
+    "site_name": "SlimFit",
+    "site_slogan": "Вашият път към идеалната форма",
+    "logo_url": "https://radilovk.github.io/face/assets/logo.png",
+    "background_animation": "particles"
   },
   "navigation": [
     {
-      "text": "Anti-Aging",
-      "link": "#anti-aging"
+      "text": "Продукти",
+      "link": "#products"
     },
     {
-      "text": "Невропептиди",
-      "link": "#neuro"
+      "text": "Отслабване",
+      "link": "#weight-loss"
     },
     {
-      "text": "Растеж",
-      "link": "#growth"
-    },
-    {
-      "text": "Лайфстайл",
-      "link": "#lifestyle"
+      "text": "Енергия",
+      "link": "#energy"
     },
     {
       "text": "За нас",
@@ -31,9 +28,9 @@
       "type": "info_card",
       "component_id": "comp-uuid-infocard-001",
       "id": "about-us",
-      "title": "Науката зад BIOCODE",
+      "title": "Науката зад SlimFit",
       "image": "https://radilovk.github.io/face/assets/scientist-holding-medical-testing-tubes-600nw-2506585825.webp",
-      "content": "Нашата мисия е да демистифицираме света на регенеративната медицина. Всеки продукт в нашето портфолио е подкрепен от научни изследвания и е избран заради неговия потенциал да оптимизира човешкото здраве на клетъчно ниво.\n\nНие вярваме в информирания избор и предоставяме прозрачна информация, за да можете да вземете най-доброто решение за вашето тяло и ум.",
+      "content": "Нашата мисия е да ви помогнем да постигнете желаната форма чрез ефективни и безопасни хранителни добавки за отслабване. Всеки продукт в нашето портфолио е подбран внимателно и подкрепен от доказана ефективност.\n\nНие вярваме в информирания избор и предоставяме прозрачна информация, за да можете да вземете най-доброто решение за вашето здраве и тяло.",
       "button": {
         "text": "Разгледай изследванията",
         "url": "https://pubmed.ncbi.nlm.nih.gov/"
@@ -45,8 +42,8 @@
     {
       "type": "hero_banner",
       "component_id": "comp-uuid-hero-001",
-      "title": "Интерактивно Портфолио",
-      "subtitle": "Пептиди и Регенеративна Медицина"
+      "title": "Открийте вашата нова форма",
+      "subtitle": "Ефективни хранителни добавки за отслабване"
     },
     {
       "type": "product_category",
@@ -825,7 +822,7 @@
       ]
     },
     {
-      "title": "BIOCODE - индивидуален анализатор",
+      "title": "SlimFit - индивидуален анализатор",
       "image": "https://radilovk.github.io/face/assets/analyzis.png",
       "content": "Създай индивидуален протокол и препоръки",
       "button": {
@@ -886,6 +883,6 @@
         ]
       }
     ],
-    "copyright_text": "© 2025 BIOCODE. Всички права запазени."
+    "copyright_text": "© 2025 SlimFit. Всички права запазени."
   }
 }
