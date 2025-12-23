@@ -102,7 +102,7 @@ const generateProductCard = (product) => {
 
 const generateHeroHTML = component => `
     <header class="hero-section">
-        <div id="background-animation-container" class="background-animation-container"></div>
+        <canvas id="neuron-canvas"></canvas>
         <div class="container">
             <div class="hero-content">
                 <h1>${component.title}</h1>
@@ -347,6 +347,9 @@ function initializePageInteractions() {
         });
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-in-up').forEach(el => scrollObserver.observe(el));
+
+    // Initialize Canvas
+    initializeCanvasAnimation();
 }
 
 function initializeGlobalScripts() {
@@ -427,7 +430,7 @@ function initializeScrollSpy() {
 
 
 // =======================================================
-//          6. BACKGROUND ANIMATION LOGIC
+//          6. CANVAS АНИМАЦИЯ (CANVAS LOGIC)
 // =======================================================
 let animationFrameId;
 let canvas, ctx,
@@ -435,78 +438,25 @@ let canvas, ctx,
     lastWidth = 0,
     lastHeight = 0;
 
-function initializeBackgroundAnimation(animationType = 'flowing-energy') {
-    const container = document.getElementById('background-animation-container');
-    if (!container) return;
-
-    // Cancel any existing animation
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-    }
-
-    // Clear container
-    container.innerHTML = '';
-    container.className = 'background-animation-container';
-
-    // Respect user preference for reduced motion
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reducedMotion) {
-        animationType = 'none';
-    }
-
-    // Handle 'none' animation type
-    if (animationType === 'none') {
-        return;
-    }
-
-    // Handle CSS-based animations
-    if (['flowing-energy', 'wellness-pulse', 'metabolic-waves', 'transformation-grid'].includes(animationType)) {
-        container.classList.add(animationType);
-        return;
-    }
-
-    // Handle legacy neuron-canvas animation
-    if (animationType === 'neuron-canvas') {
-        initializeNeuronCanvas(container);
-        return;
-    }
-
-    // Default to flowing-energy if unknown type
-    container.classList.add('flowing-energy');
-}
-
-function initializeNeuronCanvas(container) {
-    // Create canvas element
-    canvas = document.createElement('canvas');
-    canvas.id = 'neuron-canvas';
-    container.appendChild(canvas);
+function initializeCanvasAnimation(forceReinit = false) {
+    canvas = document.getElementById('neuron-canvas');
+    if (!canvas) return;
 
     ctx = canvas.getContext('2d');
 
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+    }
+    
+    // Respect user preference for reduced motion
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return;
+
     // --- Helper Functions ---
     class Particle {
-        constructor(x, y, dirX, dirY, size, color) { 
-            this.x = x; 
-            this.y = y; 
-            this.directionX = dirX; 
-            this.directionY = dirY; 
-            this.size = size; 
-            this.color = color; 
-        }
-        draw() { 
-            ctx.beginPath(); 
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); 
-            ctx.fillStyle = this.color; 
-            ctx.fill(); 
-        }
-        update() { 
-            if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX; 
-            if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY; 
-            this.x += this.directionX; 
-            this.y += this.directionY; 
-            this.draw(); 
-        }
+        constructor(x, y, dirX, dirY, size, color) { this.x = x; this.y = y; this.directionX = dirX; this.directionY = dirY; this.size = size; this.color = color; }
+        draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false); ctx.fillStyle = this.color; ctx.fill(); }
+        update() { if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX; if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY; this.x += this.directionX; this.y += this.directionY; this.draw(); }
     }
 
     function initParticles() {
@@ -515,14 +465,7 @@ function initializeNeuronCanvas(container) {
         const particleCount = Math.max(10, Math.floor(baseCount * (window.innerWidth < 768 ? 0.6 : 1)));
         const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
         for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle(
-                Math.random() * canvas.width, 
-                Math.random() * canvas.height, 
-                (Math.random() * 0.4) - 0.2, 
-                (Math.random() * 0.4) - 0.2, 
-                Math.random() * 2 + 1, 
-                accentColor
-            ));
+            particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height, (Math.random() * 0.4) - 0.2, (Math.random() * 0.4) - 0.2, Math.random() * 2 + 1, accentColor));
         }
     }
 
@@ -556,10 +499,7 @@ function initializeNeuronCanvas(container) {
                     let opacityValue = 1 - (distance / (connectArea * 1.1));
                     ctx.strokeStyle = `rgba(${accentRgb}, ${opacityValue})`;
                     ctx.lineWidth = 1;
-                    ctx.beginPath(); 
-                    ctx.moveTo(particles[a].x, particles[a].y); 
-                    ctx.lineTo(particles[b].x, particles[b].y); 
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(particles[a].x, particles[a].y); ctx.lineTo(particles[b].x, particles[b].y); ctx.stroke();
                 }
             }
         }
@@ -573,14 +513,14 @@ function initializeNeuronCanvas(container) {
     }
     
     // --- Execution Logic ---
-    resizeCanvas();
-    initParticles();
-    animate();
-
-    const debouncedResize = debounce(() => {
+    if (particles.length === 0 || forceReinit) {
         resizeCanvas();
         initParticles();
-    }, 100);
+    }
+    
+    animate();
+
+    const debouncedResize = debounce(resizeCanvas, 100);
     window.addEventListener('resize', debouncedResize);
 }
 
@@ -606,10 +546,6 @@ async function main() {
 
         initializePageInteractions();
         initializeScrollSpy();
-
-        // Initialize background animation based on settings
-        const animationType = data.settings.background_animation || 'flowing-energy';
-        initializeBackgroundAnimation(animationType);
 
     } catch (error) {
         console.error("Fatal Error: Could not load or render page content.", error);

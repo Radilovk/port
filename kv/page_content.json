@@ -2,8 +2,7 @@
   "settings": {
     "site_name": "BIOCODE",
     "site_slogan": "the science of life",
-    "logo_url": "https://radilovk.github.io/face/assets/logo.png",
-    "background_animation": "flowing-energy"
+    "logo_url": "https://radilovk.github.io/face/assets/logo.png"
   },
   "navigation": [
     {
