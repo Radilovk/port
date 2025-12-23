@@ -1,7 +1,7 @@
 {
   "settings": {
-    "site_name": "BIOCODE",
-    "site_slogan": "the science of life",
+    "site_name": "Интерактивно Портфолио",
+    "site_slogan": "Пептиди и Регенеративна Медицина",
     "logo_url": "https://radilovk.github.io/face/assets/logo.png"
   },
   "navigation": [
@@ -31,7 +31,7 @@
       "type": "info_card",
       "component_id": "comp-uuid-infocard-001",
       "id": "about-us",
-      "title": "Науката зад BIOCODE",
+      "title": "Научен Подход",
       "image": "https://radilovk.github.io/face/assets/scientist-holding-medical-testing-tubes-600nw-2506585825.webp",
       "content": "Нашата мисия е да демистифицираме света на регенеративната медицина. Всеки продукт в нашето портфолио е подкрепен от научни изследвания и е избран заради неговия потенциал да оптимизира човешкото здраве на клетъчно ниво.\n\nНие вярваме в информирания избор и предоставяме прозрачна информация, за да можете да вземете най-доброто решение за вашето тяло и ум.",
       "button": {
@@ -825,7 +825,7 @@
       ]
     },
     {
-      "title": "BIOCODE - индивидуален анализатор",
+      "title": "Индивидуален анализатор",
       "image": "https://radilovk.github.io/face/assets/analyzis.png",
       "content": "Създай индивидуален протокол и препоръки",
       "button": {
@@ -886,6 +886,6 @@
         ]
       }
     ],
-    "copyright_text": "© 2025 BIOCODE. Всички права запазени."
+    "copyright_text": "© 2025 Интерактивно Портфолио. Всички права запазени."
   }
 }
