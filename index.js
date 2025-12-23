@@ -437,7 +437,8 @@ let canvas, ctx,
     particles = [],
     lastWidth = 0,
     lastHeight = 0,
-    currentAnimationType = 'particles';
+    currentAnimationType = 'particles',
+    waveTime = 0; // Move waveTime to module scope
 
 function initializeCanvasAnimation(animationType = 'particles', forceReinit = false) {
     canvas = document.getElementById('neuron-canvas');
@@ -445,8 +446,17 @@ function initializeCanvasAnimation(animationType = 'particles', forceReinit = fa
 
     ctx = canvas.getContext('2d');
 
+    // Always cancel any existing animation before starting a new one
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
+    
+    // Reset animation-specific state when switching types
+    if (currentAnimationType !== animationType || forceReinit) {
+        particles = [];
+        waveTime = 0;
+        currentAnimationType = animationType;
     }
     
     // Respect user preference for reduced motion
@@ -550,7 +560,6 @@ function initializeCanvasAnimation(animationType = 'particles', forceReinit = fa
     }
 
     // --- Animation Type 2: Gradient Waves (Calming, Flowing) ---
-    let waveTime = 0;
     function animateWaves() {
         animationFrameId = requestAnimationFrame(animateWaves);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -795,10 +804,29 @@ function initializeCanvasAnimation(animationType = 'particles', forceReinit = fa
     }
 
     const debouncedResize = debounce(() => {
+        const prevWidth = lastWidth;
+        const prevHeight = lastHeight;
         resizeCanvas();
-        // Reinitialize particles on resize for particle-based animations
-        if (['particles', 'pulseRings', 'bubbles', 'neuron'].includes(animationType)) {
-            initializeCanvasAnimation(animationType, true);
+        
+        // Only reinitialize particles if canvas size actually changed
+        if ((prevWidth !== lastWidth || prevHeight !== lastHeight) && 
+            ['particles', 'pulseRings', 'bubbles', 'neuron'].includes(currentAnimationType)) {
+            particles = [];
+            // Reinitialize particles based on animation type
+            switch(currentAnimationType) {
+                case 'particles':
+                    initParticlesAnimation();
+                    break;
+                case 'pulseRings':
+                    initPulseRings();
+                    break;
+                case 'bubbles':
+                    initBubbles();
+                    break;
+                case 'neuron':
+                    initNeurons();
+                    break;
+            }
         }
     }, 100);
     window.addEventListener('resize', debouncedResize);
